@@ -11,7 +11,7 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 ## Recommended Build Order
 
 1. Install template dependencies with npm.
-2. Add manifest permissions for YouTube, storage, tabs, scripting, and identity.
+2. Add the YouTube content-script match pattern and the storage permission.
 3. Implement storage schema and defaults.
 4. Inject a content script on `https://www.youtube.com/*`.
 5. Hide or replace the YouTube home recommendation feed only when focus mode is active.
@@ -31,6 +31,6 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 
 ## Status
 
-Current stage: template scaffold complete and planning updated for the selected starter.
+Current stage: Phase 1 foundation complete through route detection.
 
-Next concrete action: update `manifest.json` from the template defaults to the YouTube focus-mode MVP permissions and URL match pattern.
+Next concrete action: T005 - hide or replace the YouTube home recommendation feed when focus mode is active.

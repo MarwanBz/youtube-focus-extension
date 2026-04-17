@@ -35,12 +35,19 @@ youtube-focus-extension/
     index.html
     src/
       App.tsx
+      domIds.ts
       main.tsx
+      urlChanges.ts
+      youtubeHome.ts
   src/
     App.tsx
     background.ts
     main.tsx
     options.tsx
+    settings/
+      defaults.ts
+      schema.ts
+      storage.ts
     vite-env.d.ts
   lib/
     components/
@@ -77,12 +84,11 @@ Files:
 - `src/main.tsx`
 - `src/App.tsx`
 
-Current template behavior:
+Current behavior:
 
 - Renders a React popup.
 - Opens the options page.
-- Sends messages to the content script.
-- Sends badge messages to the background worker.
+- Reads the focus-mode default from extension storage.
 
 Target focus-mode behavior:
 
@@ -98,11 +104,11 @@ Files:
 - `options.html`
 - `src/options.tsx`
 
-Current template behavior:
+Current behavior:
 
 - Renders a React options page.
 - Reads extension name and version from the manifest.
-- Sends a reset badge message to the background worker.
+- Persists the focus-mode default in extension storage.
 
 Target focus-mode behavior:
 
@@ -117,10 +123,9 @@ File:
 
 - `src/background.ts`
 
-Current template behavior:
+Current behavior:
 
-- Handles demo badge increment/reset messages.
-- Sets badge background color on install.
+- Ensures the settings object exists on install.
 
 Target focus-mode behavior:
 
@@ -137,13 +142,13 @@ Files:
 - `content-script/src/main.tsx`
 - `content-script/src/App.tsx`
 
-Current template behavior:
+Current behavior:
 
 - Injects a host element with id `extension-root`.
 - Attaches a Shadow DOM root.
 - Injects `@lib/styles/globals.css` as inline CSS into the Shadow DOM.
-- Renders a small React overlay.
-- Handles a `TOGGLE_UI` runtime message.
+- Watches YouTube SPA URL changes.
+- Marks the route state on the host element and renders a small focus-ready status only on the YouTube home route when focus mode is active.
 
 Target focus-mode behavior:
 
@@ -178,35 +183,39 @@ This means implementation should edit the existing template entrypoints rather t
 
 ## Manifest Direction
 
-Current template manifest:
+Current MVP manifest:
 
-- Name: `My Extension`
-- Permission: `activeTab`
-- Content script match: `<all_urls>`
+- Name: `YouTube Focus Extension`
+- Permission: `storage`
+- Content script match: `https://www.youtube.com/*`
 - Popup: `index.html`
 - Options page: `options.html`
 - Background service worker: `src/background.ts`
 
-Required MVP manifest changes:
+Upcoming manifest guidance:
 
-- Rename extension to the project name.
-- Update description for YouTube focus mode.
-- Replace `<all_urls>` with `https://www.youtube.com/*`.
-- Add `storage` permission.
-- Keep `activeTab` only if popup-to-active-tab messaging still needs it.
-- Add `tabs` only if required by implementation.
+- Keep `activeTab` or `tabs` out unless popup-to-active-tab messaging becomes necessary.
 - Do not add `identity` until Phase 2 OAuth work begins.
 
-Permission rule: every new permission must have a feature reason. Do not add future permissions early.
+Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. Do not add future permissions early.
+
+## Settings Storage
+
+MVP settings are stored under `youtubeFocusSettings` in `chrome.storage.sync` because the data is small user preference data that can follow the browser profile. Defaults are conservative:
+
+- `focusModeEnabled`: `false`
+- `manualPlaylists`: `[]`
+- `disabledUntil`: `null`
+
+Manual playlist shortcuts are capped at three entries for the MVP. The temporary-disable field exists for T010 but is not exposed as a full UI yet.
 
 ## Runtime Data Flow
 
 ```text
 Options page or popup
-  -> reads/writes chrome.storage settings
-  -> sends optional runtime/tab messages
-  -> background receives messages when orchestration is needed
-  -> content script reacts to storage changes or messages
+  -> reads/writes chrome.storage.sync settings
+  -> background ensures defaults on install
+  -> content script reacts to storage and URL changes
   -> YouTube DOM is restored or replaced based on active settings
 
 Phase 2 API flow:
