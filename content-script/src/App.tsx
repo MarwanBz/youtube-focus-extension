@@ -1,75 +1,55 @@
 import { useEffect, useState } from "react";
-
-type ToggleResponse = { visible: boolean };
+import { DEFAULT_FOCUS_SETTINGS } from "@/settings/defaults";
+import { subscribeToFocusSettings } from "@/settings/storage";
+import {
+  isFocusModeActive,
+  type FocusSettings,
+} from "@/settings/schema";
+import { EXTENSION_HOST_ID } from "./domIds";
+import { subscribeToUrlChanges } from "./urlChanges";
+import {
+  getYouTubeRouteState,
+  type YouTubeRouteState,
+} from "./youtubeHome";
 
 export default function App() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [settings, setSettings] = useState<FocusSettings>(
+    DEFAULT_FOCUS_SETTINGS
+  );
+  const [routeState, setRouteState] = useState<YouTubeRouteState>(() =>
+    getYouTubeRouteState(window.location.href)
+  );
 
   useEffect(() => {
-    const handler = (
-      message: { type?: string },
-      _sender: chrome.runtime.MessageSender,
-      sendResponse: (response: ToggleResponse) => void
-    ) => {
-      if (message?.type !== "TOGGLE_UI") {
-        return;
-      }
-
-      setIsVisible((prev) => {
-        const next = !prev;
-        sendResponse({ visible: next });
-        return next;
-      });
-
-      return true;
-    };
-
-    chrome.runtime.onMessage.addListener(handler);
-    return () => chrome.runtime.onMessage.removeListener(handler);
+    return subscribeToFocusSettings(setSettings);
   }, []);
 
-  const handleIncrementBadge = () => {
-    if (typeof chrome === "undefined") {
+  useEffect(() => {
+    return subscribeToUrlChanges((url) => {
+      setRouteState(getYouTubeRouteState(url));
+    });
+  }, []);
+
+  const focusModeActive = isFocusModeActive(settings);
+
+  useEffect(() => {
+    const host = document.getElementById(EXTENSION_HOST_ID);
+    if (!host) {
       return;
     }
-    chrome.runtime.sendMessage({ type: "INCREMENT_BADGE" });
-  };
 
-  if (!isVisible) {
-    return (
-      <div className="fixed bottom-4 right-4">
-        <button
-          className="rounded-full border border-white/10 bg-gray-900 px-3 py-2 text-xs text-white shadow-lg hover:bg-gray-800"
-          type="button"
-          onClick={() => setIsVisible(true)}
-        >
-          Show
-        </button>
-      </div>
-    );
+    host.dataset.youtubeFocusRoute = routeState.kind;
+    host.dataset.youtubeFocusIsHome = String(routeState.isHome);
+    host.dataset.youtubeFocusActive = String(focusModeActive);
+  }, [focusModeActive, routeState]);
+
+  if (!routeState.isHome || !focusModeActive) {
+    return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-52 rounded-lg border border-white/10 bg-gray-900 p-3 text-white shadow-lg">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400">Overlay</p>
-        <button
-          className="text-xs text-gray-400 hover:text-white"
-          type="button"
-          onClick={() => setIsVisible(false)}
-        >
-          Hide
-        </button>
-      </div>
-      <div className="mt-3">
-        <button
-          className="w-full rounded-md border border-white/10 px-2 py-1 text-xs text-white hover:bg-white/10"
-          type="button"
-          onClick={handleIncrementBadge}
-        >
-          Badge +
-        </button>
-      </div>
+    <div className="fixed bottom-4 right-4 max-w-56 rounded-md border border-white/15 bg-gray-950 px-3 py-2 text-xs font-medium text-white shadow-lg">
+      Focus mode ready
     </div>
   );
 }

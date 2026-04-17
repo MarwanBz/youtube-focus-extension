@@ -2,25 +2,40 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import styles from "@lib/styles/globals.css?inline";
 import App from "./App";
+import {
+  EXTENSION_HOST_ID,
+  EXTENSION_MOUNT_ID,
+  EXTENSION_STYLE_ID,
+} from "./domIds";
 
-const existing = document.getElementById("extension-root");
+const existing = document.getElementById(EXTENSION_HOST_ID);
 const host = existing ?? document.createElement("div");
 if (!existing) {
-  host.id = "extension-root";
+  host.id = EXTENSION_HOST_ID;
   document.body.appendChild(host);
 }
 
 const shadowRoot = host.shadowRoot ?? host.attachShadow({ mode: "open" });
 
-const style = document.createElement("style");
-style.textContent = styles;
-shadowRoot.appendChild(style);
+if (!shadowRoot.getElementById(EXTENSION_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = EXTENSION_STYLE_ID;
+  style.textContent = styles;
+  shadowRoot.appendChild(style);
+}
 
-const mountPoint = document.createElement("div");
-shadowRoot.appendChild(mountPoint);
+let mountPoint = shadowRoot.getElementById(EXTENSION_MOUNT_ID);
+if (!mountPoint) {
+  mountPoint = document.createElement("div");
+  mountPoint.id = EXTENSION_MOUNT_ID;
+  shadowRoot.appendChild(mountPoint);
+}
 
-createRoot(mountPoint).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+if (!mountPoint.dataset.reactMounted) {
+  mountPoint.dataset.reactMounted = "true";
+  createRoot(mountPoint).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+}
