@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "My Extension",
-  "description": "A Chrome extension built with React and TypeScript",
+  "name": "YouTube Focus Extension",
+  "description": "Replace YouTube's recommendation-first home page with intentional viewing shortcuts.",
   "version": "0.2.0",
   "action": {
     "default_title": "Open popup",
@@ -22,14 +22,14 @@
     "page": "options.html",
     "open_in_tab": true
   },
-  "permissions": ["activeTab"],
+  "permissions": ["storage"],
   "background": {
     "service_worker": "src/background.ts",
     "type": "module"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://www.youtube.com/*"],
       "js": ["content-script/src/main.tsx"]
     }
   ]
