@@ -1,48 +1,80 @@
-import { StrictMode } from "react";
+import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import styles from "@lib/styles/globals.css?inline";
-import App from "./App";
+import { HomeFocusBanner, MastheadFocusToggle } from "./App";
 import {
+  EXTENSION_BANNER_HOST_ID,
+  EXTENSION_BANNER_MOUNT_ID,
   EXTENSION_HOST_ID,
   EXTENSION_MOUNT_ID,
   EXTENSION_STYLE_ID,
 } from "./domIds";
+import { observeHomeBannerPlacement } from "./youtubeHomeBanner";
 import { observeMastheadPlacement } from "./youtubeMasthead";
 
-const existing = document.getElementById(EXTENSION_HOST_ID);
-const host = existing ?? document.createElement("div");
-if (!existing) {
-  host.id = EXTENSION_HOST_ID;
-  host.hidden = true;
-  document.body.appendChild(host);
+const mastheadHost = mountShadowApp({
+  hostId: EXTENSION_HOST_ID,
+  mountId: EXTENSION_MOUNT_ID,
+  render: <MastheadFocusToggle />,
+});
+
+if (!mastheadHost.dataset.youtubeFocusMastheadObserver) {
+  mastheadHost.dataset.youtubeFocusMastheadObserver = "true";
+  observeMastheadPlacement(mastheadHost);
 }
 
-const shadowRoot = host.shadowRoot ?? host.attachShadow({ mode: "open" });
+const bannerHost = mountShadowApp({
+  hostId: EXTENSION_BANNER_HOST_ID,
+  mountId: EXTENSION_BANNER_MOUNT_ID,
+  render: <HomeFocusBanner />,
+});
 
-if (!shadowRoot.getElementById(EXTENSION_STYLE_ID)) {
-  const style = document.createElement("style");
-  style.id = EXTENSION_STYLE_ID;
-  style.textContent = styles;
-  shadowRoot.appendChild(style);
+if (!bannerHost.dataset.youtubeFocusBannerObserver) {
+  bannerHost.dataset.youtubeFocusBannerObserver = "true";
+  observeHomeBannerPlacement(bannerHost);
 }
 
-let mountPoint = shadowRoot.getElementById(EXTENSION_MOUNT_ID);
-if (!mountPoint) {
-  mountPoint = document.createElement("div");
-  mountPoint.id = EXTENSION_MOUNT_ID;
-  shadowRoot.appendChild(mountPoint);
-}
+function mountShadowApp({
+  hostId,
+  mountId,
+  render,
+}: {
+  hostId: string;
+  mountId: string;
+  render: ReactNode;
+}) {
+  const existing = document.getElementById(hostId);
+  const host = existing ?? document.createElement("div");
+  if (!existing) {
+    host.id = hostId;
+    host.hidden = true;
+    document.body.appendChild(host);
+  }
 
-if (!mountPoint.dataset.reactMounted) {
-  mountPoint.dataset.reactMounted = "true";
-  createRoot(mountPoint).render(
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
-}
+  const shadowRoot = host.shadowRoot ?? host.attachShadow({ mode: "open" });
 
-if (!host.dataset.youtubeFocusMastheadObserver) {
-  host.dataset.youtubeFocusMastheadObserver = "true";
-  observeMastheadPlacement(host);
+  if (!shadowRoot.getElementById(EXTENSION_STYLE_ID)) {
+    const style = document.createElement("style");
+    style.id = EXTENSION_STYLE_ID;
+    style.textContent = styles;
+    shadowRoot.appendChild(style);
+  }
+
+  let mountPoint = shadowRoot.getElementById(mountId);
+  if (!mountPoint) {
+    mountPoint = document.createElement("div");
+    mountPoint.id = mountId;
+    shadowRoot.appendChild(mountPoint);
+  }
+
+  if (!mountPoint.dataset.reactMounted) {
+    mountPoint.dataset.reactMounted = "true";
+    createRoot(mountPoint).render(
+      <StrictMode>
+        {render}
+      </StrictMode>
+    );
+  }
+
+  return host;
 }

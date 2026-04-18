@@ -43,7 +43,7 @@ export function placeFocusHostInMasthead(
   host.style.display = "inline-flex";
   host.style.alignItems = "center";
   host.style.flex = "0 0 auto";
-  host.style.height = "36px";
+  host.style.height = "40px";
   host.style.marginLeft = "8px";
   host.style.position = "relative";
   host.style.zIndex = "1";
