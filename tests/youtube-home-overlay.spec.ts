@@ -198,6 +198,7 @@ test.describe("Home overlay visibility", () => {
     const sources = getFocusOverlaySources({
       focusModeEnabled: true,
       disabledUntil: null,
+      importedPlaylists: [],
       manualPlaylists: [
         {
           id: "playlist-1",
@@ -235,6 +236,7 @@ test.describe("Home overlay visibility", () => {
     const sources = getFocusOverlaySources({
       focusModeEnabled: true,
       disabledUntil: null,
+      importedPlaylists: [],
       manualPlaylists: [],
     });
 
@@ -243,6 +245,40 @@ test.describe("Home overlay visibility", () => {
         kind: "watch-later",
         title: "Watch Later",
         url: WATCH_LATER_URL,
+      },
+    ]);
+  });
+
+  test("prefers imported playlist selections over manual playlists", () => {
+    const sources = getFocusOverlaySources({
+      focusModeEnabled: true,
+      disabledUntil: null,
+      importedPlaylists: [
+        {
+          id: "playlist-imported-1",
+          title: "Imported Engineering",
+          url: "https://www.youtube.com/playlist?list=PL_IMPORTED_ENGINEERING",
+        },
+      ],
+      manualPlaylists: [
+        {
+          id: "playlist-manual-1",
+          title: "Manual Travel",
+          url: "https://www.youtube.com/playlist?list=PL_MANUAL_TRAVEL",
+        },
+      ],
+    });
+
+    expect(sources).toEqual([
+      {
+        kind: "watch-later",
+        title: "Watch Later",
+        url: WATCH_LATER_URL,
+      },
+      {
+        kind: "playlist",
+        title: "Imported Engineering",
+        url: "https://www.youtube.com/playlist?list=PL_IMPORTED_ENGINEERING",
       },
     ]);
   });
