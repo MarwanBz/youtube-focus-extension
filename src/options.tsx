@@ -1,6 +1,7 @@
 import {
   StrictMode,
   useEffect,
+  useMemo,
   useState,
   type ChangeEvent,
   type FormEvent,
@@ -27,15 +28,25 @@ import {
   type YouTubePlaylistState,
 } from "./youtube/schema";
 import { subscribeToYouTubePlaylistState } from "./youtube/storage";
+import { getPlaylistStatusCopy } from "./youtube/status-copy";
 import {
   patchFocusSettings,
   subscribeToFocusSettings,
 } from "./settings/storage";
 import {
   isYouTubePlaylistUrl,
+  MAX_IMPORTED_PLAYLISTS,
   MAX_MANUAL_PLAYLISTS,
 } from "./settings/schema";
 import type { FocusSettings, PlaylistShortcut } from "./settings/schema";
+import {
+  filterImportedPlaylists,
+  isImportedPlaylistSelected,
+  removeImportedPlaylistSelection,
+  reorderImportedPlaylistSelections,
+  selectImportedPlaylist,
+  shouldShowImportedSelectionWorkspace,
+} from "./youtube/selection";
 
 const manifest =
   typeof chrome !== "undefined" && chrome.runtime?.getManifest
@@ -59,6 +70,7 @@ export function OptionsApp() {
   );
   const [playlistStatus, setPlaylistStatus] = useState("");
   const [playlistLoading, setPlaylistLoading] = useState(false);
+  const [importedSearch, setImportedSearch] = useState("");
 
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -81,7 +93,16 @@ export function OptionsApp() {
   }, []);
 
   const playlists = settings.manualPlaylists;
+  const selectedImportedPlaylists = settings.importedPlaylists;
   const atMax = playlists.length >= MAX_MANUAL_PLAYLISTS;
+  const playlistStatusCopy = getPlaylistStatusCopy(
+    playlistState.status,
+    playlistState.lastError
+  );
+  const filteredImportedPlaylists = useMemo(
+    () => filterImportedPlaylists(playlistState.items, importedSearch),
+    [importedSearch, playlistState.items]
+  );
 
   const handleFocusDefaultChange = (event: ChangeEvent<HTMLInputElement>) => {
     const focusModeEnabled = event.target.checked;
@@ -270,6 +291,58 @@ export function OptionsApp() {
     });
   };
 
+  const handleSelectImportedPlaylist = (playlistId: string) => {
+    const playlist = playlistState.items.find((item) => item.id === playlistId);
+    if (!playlist) {
+      return;
+    }
+
+    const nextSelection = selectImportedPlaylist(
+      selectedImportedPlaylists,
+      playlist
+    );
+    if (nextSelection === selectedImportedPlaylists) {
+      setPlaylistStatus(
+        selectedImportedPlaylists.length >= MAX_IMPORTED_PLAYLISTS
+          ? `Select up to ${MAX_IMPORTED_PLAYLISTS} playlists for Focus Home.`
+          : "Playlist is already selected."
+      );
+      return;
+    }
+
+    setPlaylistStatus("");
+    void patchFocusSettings({ importedPlaylists: nextSelection }).catch(() =>
+      setPlaylistStatus("Unable to save selected playlists.")
+    );
+  };
+
+  const handleRemoveImportedPlaylist = (playlistId: string) => {
+    const nextSelection = removeImportedPlaylistSelection(
+      selectedImportedPlaylists,
+      playlistId
+    );
+    setPlaylistStatus("");
+    void patchFocusSettings({ importedPlaylists: nextSelection }).catch(() =>
+      setPlaylistStatus("Unable to save selected playlists.")
+    );
+  };
+
+  const handleMoveImportedPlaylist = (index: number, direction: -1 | 1) => {
+    const nextSelection = reorderImportedPlaylistSelections(
+      selectedImportedPlaylists,
+      index,
+      direction
+    );
+    if (nextSelection === selectedImportedPlaylists) {
+      return;
+    }
+
+    setPlaylistStatus("");
+    void patchFocusSettings({ importedPlaylists: nextSelection }).catch(() =>
+      setPlaylistStatus("Unable to reorder selected playlists.")
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 px-6 py-8 text-white">
       <h1 className="text-lg font-semibold">{extensionName} Settings</h1>
@@ -277,8 +350,8 @@ export function OptionsApp() {
       <div className="mt-4 max-w-md rounded-md border border-white/15 p-4">
         <h2 className="text-sm font-semibold">Connect YouTube</h2>
         <p className="mt-1 text-xs text-gray-400">
-          Connect YouTube to import your playlists. This is the primary setup
-          path. Playlist selection will arrive in the next task.
+          Connect YouTube to import playlists, then choose which ones appear on
+          Focus Home.
         </p>
         <div className="mt-3 flex items-center gap-3">
           <button
@@ -362,51 +435,156 @@ export function OptionsApp() {
             manual URLs.
           </p>
         )}
-        {playlistState.status === "loading" ? (
-          <p className="mt-2 text-xs text-gray-300">Loading playlists...</p>
-        ) : null}
-        {playlistState.status === "empty" ? (
-          <p className="mt-2 text-xs text-gray-300">
-            No playlists found for this account yet.
-          </p>
-        ) : null}
-        {playlistState.status === "unauthorized" ? (
-          <p className="mt-2 text-xs text-red-400">
-            Authorization expired or was revoked. Reconnect YouTube and retry.
-          </p>
-        ) : null}
-        {playlistState.status === "unavailable" ? (
-          <p className="mt-2 text-xs text-amber-300">
-            YouTube playlist import is temporarily unavailable. Retry soon.
-          </p>
-        ) : null}
-        {playlistState.status === "failed" ? (
-          <p className="mt-2 text-xs text-red-400">
-            {playlistState.lastError || "Unable to import playlists right now."}
+        {playlistStatusCopy ? (
+          <p
+            className={`mt-2 text-xs ${
+              playlistStatusCopy.tone === "error"
+                ? "text-red-400"
+                : playlistStatusCopy.tone === "warning"
+                  ? "text-amber-300"
+                  : "text-gray-300"
+            }`}
+          >
+            {playlistStatusCopy.text}
           </p>
         ) : null}
         {playlistStatus ? (
           <p className="mt-2 text-xs text-gray-300">{playlistStatus}</p>
         ) : null}
-        {playlistState.status === "ready" ? (
-          <ul className="mt-3 space-y-2">
-            {playlistState.items.map((playlist) => (
-              <li
-                key={playlist.id}
-                className="rounded border border-white/10 bg-gray-900/50 p-2"
-              >
-                <p className="truncate text-xs font-medium text-gray-100">
-                  {playlist.title}
+        {shouldShowImportedSelectionWorkspace(
+          playlistState.status,
+          playlistState.items.length
+        ) ? (
+          <div className="mt-3 space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-gray-200">
+                Selected for Focus Home ({selectedImportedPlaylists.length}/
+                {MAX_IMPORTED_PLAYLISTS})
+              </p>
+              {selectedImportedPlaylists.length === 0 ? (
+                <p className="mt-1 text-xs text-gray-400">
+                  Select up to {MAX_IMPORTED_PLAYLISTS} imported playlists.
                 </p>
-                <p className="truncate text-xs text-gray-500">{playlist.url}</p>
-                <p className="mt-1 text-[11px] text-gray-500">
-                  {playlist.videoCount === null
-                    ? "Video count unavailable"
-                    : `${playlist.videoCount} videos`}
-                </p>
-              </li>
-            ))}
-          </ul>
+              ) : (
+                <ul className="mt-2 space-y-2">
+                  {selectedImportedPlaylists.map((playlist, index) => (
+                    <li
+                      key={`selected-${playlist.id}`}
+                      className="rounded border border-white/10 bg-gray-900/50 p-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-medium text-gray-100">
+                            {playlist.title}
+                          </p>
+                          <p className="truncate text-[11px] text-gray-500">
+                            {playlist.url}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveImportedPlaylist(index, -1)}
+                            disabled={index === 0}
+                            className="px-1 text-xs text-gray-400 hover:text-white disabled:opacity-30"
+                            aria-label="Move up"
+                          >
+                            &#x2191;
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveImportedPlaylist(index, 1)}
+                            disabled={index === selectedImportedPlaylists.length - 1}
+                            className="px-1 text-xs text-gray-400 hover:text-white disabled:opacity-30"
+                            aria-label="Move down"
+                          >
+                            &#x2193;
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImportedPlaylist(playlist.id)}
+                            className="px-1 text-xs text-gray-400 hover:text-red-400"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-200" htmlFor="imported-playlist-search">
+                Search imported playlists
+              </label>
+              <input
+                id="imported-playlist-search"
+                type="text"
+                value={importedSearch}
+                onChange={(event) => setImportedSearch(event.target.value)}
+                placeholder="Search by title"
+                className="mt-1 w-full rounded border border-white/15 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+
+            <ul className="space-y-2">
+              {filteredImportedPlaylists.map((playlist) => {
+                const selected = isImportedPlaylistSelected(
+                  selectedImportedPlaylists,
+                  playlist.id
+                );
+                const selectDisabled =
+                  !selected &&
+                  selectedImportedPlaylists.length >= MAX_IMPORTED_PLAYLISTS;
+
+                return (
+                  <li
+                    key={playlist.id}
+                    className="rounded border border-white/10 bg-gray-900/50 p-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-medium text-gray-100">
+                          {playlist.title}
+                        </p>
+                        <p className="truncate text-[11px] text-gray-500">
+                          {playlist.videoCount === null
+                            ? "Video count unavailable"
+                            : `${playlist.videoCount} videos`}
+                        </p>
+                      </div>
+                      {selected ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImportedPlaylist(playlist.id)}
+                          className="shrink-0 rounded border border-white/20 px-2 py-1 text-xs text-gray-200 hover:text-white"
+                        >
+                          Selected
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSelectImportedPlaylist(playlist.id)}
+                          disabled={selectDisabled}
+                          className="shrink-0 rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-500 disabled:cursor-default disabled:opacity-50"
+                        >
+                          Select
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {filteredImportedPlaylists.length === 0 ? (
+              <p className="text-xs text-gray-400">
+                No imported playlists match this search.
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </div>
 

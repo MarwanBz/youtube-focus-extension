@@ -39,12 +39,15 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T102A | Done | P1 | Add OAuth failure and manual fallback states | T102 | User can skip, cancel, fail, retry, or reconnect YouTube auth; onboarding never blocks on auth; Add current playlist and manual playlist setup remain available. |
 | T103 | Done | P1 | Fetch playlists with YouTube Data API | T102 | Authenticated playlist fetch starts only after OAuth succeeds; options can list the authenticated user's playlists; empty, paginated, revoked-token, and unavailable-playlist states are handled without implying import works before authorization. |
 | T104 | Todo | P1 | Add API pagination and cache | T103, T105 | Large playlist sets load without repeated unnecessary requests. |
-| T105 | Todo | P1 | Improve playlist selection UI | T103 | User can search, choose, and reorder playlists from authenticated cached results; the dropdown or checklist appears only when authenticated playlist data exists; otherwise the UI shows reconnect plus fallback paths and privacy copy that avoids implying automatic account access. |
+| T104A | Done | P1 | Cache selected-playlist preview items for Focus Home | T103, T104, T105 | Background fetches and caches lightweight playlist-item preview data for selected imported playlists so Focus Home can render video-thumbnail shelves without scraping YouTube pages. |
+| T105 | Done | P1 | Improve playlist selection UI | T103 | User can search, choose, and reorder playlists from authenticated cached results; the dropdown or checklist appears only when authenticated playlist data exists; otherwise the UI shows reconnect plus fallback paths and privacy copy that avoids implying automatic account access. |
 | T106 | Todo | P1 | Build import-led onboarding flow | T100, T102, T103, T105 | Onboarding starts with Connect YouTube, then fetch, search, select, and reorder up to three playlists, while preserving fallback exits when auth fails or is skipped. |
 | T106A | Todo | P1 | Add current-playlist quick capture without OAuth | T012 | When the user is on a YouTube playlist page, the extension offers Add this playlist and saves it into Focus Home without requiring Google sign-in. |
 | T106B | Todo | P1 | Fetch Watch Later or provide supported fallback | T102 | Watch Later display uses real data only when supported; otherwise the product shows a clearly labeled shortcut or fallback instead of promising imported Watch Later API data. |
 | T107 | Todo | P2 | Add continue watching research spike | T102 | Feasibility and privacy constraints are documented before implementation. |
 | T108 | Todo | P2 | Polish overlay responsiveness and states | T012 | Overlay handles narrow widths, empty states, loading, and errors. |
+| T108A | Done | P2 | Render Focus Home playlists as native-like cards | T105 | Focus Home shows Watch Later plus playlist cards with thumbnail-led styling for imported playlists, graceful fallbacks for manual playlists, and stable responsive grid behavior. |
+| T108B | Done | P2 | Render Focus Home playlist shelves with video thumbnails | T104A, T108A | Focus Home shows each selected imported playlist as a titled shelf with thumbnails from videos inside that playlist, while Watch Later and manual playlists keep a clear fallback treatment when preview data is unavailable. |
 | T109 | Todo | P2 | Add cross-browser build scripts | T012 | Chrome and Firefox build commands are documented and tested. |
 
 ## Phase 3 - Persona And AI Content
@@ -73,7 +76,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 
 Build first:
 
-- T001 through T009, then T100 through T106B.
+- T001 through T009, then T100 through T106B, then T104A and T108B.
 
 Temporarily deprioritized:
 

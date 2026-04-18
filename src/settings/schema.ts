@@ -1,6 +1,7 @@
 export const SETTINGS_STORAGE_KEY = "youtubeFocusSettings";
 export const SETTINGS_STORAGE_AREA = "sync";
 export const MAX_MANUAL_PLAYLISTS = 3;
+export const MAX_IMPORTED_PLAYLISTS = 3;
 
 export type PlaylistShortcut = {
   id: string;
@@ -11,6 +12,7 @@ export type PlaylistShortcut = {
 export type FocusSettings = {
   focusModeEnabled: boolean;
   manualPlaylists: PlaylistShortcut[];
+  importedPlaylists: PlaylistShortcut[];
   disabledUntil: string | null;
 };
 
@@ -28,6 +30,7 @@ export function normalizeFocusSettings(
         ? value.focusModeEnabled
         : fallback.focusModeEnabled,
     manualPlaylists: normalizePlaylists(value.manualPlaylists),
+    importedPlaylists: normalizeImportedPlaylists(value.importedPlaylists),
     disabledUntil:
       typeof value.disabledUntil === "string" || value.disabledUntil === null
         ? value.disabledUntil
@@ -39,6 +42,9 @@ export function cloneFocusSettings(settings: FocusSettings): FocusSettings {
   return {
     ...settings,
     manualPlaylists: settings.manualPlaylists.map((playlist) => ({
+      ...playlist,
+    })),
+    importedPlaylists: settings.importedPlaylists.map((playlist) => ({
       ...playlist,
     })),
   };
@@ -70,6 +76,17 @@ function normalizePlaylists(value: unknown): PlaylistShortcut[] {
   return value
     .filter(isPlaylistShortcut)
     .slice(0, MAX_MANUAL_PLAYLISTS)
+    .map((playlist) => ({ ...playlist }));
+}
+
+function normalizeImportedPlaylists(value: unknown): PlaylistShortcut[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isPlaylistShortcut)
+    .slice(0, MAX_IMPORTED_PLAYLISTS)
     .map((playlist) => ({ ...playlist }));
 }
 

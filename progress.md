@@ -4,9 +4,9 @@
 
 Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
 
-Current focus: Authenticated playlist import and selection flow.
+Current focus: Authenticated playlist import optimization and onboarding polish.
 
-Next task: T105 - Improve playlist selection UI.
+Next task: T104 - Add API pagination and cache.
 
 ## Implementation Log
 
@@ -42,6 +42,16 @@ Next task: T105 - Improve playlist selection UI.
 | 2026-04-18 | Verify T102A | Done | Ran `npm run lint`, `npm test`, and `npm run build`. Lint and build passed. Auth and helper tests passed. Existing browser-dependent Playwright suites failed in sandbox because Chromium was unavailable (`npx playwright install` required in this environment). |
 | 2026-04-18 | T103 YouTube playlist fetch | Done | Added background playlist fetch orchestration after OAuth success, implemented `playlists.list` pagination and normalization, cached imported playlists in local storage with fetch-state metadata, and surfaced imported playlist states with reconnect/retry guidance in options. |
 | 2026-04-18 | Verify T103 | Done | Ran `npm run lint`, `npx playwright test tests/auth.spec.ts tests/auth-client.spec.ts tests/youtube-api.spec.ts`, and `npm run build`. All focused tests passed and build succeeded. |
+| 2026-04-18 | Playlist error normalization and user messaging refresh | Done | Added a dedicated `channel_required` playlist import state, normalized channel-missing API responses into a friendly no-channel guidance message, preserved separate unauthorized/unavailable/failed handling, and updated options messaging to render the state without treating it as auth failure. |
+| 2026-04-18 | Verify playlist error normalization | Done | Ran `npm run lint`, `npx playwright test tests/youtube-api.spec.ts tests/youtube-status-copy.spec.ts tests/auth-client.spec.ts`, and `npm run build`. All checks passed. |
+| 2026-04-18 | T105 imported playlist selection + low-noise Focus Home | Done | Added imported-playlist snapshots to settings, implemented imported search/select/reorder/remove workflow in options, prioritized imported selections over manual fallback in Focus Home source rendering, and replaced verbose overlay copy with concise utility copy. |
+| 2026-04-18 | Verify T105 | Done | Ran `npm run lint`, `npx playwright test tests/youtube-api.spec.ts tests/youtube-status-copy.spec.ts tests/settings-schema.spec.ts tests/youtube-selection.spec.ts`, and `npm run build`. All targeted non-browser tests passed; browser-dependent overlay placement tests remain blocked in sandbox due Chromium Mach-port permissions. |
+| 2026-04-18 | T108A Focus Home playlist cards | Done | Replaced the Focus Home link list with a responsive thumbnail-led card grid, joined selected imported playlists back to the imported cache for thumbnails and video counts, and kept Watch Later/manual playlists on simpler fallback cards when thumbnails are unavailable. |
+| 2026-04-18 | Verify T108A | Done | Ran `npm run lint`, `npx playwright test tests/focus-overlay-cards.spec.ts tests/youtube-selection.spec.ts tests/settings-schema.spec.ts tests/youtube-api.spec.ts tests/youtube-status-copy.spec.ts tests/auth-client.spec.ts`, and `npm run build`. All targeted tests passed and build succeeded. |
+| 2026-04-18 | Tracked Focus Home shelf request | Done | Recorded follow-on work for playlist-title shelves that use thumbnails from videos inside each selected imported playlist. This requires cached playlist-item preview data beyond the current playlist-level thumbnail metadata, so it is now tracked as `T104A` (data/cache) and `T108B` (overlay shelf UI). |
+| 2026-04-18 | T104A selected-playlist preview cache | Done | Added a background-owned selected-playlist preview cache using `playlistItems.list`, kept preview fetches tied to selected imported playlists, and cleared preview data when auth disconnects or selected playlists are removed. |
+| 2026-04-18 | T108B Focus Home playlist shelves | Done | Replaced flat playlist cards with titled shelves that show thumbnails from videos inside each selected imported playlist, while keeping Watch Later and manual playlists on explicit fallback treatments when preview data is unavailable. |
+| 2026-04-18 | Verify T104A + T108B | Done | Ran `npm run lint`, `npx playwright test tests/preview-api.spec.ts tests/focus-overlay-sections.spec.ts tests/focus-overlay-cards.spec.ts tests/youtube-api.spec.ts tests/youtube-selection.spec.ts tests/settings-schema.spec.ts tests/youtube-status-copy.spec.ts tests/auth-client.spec.ts`, and `npm run build`. All targeted tests passed and build succeeded. |
 
 ## Decision Log
 
@@ -58,6 +68,7 @@ Next task: T105 - Improve playlist selection UI.
 | 2026-04-18 | Imported playlists require OAuth and manual fallback remains permanent | The extension cannot reliably infer a user's private YouTube playlists at install time; auth-failure flows must use manual playlist shortcuts, Watch Later may require fallback handling, and the product will not scrape YouTube UI for playlist discovery. |
 | 2026-04-18 | Phase 2 setup priority is OAuth first, Add current playlist second | The primary product path should be Connect YouTube and import real playlists; the secondary no-auth path should capture the current YouTube playlist page before falling all the way back to manual URL entry. |
 | 2026-04-18 | OAuth-first onboarding now overrides the earlier finish-Phase-1-first order | The repo still has T010 through T012 open, but product priority now makes T100 and the onboarding/import lane the official next track. |
+| 2026-04-18 | Video-thumbnail playlist shelves need a separate cache step | The current imported-playlist cache only stores playlist-level metadata; showing thumbnails from videos inside each playlist requires playlist-item preview data for selected imported playlists and should not scrape the YouTube page. |
 
 ## Feature State
 
@@ -75,6 +86,12 @@ Next task: T105 - Improve playlist selection UI.
 | Options page | Done | Manual playlist shortcuts can be added, edited, removed, and reordered. |
 | YouTube OAuth | Done | Options and popup now surface auth state with skip/cancel/fail/retry/reconnect handling while preserving manual fallback paths. |
 | YouTube API playlist fetch | Done | Background now fetches authenticated playlists with pagination, stores normalized results in local cache, and options shows connected/empty/unauthorized/unavailable/failed states. |
+| Playlist channel-required state | Done | Signed-in accounts without a YouTube channel now map to a friendly `channel_required` state instead of a generic failure, while no-playlists and auth/token errors remain separate states. |
+| T105 imported selection UI | Done | Options now supports search/select/reorder of imported playlists (up to three), persists selected imported snapshots, and hides selection workspace unless imported data is ready. |
+| Focus Home source precedence + copy cleanup | Done | Focus Home now shows Watch Later + selected imported playlists first (with manual fallback when none selected) and uses concise utility copy instead of promotional text blocks. |
+| T108A Focus Home playlist cards | Done | Focus Home now renders imported playlists as thumbnail-led cards with title and lightweight metadata, while Watch Later and manual playlists use stable fallback cards. |
+| T104A selected-playlist preview cache | Done | Background now caches lightweight preview videos for selected imported playlists so Focus Home can render video-thumbnail shelves without scraping YouTube pages. |
+| T108B Focus Home playlist shelves | Done | Focus Home now renders each selected imported playlist as a titled shelf using thumbnails from videos inside that playlist, with Watch Later and manual playlists kept on clear fallback treatments. |
 | Persona settings | Deferred | Phase 3. |
 | AI text messages | Deferred | Phase 3 and opt-in only. |
 | AI images | Deferred | Phase 3 or later, low priority. |
@@ -84,9 +101,9 @@ Next task: T105 - Improve playlist selection UI.
 
 Next implementation handoff:
 
-1. Start T105 by adding search/select/reorder UI for imported playlists now that T103 fetch state exists.
+1. Start T104 by tightening cache freshness and avoiding redundant playlist + preview fetches.
 2. Keep reconnect plus manual fallback paths visible when imported data is missing or auth is revoked.
-3. Address T104 cache/pagination optimization after T105 selection interactions are stable.
-4. Leave T010 through T012 open, but treat them as temporarily deprioritized until the onboarding/import path is established.
+3. Move to T106 import-led onboarding flow after cache behavior is stable.
+4. Leave T010 through T012 open, but treat them as temporarily deprioritized until onboarding/import milestones are complete.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.
