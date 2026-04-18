@@ -36,6 +36,7 @@ youtube-focus-extension/
     src/
       App.tsx
       domIds.ts
+      feedVisibility.ts
       focusBanner.ts
       main.tsx
       urlChanges.ts
@@ -66,6 +67,7 @@ youtube-focus-extension/
   scripts/
     setup.js
   tests/
+    feed-visibility.spec.ts
     focus-banner.spec.ts
     youtube-home-banner.spec.ts
     preflight-isolation.spec.ts
@@ -159,6 +161,7 @@ Current behavior:
 - Renders a Focus Mode pill switch that persists the global focus-mode setting.
 - Uses a separate Shadow DOM host for the home-route status banner so the banner sits before the YouTube home feed instead of inside the masthead.
 - Shows off/on visual states with inline banner icons; product images are style references, not rendered UI assets.
+- Suppresses the native YouTube home recommendation feed, chip bar, and rich sections only while Focus Mode is active on the home route.
 - Marks the route state on the host element for later feed behavior.
 
 Target focus-mode behavior:

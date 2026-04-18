@@ -6,7 +6,7 @@ Stage: Phase 1 foundation complete through the design-matched masthead toggle an
 
 Current focus: Phase 1 MVP.
 
-Next task: T005 - Hide or replace recommendation feed when focus mode is active.
+Next task: T006 - Render React focus overlay in content script.
 
 ## Implementation Log
 
@@ -24,6 +24,8 @@ Next task: T005 - Hide or replace recommendation feed when focus mode is active.
 | 2026-04-18 | Verify T004A | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 8 tests, including masthead placement coverage, after running outside the sandbox for Chromium launch permissions. |
 | 2026-04-18 | T004B visual alignment (toggle + top banner) | Done | Restyled the masthead control into a Focus Mode pill switch and moved the home-route banner into its own page-level host before the YouTube feed. Product images were used as style references only; the banner uses inline icons. |
 | 2026-04-18 | Verify T004B placement fix | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 12 tests, including separate masthead and home-banner placement coverage. |
+| 2026-04-18 | T005 feed suppression | Done | Added a reversible DOM controller that hides the native YouTube home feed, chip bar, and rich sections only when Focus Mode is active on the home route, and restores them when focus mode turns off or the route changes. |
+| 2026-04-18 | Verify T005 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 15 tests, including feed hide/restore coverage and idempotence checks. |
 
 ## Decision Log
 
@@ -48,6 +50,7 @@ Next task: T005 - Hide or replace recommendation feed when focus mode is active.
 | Content script route detection | Done | Home route detection and SPA URL-change watching are implemented. |
 | Masthead focus toggle | Done | Toggle is placed beside YouTube search controls and writes `focusModeEnabled` to extension storage. |
 | Home status banner styling | Done | Off/on message banners now follow the provided product style direction and use inline icons inspired by the references. |
+| Feed suppression | Done | Native YouTube home recommendations, chip bar, and rich sections are hidden only while focus mode is active on the home route. |
 | Focus overlay | Todo | Manual playlists only for MVP. |
 | Popup toggle | Todo | Required for MVP. |
 | Options page | Todo | Required for manual playlist input. |
@@ -62,10 +65,9 @@ Next task: T005 - Hide or replace recommendation feed when focus mode is active.
 
 Next implementation handoff:
 
-1. Start T005 using the existing `isFocusModeActive` and `isYouTubeHomeUrl` foundations.
+1. Start T006 by rendering the real React focus surface into the cleared home area.
 2. Treat the masthead focus toggle as the primary user-facing switch for `focusModeEnabled`.
-3. Hide or replace only YouTube home recommendation surfaces when focus mode is active.
-4. Restore normal YouTube browsing when focus mode is off or the route is not home.
-5. Keep `identity`, YouTube API calls, and AI features deferred.
+3. Use the existing feed-suppression controller as the boundary between native YouTube and the extension-owned home surface.
+4. Keep `identity`, YouTube API calls, and AI features deferred.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.

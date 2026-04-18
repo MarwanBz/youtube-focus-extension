@@ -31,6 +31,6 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 
 ## Status
 
-Current stage: Phase 1 foundation complete through the design-matched YouTube header toggle and home banner.
+Current stage: Phase 1 foundation complete through feed suppression on the YouTube home route.
 
-Next concrete action: T005 - hide or replace the YouTube home recommendation feed when focus mode is active.
+Next concrete action: T006 - render the React focus surface into the cleared YouTube home area.

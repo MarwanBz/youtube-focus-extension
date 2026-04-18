@@ -9,6 +9,7 @@ import {
   type FocusSettings,
 } from "@/settings/schema";
 import { EXTENSION_HOST_ID } from "./domIds";
+import { syncHomeFeedVisibility } from "./feedVisibility";
 import {
   getFocusBannerContent,
   type FocusBannerVariant,
@@ -172,8 +173,27 @@ export function MastheadFocusToggle() {
 }
 
 export function HomeFocusBanner() {
-  const { focusModeEnabled, routeState } = useFocusUiState();
+  const { focusModeActive, focusModeEnabled, routeState } = useFocusUiState();
   const banner = getFocusBannerContent(focusModeEnabled);
+
+  useEffect(() => {
+    const sync = () => {
+      syncHomeFeedVisibility(document, routeState.isHome && focusModeActive);
+    };
+
+    sync();
+
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+      syncHomeFeedVisibility(document, false);
+    };
+  }, [focusModeActive, routeState.isHome]);
 
   if (!routeState.isHome) {
     return null;
