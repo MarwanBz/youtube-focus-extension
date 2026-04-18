@@ -36,8 +36,10 @@ youtube-focus-extension/
     src/
       App.tsx
       domIds.ts
+      focusBanner.ts
       main.tsx
       urlChanges.ts
+      youtubeHomeBanner.ts
       youtubeMasthead.ts
       youtubeHome.ts
   src/
@@ -64,7 +66,11 @@ youtube-focus-extension/
   scripts/
     setup.js
   tests/
+    focus-banner.spec.ts
+    youtube-home-banner.spec.ts
     preflight-isolation.spec.ts
+    youtube-masthead.spec.ts
+    youtube-route.spec.ts
   README.md
   TEMPLATE_README.md
   architecture.md
@@ -150,7 +156,9 @@ Current behavior:
 - Injects `@lib/styles/globals.css` as inline CSS into the Shadow DOM.
 - Watches YouTube SPA URL changes.
 - Moves the Shadow DOM host into YouTube's masthead center, beside the search controls.
-- Renders a compact focus toggle that persists the global focus-mode setting.
+- Renders a Focus Mode pill switch that persists the global focus-mode setting.
+- Uses a separate Shadow DOM host for the home-route status banner so the banner sits before the YouTube home feed instead of inside the masthead.
+- Shows off/on visual states with inline banner icons; product images are style references, not rendered UI assets.
 - Marks the route state on the host element for later feed behavior.
 
 Target focus-mode behavior:

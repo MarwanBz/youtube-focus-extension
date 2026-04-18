@@ -17,6 +17,7 @@ Work top to bottom within Phase 1 unless a task is blocked. Do not start Phase 2
 | T003 | Done | P0 | Add settings schema and storage wrapper | T001 | Defaults exist; settings can be read and written from popup/options/content code. |
 | T004 | Done | P0 | Detect YouTube home route in content script | T002 | Content script can distinguish home page from watch, shorts, search, and playlist pages. |
 | T004A | Done | P0 | Add YouTube masthead focus toggle | T003, T004 | Focus toggle appears next to the YouTube search controls, matches YouTube chrome, persists active/inactive state, and does not duplicate across route changes. |
+| T004B | Done | P0 | Match masthead toggle + top banner to product design references | T004A | Toggle uses pill switch styling, banner matches off/on reference states on home route, and icon style follows product image references. |
 | T005 | Todo | P0 | Hide or replace recommendation feed when focus mode is active | T003, T004 | Recommendations are removed or hidden only when enabled; disabled mode restores normal behavior. |
 | T006 | Todo | P0 | Render React focus overlay in content script | T005 | Overlay mounts once, survives YouTube route changes, and does not duplicate containers. |
 | T007 | Todo | P0 | Display Watch Later and manual playlists | T003, T006 | Overlay shows Watch Later plus up to three selected playlist links. |

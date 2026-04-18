@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Stage: Phase 1 foundation complete through the YouTube header focus toggle.
+Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
 
 Current focus: Phase 1 MVP.
 
@@ -22,6 +22,8 @@ Next task: T005 - Hide or replace recommendation feed when focus mode is active.
 | 2026-04-18 | Verify T002-T004 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 5 tests after rerunning outside the sandbox because Chromium launch hit macOS Mach port permissions inside the sandbox. |
 | 2026-04-18 | T004A YouTube masthead focus toggle | Done | Moved the content-script focus control from the bottom-right badge into the YouTube masthead center next to the search controls; the button uses a green checked state when enabled and toggles the global stored setting. |
 | 2026-04-18 | Verify T004A | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 8 tests, including masthead placement coverage, after running outside the sandbox for Chromium launch permissions. |
+| 2026-04-18 | T004B visual alignment (toggle + top banner) | Done | Restyled the masthead control into a Focus Mode pill switch and moved the home-route banner into its own page-level host before the YouTube feed. Product images were used as style references only; the banner uses inline icons. |
+| 2026-04-18 | Verify T004B placement fix | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 12 tests, including separate masthead and home-banner placement coverage. |
 
 ## Decision Log
 
@@ -34,6 +36,7 @@ Next task: T005 - Hide or replace recommendation feed when focus mode is active.
 | 2026-04-18 | Store MVP preferences in `chrome.storage.sync` | Focus defaults and up to three manual playlist shortcuts are small user preferences; no external service receives them. |
 | 2026-04-18 | Default focus mode starts off | Conservative default prevents surprising YouTube changes before the user enables focus behavior. |
 | 2026-04-18 | Put the primary focus toggle in YouTube's masthead | The user asked for the control beside the YouTube search bar, matching YouTube chrome instead of a floating extension badge. |
+| 2026-04-18 | Keep redesign scope to toggle + top banner | The user requested style alignment for these surfaces only, not a full home page redesign in this pass. |
 
 ## Feature State
 
@@ -44,6 +47,7 @@ Next task: T005 - Hide or replace recommendation feed when focus mode is active.
 | Settings storage | Done | Defaults, normalization, persistence, and storage-change subscription are implemented. |
 | Content script route detection | Done | Home route detection and SPA URL-change watching are implemented. |
 | Masthead focus toggle | Done | Toggle is placed beside YouTube search controls and writes `focusModeEnabled` to extension storage. |
+| Home status banner styling | Done | Off/on message banners now follow the provided product style direction and use inline icons inspired by the references. |
 | Focus overlay | Todo | Manual playlists only for MVP. |
 | Popup toggle | Todo | Required for MVP. |
 | Options page | Todo | Required for manual playlist input. |
