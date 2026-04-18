@@ -8,6 +8,8 @@ Priority values: `P0`, `P1`, `P2`, `P3`.
 
 Work top to bottom within Phase 1 unless a task is blocked. Do not start Phase 2 until Phase 1 exit criteria in `roadmap.md` are met.
 
+Current override: product priority now favors OAuth-first onboarding work. `T010` through `T012` stay open, but the official next track is `T100` through `T106B`.
+
 ## Phase 1 - MVP Focus Mode
 
 | ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
@@ -31,13 +33,16 @@ Work top to bottom within Phase 1 unless a task is blocked. Do not start Phase 2
 
 | ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
 | --- | --- | --- | --- | --- | --- |
-| T101 | Todo | P1 | Document Google Cloud setup | T012 | OAuth client setup and required scopes are documented. |
+| T100 | Done | P1 | Define OAuth-first onboarding and fallback lanes | T012 | Onboarding makes Connect YouTube the primary setup path, Add current playlist the secondary no-auth bridge, and manual URL entry the last-resort fallback. |
+| T101 | Done | P1 | Document Google Cloud setup | T100 | OAuth client setup and required scopes are documented. |
 | T102 | Todo | P1 | Add OAuth flow with Chrome identity API | T101 | User can sign in and receive a YouTube readonly access token from onboarding or settings without launching auth automatically on install. |
-| T102A | Todo | P1 | Add OAuth failure and manual fallback states | T102 | User can skip, cancel, fail, retry, or reconnect YouTube auth; onboarding never blocks on auth; manual playlist setup remains available. |
+| T102A | Todo | P1 | Add OAuth failure and manual fallback states | T102 | User can skip, cancel, fail, retry, or reconnect YouTube auth; onboarding never blocks on auth; Add current playlist and manual playlist setup remain available. |
 | T103 | Todo | P1 | Fetch playlists with YouTube Data API | T102 | Authenticated playlist fetch starts only after OAuth succeeds; options can list the authenticated user's playlists; empty, paginated, revoked-token, and unavailable-playlist states are handled without implying import works before authorization. |
-| T104 | Todo | P1 | Fetch Watch Later or provide supported fallback | T102 | Watch Later display uses real data only when supported; otherwise the product shows a clearly labeled shortcut or fallback instead of promising imported Watch Later API data. |
-| T105 | Todo | P1 | Add API pagination and cache | T103, T104 | Large playlist sets load without repeated unnecessary requests. |
-| T106 | Todo | P1 | Improve playlist selection UI | T103 | User can search, choose, and reorder playlists from authenticated cached results; the dropdown or checklist appears only when authenticated playlist data exists; otherwise the UI shows reconnect plus manual fallback and privacy copy that avoids implying automatic account access. |
+| T104 | Todo | P1 | Add API pagination and cache | T103, T105 | Large playlist sets load without repeated unnecessary requests. |
+| T105 | Todo | P1 | Improve playlist selection UI | T103 | User can search, choose, and reorder playlists from authenticated cached results; the dropdown or checklist appears only when authenticated playlist data exists; otherwise the UI shows reconnect plus fallback paths and privacy copy that avoids implying automatic account access. |
+| T106 | Todo | P1 | Build import-led onboarding flow | T100, T102, T103, T105 | Onboarding starts with Connect YouTube, then fetch, search, select, and reorder up to three playlists, while preserving fallback exits when auth fails or is skipped. |
+| T106A | Todo | P1 | Add current-playlist quick capture without OAuth | T012 | When the user is on a YouTube playlist page, the extension offers Add this playlist and saves it into Focus Home without requiring Google sign-in. |
+| T106B | Todo | P1 | Fetch Watch Later or provide supported fallback | T102 | Watch Later display uses real data only when supported; otherwise the product shows a clearly labeled shortcut or fallback instead of promising imported Watch Later API data. |
 | T107 | Todo | P2 | Add continue watching research spike | T102 | Feasibility and privacy constraints are documented before implementation. |
 | T108 | Todo | P2 | Polish overlay responsiveness and states | T012 | Overlay handles narrow widths, empty states, loading, and errors. |
 | T109 | Todo | P2 | Add cross-browser build scripts | T012 | Chrome and Firefox build commands are documented and tested. |
@@ -68,11 +73,15 @@ Work top to bottom within Phase 1 unless a task is blocked. Do not start Phase 2
 
 Build first:
 
-- T001 through T012.
+- T001 through T009, then T100 through T106B.
+
+Temporarily deprioritized:
+
+- T010 through T012 until the onboarding/import direction is established.
 
 Build after MVP:
 
-- OAuth, real playlist fetching, better selection UI.
+- T010 through T012, then the remaining Phase 2 polish and cross-browser work.
 
 Defer:
 

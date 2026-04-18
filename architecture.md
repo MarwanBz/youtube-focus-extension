@@ -216,6 +216,7 @@ Upcoming manifest guidance:
 
 - Keep `activeTab` or `tabs` out unless popup-to-active-tab messaging becomes necessary.
 - Do not add `identity` until Phase 2 OAuth work begins.
+- When `T102` starts, add the manifest `oauth2` block and keep the extension ID stable with a manifest `key`.
 
 Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. Do not add future permissions early.
 
@@ -230,6 +231,8 @@ MVP settings are stored under `youtubeFocusSettings` in `chrome.storage.sync` be
 Manual playlist shortcuts are capped at three entries for the MVP. The temporary-disable field exists for T010 but is not exposed as a full UI yet.
 
 No-auth mode supports only manual playlist URLs and local focus preferences. Importing a user's playlists is authenticated data access and must not be implied before OAuth succeeds.
+
+OAuth prerequisites are documented in [google-cloud-setup.md](google-cloud-setup.md). That document is the source of truth for Google Cloud project setup, stable extension ID, OAuth client creation, enabled APIs, and the initial read-only scope.
 
 ## Runtime Data Flow
 

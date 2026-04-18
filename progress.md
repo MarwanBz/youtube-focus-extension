@@ -4,9 +4,9 @@
 
 Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
 
-Current focus: Phase 1 MVP.
+Current focus: OAuth-first onboarding planning and implementation.
 
-Next task: T010 - Add temporary disable setting foundation.
+Next task: T102 - Add OAuth flow with Chrome identity API.
 
 ## Implementation Log
 
@@ -34,6 +34,8 @@ Next task: T010 - Add temporary disable setting foundation.
 | 2026-04-18 | Verify T008-T009 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 22 tests after the popup and options changes. |
 | 2026-04-18 | T007 Watch Later and manual playlist display | Done | Updated the Focus Home overlay to always show a Watch Later shortcut, render manual playlist shortcuts from storage, and keep a clear empty-state CTA without pulling playlist editing into the content script. |
 | 2026-04-18 | Verify T007 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed the expanded overlay coverage, including Watch Later plus manual playlist source ordering. |
+| 2026-04-18 | T100 OAuth-first onboarding lanes | Done | Promoted Connect YouTube to the primary setup path, Add current playlist to the secondary no-auth path, and manual playlist URLs to the fallback lane in the task board and roadmap. |
+| 2026-04-18 | T101 Google Cloud setup doc | Done | Added a dedicated Google Cloud setup document covering stable extension ID, Chrome Extension OAuth client creation, YouTube Data API enablement, consent screen setup, and the initial `youtube.readonly` scope for `T102`. |
 
 ## Decision Log
 
@@ -48,6 +50,8 @@ Next task: T010 - Add temporary disable setting foundation.
 | 2026-04-18 | Put the primary focus toggle in YouTube's masthead | The user asked for the control beside the YouTube search bar, matching YouTube chrome instead of a floating extension badge. |
 | 2026-04-18 | Keep redesign scope to toggle + top banner | The user requested style alignment for these surfaces only, not a full home page redesign in this pass. |
 | 2026-04-18 | Imported playlists require OAuth and manual fallback remains permanent | The extension cannot reliably infer a user's private YouTube playlists at install time; auth-failure flows must use manual playlist shortcuts, Watch Later may require fallback handling, and the product will not scrape YouTube UI for playlist discovery. |
+| 2026-04-18 | Phase 2 setup priority is OAuth first, Add current playlist second | The primary product path should be Connect YouTube and import real playlists; the secondary no-auth path should capture the current YouTube playlist page before falling all the way back to manual URL entry. |
+| 2026-04-18 | OAuth-first onboarding now overrides the earlier finish-Phase-1-first order | The repo still has T010 through T012 open, but product priority now makes T100 and the onboarding/import lane the official next track. |
 
 ## Feature State
 
@@ -74,9 +78,9 @@ Next task: T010 - Add temporary disable setting foundation.
 
 Next implementation handoff:
 
-1. Start T010 by adding the temporary-disable state foundation on top of the now-complete masthead, popup, and options controls.
-2. Treat the masthead toggle and popup switch as the two user-facing controls for `focusModeEnabled`.
-3. Keep `identity`, YouTube API calls, and AI features deferred.
-4. Package the Chrome MV3 build and run manual MVP verification once the temporary-disable groundwork is in place.
+1. Start T100 by defining the OAuth-first onboarding flow and fallback lanes in the implemented product surfaces.
+2. Move directly into T102, T103, T105, and T106 so Connect YouTube becomes the primary setup path.
+3. Keep Add current playlist as the secondary no-auth bridge and manual URL entry as the last fallback.
+4. Leave T010 through T012 open, but treat them as temporarily deprioritized until the onboarding/import path is established.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.

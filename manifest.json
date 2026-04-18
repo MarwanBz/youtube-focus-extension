@@ -3,6 +3,7 @@
   "name": "YouTube Focus Extension",
   "description": "Replace YouTube's recommendation-first home page with intentional viewing shortcuts.",
   "version": "0.2.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1KsrziUZJN9HCZOqO6gf0becCuddWOu99P4LRRe+VkpCZRBVKrj8pSBKdjlFzhNspJbxYJXxvW7T6fMA9SrG4B8K0UdvhZhc1XClz9KHBtoktatvQ+2k3l2Uxb8sekrHGaSbm755U4FG2NF60+q/kZZVY76uhn4TVu+NAKd+x0qJ1EZmya76h31A58xu9JiL1+5gwJbe7FnQOcsvJfdSDtqbWUkgpl9jvLCIDrpX/yxosd/YdTG2np5f9KCHQSaVVruFB6VCs3ZtCP/+4Va1cLBnoIjQgoNb8y7XEOvBBB5TDs2Gl/oTc+SCf1vpuAlBQYZc0pbZb3PmOxbAVHOXkQIDAQAB",
   "action": {
     "default_title": "Open popup",
     "default_popup": "index.html",

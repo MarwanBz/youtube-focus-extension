@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "setup": "node scripts/setup.js",
-    "test": "playwright test"
+    "test": "playwright test",
+    "verify:commit": "node scripts/verified-commit.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

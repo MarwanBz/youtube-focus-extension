@@ -19,6 +19,8 @@ Phase 2 starts only after the MVP is manually verified in Chrome.
 
 This phase adds import-led onboarding through YouTube OAuth, authenticated playlist fetching, resilient fallback UI, and cross-browser build scripts.
 
+Current priority override: the product now treats this onboarding/import track as the official next implementation lane, ahead of the remaining Phase 1 temporary-disable and packaging tasks.
+
 ## Build Later
 
 Phase 3 and Phase 4 are intentionally deferred.
@@ -55,13 +57,20 @@ Target: weeks 3-4.
 
 Named milestone: Import-Led Onboarding.
 
+Priority order inside this phase:
+
+1. Primary path: Connect YouTube and import the user's playlists through OAuth.
+2. Secondary path: Add the current playlist from a YouTube playlist page without OAuth.
+3. Fallback path: manual playlist URLs remain available, but they are not the preferred setup experience.
+
 Deliverables:
 
 - Google Cloud OAuth credentials documented.
 - `identity` permission added only when OAuth work starts.
 - YouTube readonly OAuth flow implemented from onboarding or settings, not automatically on install.
-- User journey is: connect YouTube, fetch playlists, search and select or reorder up to three playlists, then continue manually if auth fails or is skipped.
+- User journey is: connect YouTube, fetch playlists, search and select or reorder up to three playlists, then continue with Add current playlist or manual setup if auth fails or is skipped.
 - Authenticated playlist import is available only after OAuth succeeds; no-auth mode remains manual playlist URLs only.
+- The no-auth bridge is Add current playlist from a YouTube playlist page before falling back to manual URL entry.
 - Playlist fetch handles pagination, empty libraries, revoked tokens, and reconnect flows.
 - Watch Later is treated as a product shortcut or fallback surface, not guaranteed imported API data.
 - Options page lets user choose and order playlists from authenticated data when available and shows manual fallback when it is not.
@@ -72,6 +81,7 @@ Exit criteria:
 
 - Authenticated user can fetch playlists after completing OAuth.
 - User can skip, cancel, retry, or recover from auth failure without blocking onboarding completion.
+- Add current playlist works without OAuth when the user is already on a YouTube playlist page.
 - Manual fallback still works if OAuth fails, is skipped, or is disabled.
 - Large playlist libraries remain usable with search, selection, and ordering.
 - Empty playlist accounts show a useful state and manual fallback.

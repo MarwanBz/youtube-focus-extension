@@ -24,6 +24,7 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 ## Document Map
 
 - [architecture.md](architecture.md) - extension structure, data flow, permissions, storage, and module layout.
+- [google-cloud-setup.md](google-cloud-setup.md) - Google Cloud, OAuth client, extension ID, and YouTube Data API prerequisites for playlist import.
 - [roadmap.md](roadmap.md) - phase plan, milestones, and what to build now versus later.
 - [tasks.md](tasks.md) - agent-trackable task board with priorities, dependencies, and acceptance criteria.
 - [progress.md](progress.md) - current status, implementation log, and decision history.
@@ -33,4 +34,4 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 
 Current stage: Phase 1 foundation complete through feed suppression on the YouTube home route.
 
-Next concrete action: T010 - add the temporary disable setting foundation before packaging and manual MVP verification.
+Next concrete action: T102 - implement the Chrome identity OAuth flow now that the onboarding direction and Google Cloud setup are documented.
