@@ -82,7 +82,7 @@ test.describe("YouTube masthead placement", () => {
       isLastChild: true,
       hidden: false,
       display: "inline-flex",
-      height: "36px",
+      height: "40px",
       marginLeft: "8px",
     });
   });
