@@ -69,7 +69,6 @@ const manifest =
   typeof chrome !== "undefined" && chrome.runtime?.getManifest
     ? chrome.runtime.getManifest()
     : null;
-const extensionName = manifest?.name ?? "Extension";
 const extensionVersion = manifest?.version ?? "0.0.0";
 
 function getAuthBadgeVariant(youtubeAuth: YouTubeAuthState) {
@@ -99,7 +98,7 @@ function getPlaylistTone(
   }
 
   if (tone === "warning") {
-    return "text-amber-300";
+    return "text-amber-400";
   }
 
   return "text-muted-foreground";
@@ -112,7 +111,11 @@ function StatusMessage({
   children: ReactNode;
   tone?: "neutral" | "error" | "warning";
 }) {
-  return <p className={`text-xs ${getPlaylistTone(tone)}`}>{children}</p>;
+  return (
+    <p className={`text-xs leading-relaxed ${getPlaylistTone(tone)}`}>
+      {children}
+    </p>
+  );
 }
 
 type ReorderRowProps = {
@@ -137,12 +140,12 @@ function ReorderRow({
   onRemove,
 }: ReorderRowProps) {
   return (
-    <div className="flex items-start justify-between gap-3 rounded-md border border-border/70 bg-secondary/20 px-3 py-3">
-      <div className="min-w-0 space-y-1">
+    <div className="group flex items-center justify-between gap-3 rounded-lg border border-border/50 px-3 py-2.5 transition-colors hover:border-border hover:bg-secondary/20">
+      <div className="min-w-0">
         <p className="truncate text-sm font-medium">{title}</p>
         <p className="truncate text-xs text-muted-foreground">{description}</p>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
         <Button
           aria-label="Move up"
           disabled={disableMoveUp}
@@ -166,7 +169,12 @@ function ReorderRow({
             Edit
           </Button>
         ) : null}
-        <Button size="sm" variant="ghost" onClick={onRemove}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onRemove}
+          className="text-destructive hover:text-destructive"
+        >
           Remove
         </Button>
       </div>
@@ -458,393 +466,439 @@ export function OptionsApp() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 text-foreground sm:px-6">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {extensionName} Settings
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Choose what shows up on Focus Home and how YouTube import behaves.
+    <main className="min-h-screen bg-background antialiased text-foreground">
+      <div className="mx-auto max-w-2xl px-6 py-12">
+        {/* Header */}
+        <header className="mb-10">
+          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Manage your Focus Home preferences
           </p>
-        </div>
+        </header>
 
-        <Card>
-          <CardHeader className="space-y-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>Connect YouTube</CardTitle>
-                <CardDescription>
-                  Connect YouTube to import playlists, then choose which ones
-                  appear on Focus Home.
-                </CardDescription>
+        <div className="space-y-8">
+          {/* ── YouTube Account ── */}
+          <Card className="border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <CardTitle>YouTube Account</CardTitle>
+                  <CardDescription>
+                    Connect to import playlists for Focus Home
+                  </CardDescription>
+                </div>
+                <Badge variant={getAuthBadgeVariant(youtubeAuth)}>
+                  {getAuthChipText(youtubeAuth)}
+                </Badge>
               </div>
-              <Badge
-                className="w-fit"
-                variant={getAuthBadgeVariant(youtubeAuth)}
-              >
-                {getAuthChipText(youtubeAuth)}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={handleConnectYouTube} disabled={authLoading}>
-                {authLoading ? "Connecting..." : getAuthPrimaryAction(youtubeAuth)}
-              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleConnectYouTube}
+                  disabled={authLoading}
+                >
+                  {authLoading
+                    ? "Connecting..."
+                    : getAuthPrimaryAction(youtubeAuth)}
+                </Button>
+                {!youtubeAuth.connected ? (
+                  <Button
+                    variant="ghost"
+                    disabled={authLoading}
+                    onClick={handleSkipAuth}
+                  >
+                    Skip for now
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    disabled={authLoading}
+                    onClick={handleDisconnectYouTube}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    Remove account
+                  </Button>
+                )}
+              </div>
+
+              {getAuthInlineMessage(youtubeAuth) ? (
+                <StatusMessage>{getAuthInlineMessage(youtubeAuth)}</StatusMessage>
+              ) : null}
+
+              {authStatus ? (
+                <StatusMessage>{authStatus}</StatusMessage>
+              ) : null}
+              {youtubeAuth.lastError &&
+              !authStatus &&
+              youtubeAuth.uiState === "failed" ? (
+                <StatusMessage tone="error">
+                  {youtubeAuth.lastError}
+                </StatusMessage>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          {/* ── Imported Playlists ── */}
+          <Card className="border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <CardTitle>Imported Playlists</CardTitle>
+                  <CardDescription>
+                    Select from your YouTube library
+                  </CardDescription>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {playlistState.status === "ready" ? (
+                    <Badge variant="outline">
+                      {playlistState.items.length} playlists
+                    </Badge>
+                  ) : null}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefreshImportedPlaylists}
+                    disabled={playlistLoading || !youtubeAuth.connected}
+                  >
+                    {playlistLoading ? "Refreshing\u2026" : "Refresh"}
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {!youtubeAuth.connected ? (
-                <Button
-                  disabled={authLoading}
-                  variant="outline"
-                  onClick={handleSkipAuth}
-                >
-                  Skip for now
-                </Button>
-              ) : (
-                <Button
-                  disabled={authLoading}
-                  variant="destructive"
-                  onClick={handleDisconnectYouTube}
-                >
-                  Remove account
-                </Button>
-              )}
-            </div>
+                <StatusMessage tone="warning">
+                  Connect YouTube first, or use manual shortcuts below.
+                </StatusMessage>
+              ) : null}
+              {playlistStatusCopy ? (
+                <StatusMessage tone={playlistStatusCopy.tone}>
+                  {playlistStatusCopy.text}
+                </StatusMessage>
+              ) : null}
+              {playlistStatus ? (
+                <StatusMessage>{playlistStatus}</StatusMessage>
+              ) : null}
 
-            <StatusMessage>{getAuthInlineMessage(youtubeAuth)}</StatusMessage>
+              {shouldShowImportedSelectionWorkspace(
+                playlistState.status,
+                playlistState.items.length
+              ) ? (
+                <div className="space-y-4">
+                  {/* Selected playlists */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Selected ({selectedImportedPlaylists.length}/
+                      {MAX_IMPORTED_PLAYLISTS})
+                    </Label>
 
-            <div className="rounded-md border border-border/70 bg-secondary/20 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
-                Fallback paths
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                If auth is skipped, cancelled, or fails, keep going with Add
-                current playlist and manual playlist URLs below.
-              </p>
-            </div>
-
-            {authStatus ? <StatusMessage>{authStatus}</StatusMessage> : null}
-            {youtubeAuth.lastError &&
-            !authStatus &&
-            youtubeAuth.uiState === "failed" ? (
-              <StatusMessage tone="error">{youtubeAuth.lastError}</StatusMessage>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Imported Playlists</CardTitle>
-            <CardDescription>
-              Imported playlists require YouTube authorization. Manual playlist
-              shortcuts below remain available even when import is unavailable.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                disabled={playlistLoading || !youtubeAuth.connected}
-                onClick={handleRefreshImportedPlaylists}
-              >
-                {playlistLoading ? "Refreshing..." : "Refresh imported playlists"}
-              </Button>
-              <Badge variant="outline">
-                {playlistState.status === "ready"
-                  ? `${playlistState.items.length} imported`
-                  : playlistState.status}
-              </Badge>
-            </div>
-
-            {!youtubeAuth.connected ? (
-              <StatusMessage tone="warning">
-                Connect YouTube first, or continue using Add current playlist and
-                manual URLs.
-              </StatusMessage>
-            ) : null}
-            {playlistStatusCopy ? (
-              <StatusMessage tone={playlistStatusCopy.tone}>
-                {playlistStatusCopy.text}
-              </StatusMessage>
-            ) : null}
-            {playlistStatus ? <StatusMessage>{playlistStatus}</StatusMessage> : null}
-
-            {shouldShowImportedSelectionWorkspace(
-              playlistState.status,
-              playlistState.items.length
-            ) ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <Label className="text-sm">
-                        Selected for Focus Home ({selectedImportedPlaylists.length}/
-                        {MAX_IMPORTED_PLAYLISTS})
-                      </Label>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {selectedImportedPlaylists.length === 0
-                          ? `Select up to ${MAX_IMPORTED_PLAYLISTS} imported playlists.`
-                          : "Reorder or remove the playlists you want on Focus Home."}
+                    {selectedImportedPlaylists.length === 0 ? (
+                      <p className="py-2 text-sm text-muted-foreground">
+                        No playlists selected. Choose from below.
                       </p>
-                    </div>
-                  </div>
-
-                  {selectedImportedPlaylists.length > 0 ? (
-                    <ScrollArea className="max-h-56 rounded-md border border-border/70">
-                      <div className="space-y-2 p-2">
+                    ) : (
+                      <div className="space-y-1.5">
                         {selectedImportedPlaylists.map((playlist, index) => (
-                          <ReorderRow
+                          <div
                             key={`selected-${playlist.id}`}
-                            description={playlist.url}
-                            disableMoveDown={
-                              index === selectedImportedPlaylists.length - 1
-                            }
-                            disableMoveUp={index === 0}
-                            title={playlist.title}
-                            onMoveDown={() =>
-                              handleMoveImportedPlaylist(index, 1)
-                            }
-                            onMoveUp={() =>
-                              handleMoveImportedPlaylist(index, -1)
-                            }
-                            onRemove={() =>
-                              handleRemoveImportedPlaylist(playlist.id)
-                            }
-                          />
+                            className="group flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium">
+                                {playlist.title}
+                              </p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {playlist.url}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleMoveImportedPlaylist(index, -1)
+                                }
+                                disabled={index === 0}
+                                aria-label="Move up"
+                              >
+                                &#x2191;
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleMoveImportedPlaylist(index, 1)
+                                }
+                                disabled={
+                                  index ===
+                                  selectedImportedPlaylists.length - 1
+                                }
+                                aria-label="Move down"
+                              >
+                                &#x2193;
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleRemoveImportedPlaylist(playlist.id)
+                                }
+                                className="text-destructive hover:text-destructive"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
                         ))}
                       </div>
-                    </ScrollArea>
-                  ) : null}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label htmlFor="imported-playlist-search">
-                    Search imported playlists
-                  </Label>
-                  <Input
-                    id="imported-playlist-search"
-                    placeholder="Search by title"
-                    type="text"
-                    value={importedSearch}
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                      setImportedSearch(event.target.value)
-                    }
-                  />
-                </div>
-
-                <ScrollArea className="max-h-72 rounded-md border border-border/70">
-                  <div className="space-y-2 p-2">
-                    {filteredImportedPlaylists.map((playlist) => {
-                      const selected = isImportedPlaylistSelected(
-                        selectedImportedPlaylists,
-                        playlist.id
-                      );
-                      const selectDisabled =
-                        !selected &&
-                        selectedImportedPlaylists.length >= MAX_IMPORTED_PLAYLISTS;
-
-                      return (
-                        <div
-                          key={playlist.id}
-                          className="flex items-start justify-between gap-3 rounded-md border border-border/70 bg-secondary/20 px-3 py-3"
-                        >
-                          <div className="min-w-0 space-y-1">
-                            <p className="truncate text-sm font-medium">
-                              {playlist.title}
-                            </p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {playlist.videoCount === null
-                                ? "Video count unavailable"
-                                : `${playlist.videoCount} videos`}
-                            </p>
-                          </div>
-                          {selected ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                handleRemoveImportedPlaylist(playlist.id)
-                              }
-                            >
-                              Selected
-                            </Button>
-                          ) : (
-                            <Button
-                              disabled={selectDisabled}
-                              size="sm"
-                              onClick={() =>
-                                handleSelectImportedPlaylist(playlist.id)
-                              }
-                            >
-                              Select
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {filteredImportedPlaylists.length === 0 ? (
-                      <p className="px-1 py-2 text-sm text-muted-foreground">
-                        No imported playlists match this search.
-                      </p>
-                    ) : null}
+                    )}
                   </div>
-                </ScrollArea>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Focus Mode Default</CardTitle>
-            <CardDescription>
-              Focus Mode replaces the YouTube home recommendations with your
-              Focus Home surface, including Watch Later and any saved playlist
-              shortcuts.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start justify-between gap-4 rounded-md border border-border/70 bg-secondary/20 px-4 py-3">
-              <div className="space-y-1">
-                <Label htmlFor="focus-mode-default">
-                  Enable focus mode by default
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Start in Focus Mode until the user turns it off.
-                </p>
-              </div>
-              <Switch
-                checked={settings.focusModeEnabled}
-                id="focus-mode-default"
-                onCheckedChange={handleFocusDefaultChange}
-              />
-            </div>
-          </CardContent>
-        </Card>
+                  <Separator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Playlist Shortcuts</CardTitle>
-            <CardDescription>
-              Add up to {MAX_MANUAL_PLAYLISTS} YouTube playlists to show on your
-              Focus Home.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {playlists.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No playlist shortcuts yet. Add a YouTube playlist below.
-              </p>
-            ) : (
-              <ScrollArea className="max-h-80 rounded-md border border-border/70">
-                <div className="space-y-2 p-2">
-                  {playlists.map((playlist, index) => (
-                    <div key={playlist.id}>
-                      {editingId === playlist.id ? (
-                        <div className="space-y-3 rounded-md border border-border/70 bg-secondary/20 p-3">
-                          <div className="space-y-2">
-                            <Label htmlFor={`edit-title-${playlist.id}`}>
-                              Playlist title
-                            </Label>
-                            <Input
-                              id={`edit-title-${playlist.id}`}
-                              placeholder="Playlist title"
-                              type="text"
-                              value={editTitle}
-                              onChange={(event) =>
-                                setEditTitle(event.target.value)
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor={`edit-url-${playlist.id}`}>
-                              Playlist URL
-                            </Label>
-                            <Input
-                              id={`edit-url-${playlist.id}`}
-                              placeholder="https://www.youtube.com/playlist?list=..."
-                              type="text"
-                              value={editUrl}
-                              onChange={(event) => setEditUrl(event.target.value)}
-                            />
-                          </div>
-                          {editError ? (
-                            <StatusMessage tone="error">{editError}</StatusMessage>
-                          ) : null}
-                          <div className="flex flex-wrap gap-2">
-                            <Button size="sm" onClick={handleSaveEdit}>
-                              Save
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={handleCancelEdit}
+                  {/* Search + Available playlists */}
+                  <div className="space-y-3">
+                    <Input
+                      id="imported-playlist-search"
+                      placeholder="Search playlists..."
+                      type="text"
+                      value={importedSearch}
+                      onChange={(
+                        event: ChangeEvent<HTMLInputElement>
+                      ) => setImportedSearch(event.target.value)}
+                    />
+
+                    <ScrollArea className="max-h-64">
+                      <div className="space-y-1.5 pr-3">
+                        {filteredImportedPlaylists.map((playlist) => {
+                          const selected = isImportedPlaylistSelected(
+                            selectedImportedPlaylists,
+                            playlist.id
+                          );
+                          const selectDisabled =
+                            !selected &&
+                            selectedImportedPlaylists.length >=
+                              MAX_IMPORTED_PLAYLISTS;
+
+                          return (
+                            <div
+                              key={playlist.id}
+                              className="flex items-center justify-between gap-3 rounded-lg border border-border/50 px-3 py-2.5 transition-colors hover:border-border hover:bg-secondary/20"
                             >
-                              Cancel
-                            </Button>
-                          </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium">
+                                  {playlist.title}
+                                </p>
+                                <Badge
+                                  variant="outline"
+                                  className="mt-1 text-[10px]"
+                                >
+                                  {playlist.videoCount === null
+                                    ? "Unknown"
+                                    : `${playlist.videoCount} videos`}
+                                </Badge>
+                              </div>
+                              {selected ? (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleRemoveImportedPlaylist(playlist.id)
+                                  }
+                                >
+                                  Selected
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  disabled={selectDisabled}
+                                  onClick={() =>
+                                    handleSelectImportedPlaylist(playlist.id)
+                                  }
+                                >
+                                  Select
+                                </Button>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {filteredImportedPlaylists.length === 0 ? (
+                          <p className="py-4 text-center text-sm text-muted-foreground">
+                            No playlists match your search
+                          </p>
+                        ) : null}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          {/* ── Focus Mode ── */}
+          <Card className="border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">
+            <CardContent className="py-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="focus-mode" className="text-sm font-medium">
+                    Focus Mode
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Replace YouTube home with your curated content
+                  </p>
+                </div>
+                <Switch
+                  id="focus-mode"
+                  checked={settings.focusModeEnabled}
+                  onCheckedChange={handleFocusDefaultChange}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Playlist Shortcuts ── */}
+          <Card className="border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">
+            <CardHeader>
+              <div className="space-y-1">
+                <CardTitle>Playlist Shortcuts</CardTitle>
+                <CardDescription>
+                  Add up to {MAX_MANUAL_PLAYLISTS} playlists manually
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {playlists.length === 0 ? (
+                <p className="py-1 text-sm text-muted-foreground">
+                  No shortcuts yet. Add one below.
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {playlists.map((playlist, index) =>
+                    editingId === playlist.id ? (
+                      <div
+                        key={playlist.id}
+                        className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-3"
+                      >
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`edit-title-${playlist.id}`}
+                            className="text-xs"
+                          >
+                            Title
+                          </Label>
+                          <Input
+                            id={`edit-title-${playlist.id}`}
+                            placeholder="Playlist title"
+                            type="text"
+                            value={editTitle}
+                            onChange={(event) =>
+                              setEditTitle(event.target.value)
+                            }
+                          />
                         </div>
-                      ) : (
-                        <ReorderRow
-                          description={playlist.url}
-                          disableMoveDown={index === playlists.length - 1}
-                          disableMoveUp={index === 0}
-                          title={playlist.title}
-                          onEdit={() => handleStartEdit(playlist)}
-                          onMoveDown={() => handleMovePlaylist(index, 1)}
-                          onMoveUp={() => handleMovePlaylist(index, -1)}
-                          onRemove={() => handleRemovePlaylist(playlist.id)}
-                        />
-                      )}
-                    </div>
-                  ))}
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`edit-url-${playlist.id}`}
+                            className="text-xs"
+                          >
+                            URL
+                          </Label>
+                          <Input
+                            id={`edit-url-${playlist.id}`}
+                            placeholder="https://www.youtube.com/playlist?list=..."
+                            type="text"
+                            value={editUrl}
+                            onChange={(event) =>
+                              setEditUrl(event.target.value)
+                            }
+                          />
+                        </div>
+                        {editError ? (
+                          <StatusMessage tone="error">{editError}</StatusMessage>
+                        ) : null}
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" onClick={handleSaveEdit}>
+                            Save
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleCancelEdit}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <ReorderRow
+                        key={playlist.id}
+                        description={playlist.url}
+                        disableMoveDown={index === playlists.length - 1}
+                        disableMoveUp={index === 0}
+                        title={playlist.title}
+                        onEdit={() => handleStartEdit(playlist)}
+                        onMoveDown={() => handleMovePlaylist(index, 1)}
+                        onMoveUp={() => handleMovePlaylist(index, -1)}
+                        onRemove={() => handleRemovePlaylist(playlist.id)}
+                      />
+                    )
+                  )}
                 </div>
-              </ScrollArea>
-            )}
+              )}
 
-            <Separator />
+              <Separator />
 
-            {!atMax ? (
-              <form className="space-y-3" onSubmit={handleAddPlaylist}>
-                <div className="space-y-2">
-                  <Label htmlFor="new-playlist-title">Add Playlist</Label>
-                  <Input
-                    id="new-playlist-title"
-                    placeholder="Playlist title"
-                    type="text"
-                    value={newTitle}
-                    onChange={(event) => setNewTitle(event.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-playlist-url">Playlist URL</Label>
-                  <Input
-                    id="new-playlist-url"
-                    placeholder="https://www.youtube.com/playlist?list=..."
-                    type="text"
-                    value={newUrl}
-                    onChange={(event) => setNewUrl(event.target.value)}
-                  />
-                </div>
-                {addError ? (
-                  <StatusMessage tone="error">{addError}</StatusMessage>
-                ) : null}
-                <Button type="submit">Add Playlist</Button>
-              </form>
-            ) : (
-              <StatusMessage>
-                Maximum {MAX_MANUAL_PLAYLISTS} playlists reached. Remove one to
-                add another.
-              </StatusMessage>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="space-y-2">
-          {status ? <StatusMessage>{status}</StatusMessage> : null}
-          <p className="text-xs text-muted-foreground">Version {extensionVersion}</p>
+              {!atMax ? (
+                <form className="space-y-3" onSubmit={handleAddPlaylist}>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-playlist-title" className="text-xs">
+                      Title
+                    </Label>
+                    <Input
+                      id="new-playlist-title"
+                      placeholder="Playlist title"
+                      type="text"
+                      value={newTitle}
+                      onChange={(event) => setNewTitle(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-playlist-url" className="text-xs">
+                      URL
+                    </Label>
+                    <Input
+                      id="new-playlist-url"
+                      placeholder="youtube.com/playlist?list=..."
+                      type="text"
+                      value={newUrl}
+                      onChange={(event) => setNewUrl(event.target.value)}
+                    />
+                  </div>
+                  {addError ? (
+                    <StatusMessage tone="error">{addError}</StatusMessage>
+                  ) : null}
+                  <Button type="submit" size="sm">
+                    Add Playlist
+                  </Button>
+                </form>
+              ) : (
+                <StatusMessage>
+                  Maximum {MAX_MANUAL_PLAYLISTS} playlists reached. Remove one
+                  to add another.
+                </StatusMessage>
+              )}
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-12 border-t border-border pt-6">
+          {status ? <StatusMessage>{status}</StatusMessage> : null}
+          <p className="mt-2 text-xs text-muted-foreground">
+            Version {extensionVersion}
+          </p>
+        </footer>
       </div>
     </main>
   );

@@ -64,6 +64,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
+  if (message && message.action === "open_options") {
+    chrome.runtime.openOptionsPage();
+    sendResponse({ ok: true });
+    return true;
+  }
+
   return undefined;
 });
 

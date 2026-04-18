@@ -105,7 +105,7 @@ export default function App() {
 
   return (
     <main className="w-[320px] bg-background p-3 text-foreground">
-      <Card className="border-border/80 bg-card/95 shadow-lg">
+      <Card className="border-primary/20 bg-card shadow-[0_4px_24px_rgba(255,78,69,0.08)] backdrop-blur-xl transition-shadow duration-300">
         <CardHeader className="space-y-3 p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">

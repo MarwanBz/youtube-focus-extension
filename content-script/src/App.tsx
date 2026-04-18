@@ -330,13 +330,13 @@ export function HomeFocusOverlay() {
       return;
     }
 
-    if (chrome.runtime?.openOptionsPage) {
-      chrome.runtime.openOptionsPage();
-      return;
-    }
-
-    if (chrome.runtime?.getURL) {
-      window.open(chrome.runtime.getURL("options.html"));
+    try {
+      chrome.runtime.sendMessage({ action: "open_options" });
+    } catch {
+      // Fallback
+      if (chrome.runtime?.getURL) {
+        window.open(chrome.runtime.getURL("options.html"));
+      }
     }
   };
 
