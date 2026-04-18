@@ -40,3 +40,17 @@ playwright-report/
 .env.test.local
 .env.production.local
 
+# zip files
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.lzma
+*.tar.lz
+*.tar.z
+*.tar.bz
+*.tar.bz2
+*.tar.xz
+*.tar.lzma
+*.tar.lz

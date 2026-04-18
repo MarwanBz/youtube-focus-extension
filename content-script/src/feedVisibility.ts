@@ -30,7 +30,7 @@ export function syncHomeFeedVisibility(
 
   const restoreInlineStyle = (
     target: HTMLElement,
-    property: "display" | "visibility" | "pointerEvents",
+    property: "display" | "visibility" | "pointerEvents" | "height" | "overflow" | "margin" | "padding",
     value: string | undefined
   ) => {
     if (!value || value === missingStyleValue) {
@@ -53,13 +53,36 @@ export function syncHomeFeedVisibility(
       target.style.visibility || missingStyleValue;
     target.dataset.youtubeFocusPointerEvents =
       target.style.pointerEvents || missingStyleValue;
+    target.dataset.youtubeFocusHeight =
+      target.style.height || missingStyleValue;
+    target.dataset.youtubeFocusOverflow =
+      target.style.overflow || missingStyleValue;
+    target.dataset.youtubeFocusMargin =
+      target.style.margin || missingStyleValue;
+    target.dataset.youtubeFocusPadding =
+      target.style.padding || missingStyleValue;
     target.dataset.youtubeFocusAriaHidden =
       target.getAttribute("aria-hidden") ?? "";
 
-    target.style.display = "none";
-    target.style.visibility = "hidden";
-    target.style.pointerEvents = "none";
+    target.style.setProperty("display", "block", "important");
+    target.style.setProperty("height", "0px", "important");
+    target.style.setProperty("min-height", "0px", "important");
+    target.style.setProperty("overflow", "hidden", "important");
+    target.style.setProperty("margin", "0px", "important");
+    target.style.setProperty("padding", "0px", "important");
+    target.style.setProperty("visibility", "hidden", "important");
+    target.style.setProperty("pointer-events", "none", "important");
     target.setAttribute("aria-hidden", "true");
+
+    // Force scroll container to remain active
+    const app = document.querySelector("ytd-app");
+    if (app && window.getComputedStyle(app).overflow === "hidden") {
+      (app as HTMLElement).style.setProperty("overflow", "auto", "important");
+    }
+    if (window.getComputedStyle(document.body).overflow === "hidden") {
+      document.body.style.setProperty("overflow", "auto", "important");
+    }
+
     return true;
   };
 
@@ -79,6 +102,10 @@ export function syncHomeFeedVisibility(
       "pointerEvents",
       target.dataset.youtubeFocusPointerEvents
     );
+    restoreInlineStyle(target, "height", target.dataset.youtubeFocusHeight);
+    restoreInlineStyle(target, "overflow", target.dataset.youtubeFocusOverflow);
+    restoreInlineStyle(target, "margin", target.dataset.youtubeFocusMargin);
+    restoreInlineStyle(target, "padding", target.dataset.youtubeFocusPadding);
 
     const previousAriaHidden = target.dataset.youtubeFocusAriaHidden ?? "";
     if (previousAriaHidden) {
@@ -87,10 +114,19 @@ export function syncHomeFeedVisibility(
       target.removeAttribute("aria-hidden");
     }
 
+    // Clean up scroll force if restoring
+    const app = document.querySelector("ytd-app");
+    if (app) (app as HTMLElement).style.removeProperty("overflow");
+    document.body.style.removeProperty("overflow");
+
     delete target.dataset[hiddenMarker];
     delete target.dataset.youtubeFocusDisplay;
     delete target.dataset.youtubeFocusVisibility;
     delete target.dataset.youtubeFocusPointerEvents;
+    delete target.dataset.youtubeFocusHeight;
+    delete target.dataset.youtubeFocusOverflow;
+    delete target.dataset.youtubeFocusMargin;
+    delete target.dataset.youtubeFocusPadding;
     delete target.dataset.youtubeFocusAriaHidden;
     return true;
   };

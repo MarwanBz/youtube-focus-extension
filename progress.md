@@ -52,6 +52,7 @@ Next task: T104 - Add API pagination and cache.
 | 2026-04-18 | T104A selected-playlist preview cache | Done | Added a background-owned selected-playlist preview cache using `playlistItems.list`, kept preview fetches tied to selected imported playlists, and cleared preview data when auth disconnects or selected playlists are removed. |
 | 2026-04-18 | T108B Focus Home playlist shelves | Done | Replaced flat playlist cards with titled shelves that show thumbnails from videos inside each selected imported playlist, while keeping Watch Later and manual playlists on explicit fallback treatments when preview data is unavailable. |
 | 2026-04-18 | Verify T104A + T108B | Done | Ran `npm run lint`, `npx playwright test tests/preview-api.spec.ts tests/focus-overlay-sections.spec.ts tests/focus-overlay-cards.spec.ts tests/youtube-api.spec.ts tests/youtube-selection.spec.ts tests/settings-schema.spec.ts tests/youtube-status-copy.spec.ts tests/auth-client.spec.ts`, and `npm run build`. All targeted tests passed and build succeeded. |
+| 2026-04-18 | Native YouTube UI Reskin | Done | Completely redesigned the HomeFocusBanner and HomeFocusOverlay to match YouTube's native dark-mode aesthetic. Replaced generated gradients and glowing badges with flat colors, standard 12px thumbnails, and accurate vector SVG tracking for Playlist and Watch Later icons. |
 
 ## Decision Log
 
