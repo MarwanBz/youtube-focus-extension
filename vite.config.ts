@@ -6,6 +6,17 @@ import manifest from "./manifest.json";
 
 export default defineConfig({
   plugins: [react(), crx({ manifest })],
+  server: {
+    host: "127.0.0.1",
+    port: 5173,
+    strictPort: true,
+    cors: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "*",
+    },
+  },
   build: {
     rollupOptions: {
       input: {
