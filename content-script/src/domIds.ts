@@ -1,5 +1,7 @@
 export const EXTENSION_HOST_ID = "extension-root";
 export const EXTENSION_BANNER_HOST_ID = "youtube-focus-banner-root";
 export const EXTENSION_BANNER_MOUNT_ID = "youtube-focus-banner-mount";
+export const EXTENSION_OVERLAY_HOST_ID = "youtube-focus-overlay-root";
+export const EXTENSION_OVERLAY_MOUNT_ID = "youtube-focus-overlay-mount";
 export const EXTENSION_STYLE_ID = "youtube-focus-extension-styles";
 export const EXTENSION_MOUNT_ID = "youtube-focus-extension-mount";

@@ -19,6 +19,10 @@ import {
   getYouTubeRouteState,
   type YouTubeRouteState,
 } from "./youtubeHome";
+import {
+  getFocusOverlaySources,
+  shouldRenderHomeFocusOverlay,
+} from "./focusOverlay";
 
 type FocusUiState = {
   focusModeActive: boolean;
@@ -307,6 +311,315 @@ export function HomeFocusBanner() {
         <div>
           <h2 className="youtube-focus-banner__title">{banner.title}</h2>
           <p className="youtube-focus-banner__body">{banner.body}</p>
+        </div>
+      </section>
+    </>
+  );
+}
+
+export function HomeFocusOverlay() {
+  const { focusModeActive, routeState, settings } = useFocusUiState();
+  const sources = getFocusOverlaySources(settings);
+  const hasManualPlaylists = settings.manualPlaylists.length > 0;
+
+  if (!shouldRenderHomeFocusOverlay(routeState, focusModeActive)) {
+    return null;
+  }
+
+  const handleOpenSettings = () => {
+    if (typeof chrome === "undefined") {
+      return;
+    }
+
+    if (chrome.runtime?.openOptionsPage) {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+
+    if (chrome.runtime?.getURL) {
+      window.open(chrome.runtime.getURL("options.html"));
+    }
+  };
+
+  return (
+    <>
+      <style>{`
+        .youtube-focus-overlay {
+          box-sizing: border-box;
+          color: #f1f1f1;
+          font-family: Roboto, Arial, sans-serif;
+          margin: 0 24px 24px;
+          width: calc(100% - 48px);
+        }
+
+        .youtube-focus-overlay__panel {
+          background: linear-gradient(180deg, rgba(16, 18, 23, 0.96) 0%, rgba(23, 26, 35, 0.94) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 18px;
+          box-sizing: border-box;
+          display: grid;
+          gap: 18px;
+          grid-template-columns: minmax(0, 1fr) auto;
+          padding: 24px;
+          width: 100%;
+        }
+
+        .youtube-focus-overlay__eyebrow {
+          color: rgba(125, 162, 255, 0.92);
+          display: block;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0;
+          margin-bottom: 10px;
+          text-transform: uppercase;
+        }
+
+        .youtube-focus-overlay__title {
+          font-size: 30px;
+          font-weight: 700;
+          letter-spacing: 0;
+          line-height: 1.12;
+          margin: 0;
+        }
+
+        .youtube-focus-overlay__body {
+          color: rgba(241, 241, 241, 0.72);
+          font-size: 15px;
+          line-height: 1.55;
+          margin: 12px 0 0;
+          max-width: 56ch;
+        }
+
+        .youtube-focus-overlay__aside {
+          align-items: flex-start;
+          display: grid;
+          gap: 12px;
+          justify-items: end;
+          min-width: 220px;
+        }
+
+        .youtube-focus-overlay__card {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 8px;
+          display: grid;
+          gap: 8px;
+          min-height: 108px;
+          padding: 16px;
+          width: 100%;
+        }
+
+        .youtube-focus-overlay__card-title {
+          font-size: 15px;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .youtube-focus-overlay__card-body {
+          color: rgba(241, 241, 241, 0.64);
+          font-size: 13px;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .youtube-focus-overlay__sources {
+          display: grid;
+          gap: 10px;
+          margin-top: 20px;
+        }
+
+        .youtube-focus-overlay__source {
+          align-items: center;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 8px;
+          color: inherit;
+          column-gap: 14px;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          padding: 14px 16px;
+          text-decoration: none;
+          transition: background 120ms ease, border-color 120ms ease;
+        }
+
+        .youtube-focus-overlay__source:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(125, 162, 255, 0.32);
+        }
+
+        .youtube-focus-overlay__source:focus-visible {
+          outline: 2px solid #ffffff;
+          outline-offset: 2px;
+        }
+
+        .youtube-focus-overlay__source-icon {
+          align-items: center;
+          background: rgba(45, 125, 255, 0.18);
+          border-radius: 999px;
+          color: #a9c3ff;
+          display: inline-flex;
+          flex: 0 0 auto;
+          font-size: 11px;
+          font-weight: 700;
+          height: 28px;
+          justify-content: center;
+          text-transform: uppercase;
+          width: 28px;
+        }
+
+        .youtube-focus-overlay__source-meta {
+          min-width: 0;
+        }
+
+        .youtube-focus-overlay__source-title {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
+          margin: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .youtube-focus-overlay__source-subtitle {
+          color: rgba(241, 241, 241, 0.56);
+          display: block;
+          font-size: 12px;
+          margin-top: 3px;
+        }
+
+        .youtube-focus-overlay__source-arrow {
+          color: rgba(241, 241, 241, 0.44);
+          font-size: 18px;
+          line-height: 1;
+        }
+
+        .youtube-focus-overlay__empty {
+          color: rgba(241, 241, 241, 0.64);
+          font-size: 13px;
+          line-height: 1.5;
+          margin: 2px 0 0;
+        }
+
+        .youtube-focus-overlay__button {
+          background: #2d7dff;
+          border: 0;
+          border-radius: 8px;
+          color: #ffffff;
+          cursor: pointer;
+          font: inherit;
+          font-size: 14px;
+          font-weight: 600;
+          min-height: 40px;
+          padding: 0 16px;
+          transition: background 120ms ease, opacity 120ms ease;
+        }
+
+        .youtube-focus-overlay__button:hover {
+          background: #4a92ff;
+        }
+
+        .youtube-focus-overlay__button:focus-visible {
+          outline: 2px solid #ffffff;
+          outline-offset: 2px;
+        }
+
+        @media (max-width: 900px) {
+          .youtube-focus-overlay {
+            margin: 0 12px 16px;
+            width: calc(100% - 24px);
+          }
+
+          .youtube-focus-overlay__panel {
+            grid-template-columns: minmax(0, 1fr);
+            padding: 18px;
+          }
+
+          .youtube-focus-overlay__title {
+            font-size: 24px;
+          }
+
+          .youtube-focus-overlay__aside {
+            justify-items: stretch;
+            min-width: 0;
+          }
+
+          .youtube-focus-overlay__card {
+            min-height: 0;
+          }
+        }
+      `}</style>
+      <section
+        className="youtube-focus-overlay"
+        data-testid="youtube-focus-overlay"
+      >
+        <div className="youtube-focus-overlay__panel">
+          <div>
+            <span className="youtube-focus-overlay__eyebrow">Focus Home</span>
+            <h2 className="youtube-focus-overlay__title">
+              Your intentional queue starts here.
+            </h2>
+            <p className="youtube-focus-overlay__body">
+              This space now points you toward the list you chose to save on
+              purpose. Watch Later is ready below, and your saved playlist
+              shortcuts will appear here instead of the recommendation feed.
+            </p>
+            <div className="youtube-focus-overlay__sources">
+              {sources.map((source) => (
+                <a
+                  key={`${source.kind}:${source.url}`}
+                  className="youtube-focus-overlay__source"
+                  data-kind={source.kind}
+                  href={source.url}
+                >
+                  <span className="youtube-focus-overlay__source-icon">
+                    {source.kind === "watch-later" ? "WL" : "PL"}
+                  </span>
+                  <span className="youtube-focus-overlay__source-meta">
+                    <span className="youtube-focus-overlay__source-title">
+                      {source.title}
+                    </span>
+                    <span className="youtube-focus-overlay__source-subtitle">
+                      {source.kind === "watch-later"
+                        ? "Your quick return lane for saved videos."
+                        : "Manual playlist shortcut"}
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="youtube-focus-overlay__source-arrow"
+                  >
+                    ›
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div className="youtube-focus-overlay__aside">
+            <div className="youtube-focus-overlay__card">
+              <p className="youtube-focus-overlay__card-title">
+                {hasManualPlaylists ? "Playlist shortcuts are live" : "Add your playlists next"}
+              </p>
+              <p className="youtube-focus-overlay__card-body">
+                {hasManualPlaylists
+                  ? "Your saved shortcuts now show up here. T009 will make editing them easier from Settings."
+                  : "Watch Later is ready, and you can add up to three manual playlist shortcuts in Settings."}
+              </p>
+              {!hasManualPlaylists ? (
+                <p className="youtube-focus-overlay__empty">
+                  No playlist shortcuts yet. Add a few focused lists so this
+                  surface reflects what you actually want to watch.
+                </p>
+              ) : null}
+            </div>
+            <button
+              className="youtube-focus-overlay__button"
+              type="button"
+              onClick={handleOpenSettings}
+            >
+              Open Settings
+            </button>
+          </div>
         </div>
       </section>
     </>

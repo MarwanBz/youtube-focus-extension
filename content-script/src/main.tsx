@@ -1,15 +1,22 @@
 import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import styles from "@lib/styles/globals.css?inline";
-import { HomeFocusBanner, MastheadFocusToggle } from "./App";
+import {
+  HomeFocusBanner,
+  HomeFocusOverlay,
+  MastheadFocusToggle,
+} from "./App";
 import {
   EXTENSION_BANNER_HOST_ID,
   EXTENSION_BANNER_MOUNT_ID,
   EXTENSION_HOST_ID,
   EXTENSION_MOUNT_ID,
+  EXTENSION_OVERLAY_HOST_ID,
+  EXTENSION_OVERLAY_MOUNT_ID,
   EXTENSION_STYLE_ID,
 } from "./domIds";
 import { observeHomeBannerPlacement } from "./youtubeHomeBanner";
+import { observeHomeOverlayPlacement } from "./youtubeHomeOverlay";
 import { observeMastheadPlacement } from "./youtubeMasthead";
 
 const mastheadHost = mountShadowApp({
@@ -32,6 +39,17 @@ const bannerHost = mountShadowApp({
 if (!bannerHost.dataset.youtubeFocusBannerObserver) {
   bannerHost.dataset.youtubeFocusBannerObserver = "true";
   observeHomeBannerPlacement(bannerHost);
+}
+
+const overlayHost = mountShadowApp({
+  hostId: EXTENSION_OVERLAY_HOST_ID,
+  mountId: EXTENSION_OVERLAY_MOUNT_ID,
+  render: <HomeFocusOverlay />,
+});
+
+if (!overlayHost.dataset.youtubeFocusOverlayObserver) {
+  overlayHost.dataset.youtubeFocusOverlayObserver = "true";
+  observeHomeOverlayPlacement(overlayHost);
 }
 
 function mountShadowApp({

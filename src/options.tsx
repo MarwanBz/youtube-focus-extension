@@ -54,8 +54,9 @@ export function OptionsApp() {
               Enable focus mode by default
             </span>
             <span className="mt-1 block text-xs text-gray-400">
-              This only marks the YouTube home route as focus-ready. Feed
-              replacement starts in the next task.
+              Focus Mode now replaces the YouTube home recommendations with
+              your Focus Home surface, including Watch Later and any saved
+              playlist shortcuts.
             </span>
           </span>
         </label>

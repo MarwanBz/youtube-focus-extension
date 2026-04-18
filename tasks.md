@@ -19,8 +19,8 @@ Work top to bottom within Phase 1 unless a task is blocked. Do not start Phase 2
 | T004A | Done | P0 | Add YouTube masthead focus toggle | T003, T004 | Focus toggle appears next to the YouTube search controls, matches YouTube chrome, persists active/inactive state, and does not duplicate across route changes. |
 | T004B | Done | P0 | Match masthead toggle + top banner to product design references | T004A | Toggle uses pill switch styling, banner matches off/on reference states on home route, and icon style follows product image references. |
 | T005 | Done | P0 | Hide or replace recommendation feed when focus mode is active | T003, T004 | Recommendations are removed or hidden only when enabled; disabled mode restores normal behavior. |
-| T006 | Todo | P0 | Render React focus overlay in content script | T005 | Overlay mounts once, survives YouTube route changes, and does not duplicate containers. |
-| T007 | Todo | P0 | Display Watch Later and manual playlists | T003, T006 | Overlay shows Watch Later plus up to three selected playlist links. |
+| T006 | Done | P0 | Render React focus overlay in content script | T005 | Overlay mounts once, survives YouTube route changes, and does not duplicate containers. |
+| T007 | Done | P0 | Display Watch Later and manual playlists | T003, T006 | Overlay shows Watch Later plus up to three selected playlist links. |
 | T008 | Todo | P0 | Build popup focus toggle | T003 | Popup switch persists focus mode and updates active YouTube tab behavior. |
 | T009 | Todo | P0 | Build options page for manual playlist settings | T003 | User can add, edit, remove, and order manual playlist entries. |
 | T010 | Todo | P0 | Add temporary disable setting foundation | T003, T008 | Settings model supports disabled-until behavior even if UI is basic. |
@@ -32,11 +32,12 @@ Work top to bottom within Phase 1 unless a task is blocked. Do not start Phase 2
 | ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
 | --- | --- | --- | --- | --- | --- |
 | T101 | Todo | P1 | Document Google Cloud setup | T012 | OAuth client setup and required scopes are documented. |
-| T102 | Todo | P1 | Add OAuth flow with Chrome identity API | T101 | User can sign in and receive a YouTube readonly access token. |
-| T103 | Todo | P1 | Fetch playlists with YouTube Data API | T102 | Options page can list authenticated user's playlists. |
-| T104 | Todo | P1 | Fetch Watch Later or provide supported fallback | T102 | Watch Later display is real when available or gracefully falls back. |
+| T102 | Todo | P1 | Add OAuth flow with Chrome identity API | T101 | User can sign in and receive a YouTube readonly access token from onboarding or settings without launching auth automatically on install. |
+| T102A | Todo | P1 | Add OAuth failure and manual fallback states | T102 | User can skip, cancel, fail, retry, or reconnect YouTube auth; onboarding never blocks on auth; manual playlist setup remains available. |
+| T103 | Todo | P1 | Fetch playlists with YouTube Data API | T102 | Authenticated playlist fetch starts only after OAuth succeeds; options can list the authenticated user's playlists; empty, paginated, revoked-token, and unavailable-playlist states are handled without implying import works before authorization. |
+| T104 | Todo | P1 | Fetch Watch Later or provide supported fallback | T102 | Watch Later display uses real data only when supported; otherwise the product shows a clearly labeled shortcut or fallback instead of promising imported Watch Later API data. |
 | T105 | Todo | P1 | Add API pagination and cache | T103, T104 | Large playlist sets load without repeated unnecessary requests. |
-| T106 | Todo | P1 | Improve playlist selection UI | T103 | User can choose and reorder playlists from fetched results. |
+| T106 | Todo | P1 | Improve playlist selection UI | T103 | User can search, choose, and reorder playlists from authenticated cached results; the dropdown or checklist appears only when authenticated playlist data exists; otherwise the UI shows reconnect plus manual fallback and privacy copy that avoids implying automatic account access. |
 | T107 | Todo | P2 | Add continue watching research spike | T102 | Feasibility and privacy constraints are documented before implementation. |
 | T108 | Todo | P2 | Polish overlay responsiveness and states | T012 | Overlay handles narrow widths, empty states, loading, and errors. |
 | T109 | Todo | P2 | Add cross-browser build scripts | T012 | Chrome and Firefox build commands are documented and tested. |

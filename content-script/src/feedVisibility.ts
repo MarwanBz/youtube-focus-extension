@@ -95,7 +95,7 @@ export function syncHomeFeedVisibility(
     return true;
   };
 
-  const targets = getFeedTargets(root);
+  const targets = getFeedTargets();
   let hiddenCount = 0;
   let restoredCount = 0;
 

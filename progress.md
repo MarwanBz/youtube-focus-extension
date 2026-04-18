@@ -6,7 +6,7 @@ Stage: Phase 1 foundation complete through the design-matched masthead toggle an
 
 Current focus: Phase 1 MVP.
 
-Next task: T006 - Render React focus overlay in content script.
+Next task: T008 - Build popup focus toggle.
 
 ## Implementation Log
 
@@ -26,6 +26,11 @@ Next task: T006 - Render React focus overlay in content script.
 | 2026-04-18 | Verify T004B placement fix | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 12 tests, including separate masthead and home-banner placement coverage. |
 | 2026-04-18 | T005 feed suppression | Done | Added a reversible DOM controller that hides the native YouTube home feed, chip bar, and rich sections only when Focus Mode is active on the home route, and restores them when focus mode turns off or the route changes. |
 | 2026-04-18 | Verify T005 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 15 tests, including feed hide/restore coverage and idempotence checks. |
+| 2026-04-18 | Strengthen Phase 2 import planning | Done | Updated roadmap, task board, and architecture docs so playlist import is a first-class import-led onboarding feature with OAuth fallback, manual fallback, and no-scraping constraints. |
+| 2026-04-18 | T006 focus overlay shell | Done | Added a dedicated Focus Home overlay host and placeholder panel in the content script, kept feed suppression owned by the existing banner flow, and prepared the shell for T007 playlist content without adding OAuth or playlist-editing behavior. |
+| 2026-04-18 | Verify T006 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed the existing suite plus new overlay placement and visibility coverage. |
+| 2026-04-18 | T007 Watch Later and manual playlist display | Done | Updated the Focus Home overlay to always show a Watch Later shortcut, render manual playlist shortcuts from storage, and keep a clear empty-state CTA without pulling playlist editing into the content script. |
+| 2026-04-18 | Verify T007 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed the expanded overlay coverage, including Watch Later plus manual playlist source ordering. |
 
 ## Decision Log
 
@@ -39,6 +44,7 @@ Next task: T006 - Render React focus overlay in content script.
 | 2026-04-18 | Default focus mode starts off | Conservative default prevents surprising YouTube changes before the user enables focus behavior. |
 | 2026-04-18 | Put the primary focus toggle in YouTube's masthead | The user asked for the control beside the YouTube search bar, matching YouTube chrome instead of a floating extension badge. |
 | 2026-04-18 | Keep redesign scope to toggle + top banner | The user requested style alignment for these surfaces only, not a full home page redesign in this pass. |
+| 2026-04-18 | Imported playlists require OAuth and manual fallback remains permanent | The extension cannot reliably infer a user's private YouTube playlists at install time; auth-failure flows must use manual playlist shortcuts, Watch Later may require fallback handling, and the product will not scrape YouTube UI for playlist discovery. |
 
 ## Feature State
 
@@ -51,7 +57,7 @@ Next task: T006 - Render React focus overlay in content script.
 | Masthead focus toggle | Done | Toggle is placed beside YouTube search controls and writes `focusModeEnabled` to extension storage. |
 | Home status banner styling | Done | Off/on message banners now follow the provided product style direction and use inline icons inspired by the references. |
 | Feed suppression | Done | Native YouTube home recommendations, chip bar, and rich sections are hidden only while focus mode is active on the home route. |
-| Focus overlay | Todo | Manual playlists only for MVP. |
+| Focus overlay | Done | Watch Later and stored manual playlist shortcuts now render inside the Focus Home surface. |
 | Popup toggle | Todo | Required for MVP. |
 | Options page | Todo | Required for manual playlist input. |
 | YouTube OAuth | Deferred | Phase 2 only. |
@@ -65,9 +71,9 @@ Next task: T006 - Render React focus overlay in content script.
 
 Next implementation handoff:
 
-1. Start T006 by rendering the real React focus surface into the cleared home area.
-2. Treat the masthead focus toggle as the primary user-facing switch for `focusModeEnabled`.
-3. Use the existing feed-suppression controller as the boundary between native YouTube and the extension-owned home surface.
+1. Start T008 by turning the popup status readout into a real focus-mode switch that updates the active YouTube tab behavior.
+2. Keep playlist editing in the options page work for T009 instead of adding editing controls to the content script.
+3. Treat the masthead focus toggle and popup control as the two user-facing switches for `focusModeEnabled`.
 4. Keep `identity`, YouTube API calls, and AI features deferred.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.
