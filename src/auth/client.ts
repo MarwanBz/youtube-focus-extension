@@ -1,6 +1,8 @@
 import {
   CONNECT_YOUTUBE_MESSAGE,
+  DISCONNECT_YOUTUBE_MESSAGE,
   type ConnectYouTubeMessage,
+  type DisconnectYouTubeMessage,
 } from "./messages";
 import {
   getAuthStateLabel,
@@ -8,6 +10,11 @@ import {
   type YouTubeAuthState,
 } from "./schema";
 import { patchYouTubeAuthState } from "./storage";
+import {
+  FETCH_YOUTUBE_PLAYLISTS_MESSAGE,
+  type FetchYouTubePlaylistsMessage,
+  type FetchYouTubePlaylistsResponse,
+} from "../youtube/messages";
 
 export async function connectYouTubeFromUi() {
   if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
@@ -43,6 +50,10 @@ export async function connectYouTubeFromUi() {
         return;
       }
 
+      if (result.ok) {
+        void requestYouTubePlaylistFetch();
+      }
+
       resolve({ ok: true, result });
     });
   });
@@ -55,6 +66,42 @@ export async function skipYouTubeAuth() {
     uiState: "skipped",
     lastError: null,
   });
+}
+
+export async function disconnectYouTube() {
+  if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
+    await restoreYouTubeAuthState({
+      accessToken: null,
+      connected: false,
+      uiState: "not_connected",
+      lastError: null,
+    });
+    return;
+  }
+
+  const message: DisconnectYouTubeMessage = {
+    type: DISCONNECT_YOUTUBE_MESSAGE,
+  };
+
+  return new Promise<{ ok: true }>((resolve) => {
+    chrome.runtime.sendMessage(message, (result: { ok: true } | undefined) => {
+      const runtimeError = chrome.runtime?.lastError;
+      if (runtimeError) {
+        resolve({ ok: true });
+        return;
+      }
+      resolve(result ?? { ok: true });
+    });
+  });
+}
+
+async function restoreYouTubeAuthState(state: {
+  accessToken: null;
+  connected: false;
+  uiState: "not_connected";
+  lastError: null;
+}) {
+  await patchYouTubeAuthState(state);
 }
 
 export function getAuthPrimaryAction(state: YouTubeAuthState) {
@@ -98,4 +145,46 @@ export function getAuthInlineMessage(state: YouTubeAuthState) {
 
 export function getAuthChipText(state: YouTubeAuthState) {
   return getAuthStateLabel(state.uiState);
+}
+
+export async function requestYouTubePlaylistFetch() {
+  if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
+    return {
+      ok: false as const,
+      status: "failed" as const,
+      message: "Playlist fetch is unavailable in this environment.",
+    };
+  }
+
+  const message: FetchYouTubePlaylistsMessage = {
+    type: FETCH_YOUTUBE_PLAYLISTS_MESSAGE,
+  };
+
+  return new Promise<FetchYouTubePlaylistsResponse>((resolve) => {
+    chrome.runtime.sendMessage(
+      message,
+      (result: FetchYouTubePlaylistsResponse | undefined) => {
+        const runtimeError = chrome.runtime?.lastError;
+        if (runtimeError) {
+          resolve({
+            ok: false,
+            status: "failed",
+            message: runtimeError.message || "Unable to fetch playlists.",
+          });
+          return;
+        }
+
+        if (!result) {
+          resolve({
+            ok: false,
+            status: "failed",
+            message: "Unable to fetch playlists.",
+          });
+          return;
+        }
+
+        resolve(result);
+      }
+    );
+  });
 }

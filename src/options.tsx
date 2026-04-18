@@ -14,12 +14,19 @@ import {
 } from "./auth/schema";
 import {
   connectYouTubeFromUi,
+  disconnectYouTube,
   getAuthChipText,
   getAuthInlineMessage,
   getAuthPrimaryAction,
+  requestYouTubePlaylistFetch,
   skipYouTubeAuth,
 } from "./auth/client";
 import { subscribeToYouTubeAuthState } from "./auth/storage";
+import {
+  DEFAULT_YOUTUBE_PLAYLIST_STATE,
+  type YouTubePlaylistState,
+} from "./youtube/schema";
+import { subscribeToYouTubePlaylistState } from "./youtube/storage";
 import {
   patchFocusSettings,
   subscribeToFocusSettings,
@@ -47,6 +54,11 @@ export function OptionsApp() {
   const [status, setStatus] = useState("");
   const [authStatus, setAuthStatus] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+  const [playlistState, setPlaylistState] = useState<YouTubePlaylistState>(
+    DEFAULT_YOUTUBE_PLAYLIST_STATE
+  );
+  const [playlistStatus, setPlaylistStatus] = useState("");
+  const [playlistLoading, setPlaylistLoading] = useState(false);
 
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -63,6 +75,9 @@ export function OptionsApp() {
 
   useEffect(() => {
     return subscribeToYouTubeAuthState(setYouTubeAuth);
+  }, []);
+  useEffect(() => {
+    return subscribeToYouTubePlaylistState(setPlaylistState);
   }, []);
 
   const playlists = settings.manualPlaylists;
@@ -189,7 +204,7 @@ export function OptionsApp() {
       }
 
       if (response.result.ok) {
-        setAuthStatus("YouTube connected. Playlist import comes next.");
+        setAuthStatus("YouTube connected. Importing playlists now...");
         return;
       }
 
@@ -215,6 +230,44 @@ export function OptionsApp() {
         )
       )
       .catch(() => setAuthStatus("Unable to update auth status right now."));
+  };
+
+  const handleDisconnectYouTube = () => {
+    if (authLoading) {
+      return;
+    }
+
+    setAuthStatus("");
+    void disconnectYouTube().then(() => {
+      setAuthStatus("Account removed. Reconnect to import playlists.");
+    });
+  };
+
+  const handleRefreshImportedPlaylists = () => {
+    if (playlistLoading) {
+      return;
+    }
+
+    setPlaylistLoading(true);
+    setPlaylistStatus("");
+    void requestYouTubePlaylistFetch().then((result) => {
+      setPlaylistLoading(false);
+      if (result.ok) {
+        setPlaylistStatus(
+          result.status === "empty"
+            ? "Connected but no playlists were returned."
+            : "Imported playlists updated."
+        );
+        return;
+      }
+
+      if (result.status === "not_connected") {
+        setPlaylistStatus("Connect or reconnect YouTube to import playlists.");
+        return;
+      }
+
+      setPlaylistStatus(result.message);
+    });
   };
 
   return (
@@ -245,7 +298,16 @@ export function OptionsApp() {
             >
               Skip for now
             </button>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              onClick={handleDisconnectYouTube}
+              disabled={authLoading}
+              className="rounded border border-red-500/50 px-3 py-1.5 text-xs font-medium text-red-400 hover:border-red-400 disabled:cursor-default disabled:opacity-60"
+            >
+              Remove account
+            </button>
+          )}
           <span
             className={`text-xs ${
               youtubeAuth.connected ? "text-emerald-400" : "text-gray-300"
@@ -269,6 +331,82 @@ export function OptionsApp() {
         ) : null}
         {youtubeAuth.lastError && !authStatus && youtubeAuth.uiState === "failed" ? (
           <p className="mt-2 text-xs text-red-400">{youtubeAuth.lastError}</p>
+        ) : null}
+      </div>
+
+      <div className="mt-4 max-w-md rounded-md border border-white/15 p-4">
+        <h2 className="text-sm font-semibold">Imported Playlists</h2>
+        <p className="mt-1 text-xs text-gray-400">
+          Imported playlists require YouTube authorization. Manual playlist
+          shortcuts below remain available even when import is unavailable.
+        </p>
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleRefreshImportedPlaylists}
+            disabled={playlistLoading || !youtubeAuth.connected}
+            className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium hover:bg-blue-500 disabled:cursor-default disabled:opacity-60"
+          >
+            {playlistLoading ? "Refreshing..." : "Refresh imported playlists"}
+          </button>
+          <span className="text-xs text-gray-300">
+            {playlistState.status === "ready"
+              ? `${playlistState.items.length} imported`
+              : playlistState.status}
+          </span>
+        </div>
+
+        {youtubeAuth.connected ? null : (
+          <p className="mt-2 text-xs text-amber-300">
+            Connect YouTube first, or continue using Add current playlist and
+            manual URLs.
+          </p>
+        )}
+        {playlistState.status === "loading" ? (
+          <p className="mt-2 text-xs text-gray-300">Loading playlists...</p>
+        ) : null}
+        {playlistState.status === "empty" ? (
+          <p className="mt-2 text-xs text-gray-300">
+            No playlists found for this account yet.
+          </p>
+        ) : null}
+        {playlistState.status === "unauthorized" ? (
+          <p className="mt-2 text-xs text-red-400">
+            Authorization expired or was revoked. Reconnect YouTube and retry.
+          </p>
+        ) : null}
+        {playlistState.status === "unavailable" ? (
+          <p className="mt-2 text-xs text-amber-300">
+            YouTube playlist import is temporarily unavailable. Retry soon.
+          </p>
+        ) : null}
+        {playlistState.status === "failed" ? (
+          <p className="mt-2 text-xs text-red-400">
+            {playlistState.lastError || "Unable to import playlists right now."}
+          </p>
+        ) : null}
+        {playlistStatus ? (
+          <p className="mt-2 text-xs text-gray-300">{playlistStatus}</p>
+        ) : null}
+        {playlistState.status === "ready" ? (
+          <ul className="mt-3 space-y-2">
+            {playlistState.items.map((playlist) => (
+              <li
+                key={playlist.id}
+                className="rounded border border-white/10 bg-gray-900/50 p-2"
+              >
+                <p className="truncate text-xs font-medium text-gray-100">
+                  {playlist.title}
+                </p>
+                <p className="truncate text-xs text-gray-500">{playlist.url}</p>
+                <p className="mt-1 text-[11px] text-gray-500">
+                  {playlist.videoCount === null
+                    ? "Video count unavailable"
+                    : `${playlist.videoCount} videos`}
+                </p>
+              </li>
+            ))}
+          </ul>
         ) : null}
       </div>
 

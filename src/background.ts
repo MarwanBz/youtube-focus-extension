@@ -1,26 +1,53 @@
 import {
   createConnectYouTubeResult,
   isConnectYouTubeMessage,
+  isDisconnectYouTubeMessage,
 } from "./auth/messages";
 import {
+  readYouTubeAuthState,
   patchYouTubeAuthState,
   writeYouTubeAuthState,
 } from "./auth/storage";
 import { DEFAULT_YOUTUBE_AUTH_STATE } from "./auth/schema";
+import { fetchYouTubePlaylists } from "./youtube/api";
+import {
+  createFetchPlaylistsResponse,
+  isFetchYouTubePlaylistsMessage,
+  type FetchYouTubePlaylistsResponse,
+} from "./youtube/messages";
+import {
+  DEFAULT_YOUTUBE_PLAYLIST_STATE,
+  type YouTubePlaylistState,
+} from "./youtube/schema";
+import {
+  patchYouTubePlaylistState,
+  writeYouTubePlaylistState,
+} from "./youtube/storage";
 import { ensureFocusSettings } from "./settings/storage";
 
 chrome.runtime.onInstalled.addListener(() => {
   void ensureFocusSettings();
   void writeYouTubeAuthState(DEFAULT_YOUTUBE_AUTH_STATE);
+  void writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!isConnectYouTubeMessage(message)) {
-    return undefined;
+  if (isConnectYouTubeMessage(message)) {
+    void connectYouTube().then(sendResponse);
+    return true;
   }
 
-  void connectYouTube().then(sendResponse);
-  return true;
+  if (isDisconnectYouTubeMessage(message)) {
+    void disconnectYouTube().then(sendResponse);
+    return true;
+  }
+
+  if (isFetchYouTubePlaylistsMessage(message)) {
+    void fetchAndStoreYouTubePlaylists().then(sendResponse);
+    return true;
+  }
+
+  return undefined;
 });
 
 export async function connectYouTube(): Promise<
@@ -36,6 +63,7 @@ export async function connectYouTube(): Promise<
       uiState: "connected",
       lastError: null,
     });
+    void fetchAndStoreYouTubePlaylists();
     return result;
   }
 
@@ -47,6 +75,92 @@ export async function connectYouTube(): Promise<
   });
 
   return result;
+}
+
+export async function disconnectYouTube(): Promise<{
+  ok: true;
+}> {
+  const authState = await readYouTubeAuthState();
+
+  if (authState.accessToken) {
+    await removeCachedAuthToken(authState.accessToken);
+  }
+
+  await patchYouTubeAuthState({
+    accessToken: null,
+    connected: false,
+    uiState: "not_connected",
+    lastError: null,
+  });
+
+  return { ok: true };
+}
+
+function removeCachedAuthToken(token: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (!chrome.identity?.removeCachedAuthToken) {
+      resolve();
+      return;
+    }
+
+    chrome.identity.removeCachedAuthToken({ token }, () => {
+      resolve();
+    });
+  });
+}
+
+export async function fetchAndStoreYouTubePlaylists(): Promise<FetchYouTubePlaylistsResponse> {
+  const authState = await readYouTubeAuthState();
+  if (!authState.connected || !authState.accessToken) {
+    await patchYouTubePlaylistState({
+      status: "idle",
+      items: [],
+      updatedAt: null,
+      lastError: null,
+      nextPageSeen: false,
+    });
+    return {
+      ok: false,
+      status: "not_connected",
+      message: "Connect YouTube before importing playlists.",
+    };
+  }
+
+  await patchYouTubePlaylistState({
+    status: "loading",
+    lastError: null,
+  });
+
+  const result = await fetchYouTubePlaylists(authState.accessToken);
+  const response = createFetchPlaylistsResponse(result);
+
+  if (!result.ok) {
+    const nextState: Partial<YouTubePlaylistState> = {
+      status: result.status,
+      lastError: result.message,
+      updatedAt: new Date().toISOString(),
+    };
+    if (result.status === "unauthorized") {
+      await patchYouTubeAuthState({
+        accessToken: null,
+        connected: false,
+        uiState: "failed",
+        lastError: result.message,
+      });
+    }
+    await patchYouTubePlaylistState(nextState);
+    return response;
+  }
+
+  await patchYouTubePlaylistState({
+    status: result.items.length > 0 ? "ready" : "empty",
+    items: result.items,
+    updatedAt: new Date().toISOString(),
+    lastError: null,
+    nextPageSeen: result.nextPageSeen,
+  });
+
+  return response;
 }
 
 function getAuthToken(): Promise<{ token?: string; error?: unknown }> {

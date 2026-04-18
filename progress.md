@@ -4,9 +4,9 @@
 
 Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
 
-Current focus: Auth-complete onboarding UX and fallback handling.
+Current focus: Authenticated playlist import and selection flow.
 
-Next task: T103 - Fetch playlists with YouTube Data API.
+Next task: T105 - Improve playlist selection UI.
 
 ## Implementation Log
 
@@ -40,6 +40,8 @@ Next task: T103 - Fetch playlists with YouTube Data API.
 | 2026-04-18 | Verify T102 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed the existing suite plus new auth result-shape coverage. |
 | 2026-04-18 | T102A OAuth fallback and recovery states | Done | Expanded auth state to include not-connected/skipped/cancelled/failed/connected UI states, added Skip for now plus retry/reconnect behavior in options, and added compact auth status and recovery action in popup without blocking no-auth setup. |
 | 2026-04-18 | Verify T102A | Done | Ran `npm run lint`, `npm test`, and `npm run build`. Lint and build passed. Auth and helper tests passed. Existing browser-dependent Playwright suites failed in sandbox because Chromium was unavailable (`npx playwright install` required in this environment). |
+| 2026-04-18 | T103 YouTube playlist fetch | Done | Added background playlist fetch orchestration after OAuth success, implemented `playlists.list` pagination and normalization, cached imported playlists in local storage with fetch-state metadata, and surfaced imported playlist states with reconnect/retry guidance in options. |
+| 2026-04-18 | Verify T103 | Done | Ran `npm run lint`, `npx playwright test tests/auth.spec.ts tests/auth-client.spec.ts tests/youtube-api.spec.ts`, and `npm run build`. All focused tests passed and build succeeded. |
 
 ## Decision Log
 
@@ -72,7 +74,7 @@ Next task: T103 - Fetch playlists with YouTube Data API.
 | Popup toggle | Done | Popup includes a working Focus Mode switch and Settings shortcut. |
 | Options page | Done | Manual playlist shortcuts can be added, edited, removed, and reordered. |
 | YouTube OAuth | Done | Options and popup now surface auth state with skip/cancel/fail/retry/reconnect handling while preserving manual fallback paths. |
-| YouTube API playlist fetch | Deferred | Phase 2 only. |
+| YouTube API playlist fetch | Done | Background now fetches authenticated playlists with pagination, stores normalized results in local cache, and options shows connected/empty/unauthorized/unavailable/failed states. |
 | Persona settings | Deferred | Phase 3. |
 | AI text messages | Deferred | Phase 3 and opt-in only. |
 | AI images | Deferred | Phase 3 or later, low priority. |
@@ -82,9 +84,9 @@ Next task: T103 - Fetch playlists with YouTube Data API.
 
 Next implementation handoff:
 
-1. Start T103 by fetching authenticated YouTube playlists only after OAuth success.
-2. Keep fallback copy explicit so no-auth paths remain clear when token fetch fails.
-3. Add empty, pagination, revoked-token, and API-unavailable handling before claiming import is complete.
+1. Start T105 by adding search/select/reorder UI for imported playlists now that T103 fetch state exists.
+2. Keep reconnect plus manual fallback paths visible when imported data is missing or auth is revoked.
+3. Address T104 cache/pagination optimization after T105 selection interactions are stable.
 4. Leave T010 through T012 open, but treat them as temporarily deprioritized until the onboarding/import path is established.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.
