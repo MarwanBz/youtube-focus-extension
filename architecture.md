@@ -12,8 +12,8 @@ The project now uses the cloned `yosevu/react-chrome-extension-template` starter
 - Browser extension model: Chrome Manifest V3
 - Build system: Vite 6 with `@crxjs/vite-plugin`
 - UI: React 19 + TypeScript
-- Styling: Tailwind CSS 3
-- Shared styles/components: `lib/`
+- Styling: Tailwind CSS 3 + `shadcn/ui` primitives for extension-owned React surfaces
+- Shared styles/components: `lib/` for global styles and `src/components/ui` for shadcn-backed popup/options primitives
 - Content script isolation: Shadow DOM with injected Tailwind CSS
 - Background runtime: Chrome extension service worker
 - Options page: separate `options.html` Vite entry
@@ -25,6 +25,7 @@ The project now uses the cloned `yosevu/react-chrome-extension-template` starter
 
 ```text
 youtube-focus-extension/
+  components.json
   manifest.json
   vite.config.ts
   package.json
@@ -46,6 +47,18 @@ youtube-focus-extension/
   src/
     App.tsx
     background.ts
+    components/
+      ui/
+        button.tsx
+        card.tsx
+        input.tsx
+        label.tsx
+        badge.tsx
+        separator.tsx
+        scroll-area.tsx
+        switch.tsx
+    lib/
+      utils.ts
     main.tsx
     options.tsx
     settings/
@@ -201,6 +214,11 @@ The manifest directly references:
 
 This means implementation should edit the existing template entrypoints rather than introducing WXT-style `entrypoints/` folders.
 
+Alias contract:
+
+- `@/*` resolves app code under `src/`, including `@/components/ui/*` and `@/lib/utils`.
+- `@lib/*` remains pointed at the top-level `lib/` directory for shared styles such as `@lib/styles/globals.css`.
+
 ## Manifest Direction
 
 Current MVP manifest:
@@ -309,7 +327,12 @@ lib/
     globals.css
 ```
 
-Keep reusable UI primitives in `lib/components`. Keep extension settings and provider logic in `src/` so popup, options, and background code can share it. Keep DOM-specific YouTube page mutation code inside `content-script/`.
+Keep reusable popup/options UI primitives in `src/components/ui` so shadcn-generated source stays inside the React app tree. Keep `lib/styles/globals.css` as the shared Tailwind + theme-token stylesheet. Keep extension settings and provider logic in `src/` so popup, options, and background code can share it. Keep DOM-specific YouTube page mutation code inside `content-script/`.
+
+The current shadcn scope is intentionally limited to extension-owned React surfaces:
+
+- Popup and options use shared shadcn-backed primitives.
+- The YouTube content-script UI stays custom for now because it renders inside a Shadow DOM host and is tuned to native YouTube chrome rather than the extension settings aesthetic.
 
 ## Storage Model
 

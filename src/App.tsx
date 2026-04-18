@@ -1,4 +1,16 @@
 import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   connectYouTubeFromUi,
   getAuthChipText,
@@ -14,6 +26,25 @@ import { DEFAULT_FOCUS_SETTINGS } from "./settings/defaults";
 import { patchFocusSettings, subscribeToFocusSettings } from "./settings/storage";
 import type { FocusSettings } from "./settings/schema";
 
+function getAuthBadgeVariant(youtubeAuth: YouTubeAuthState) {
+  if (youtubeAuth.connected) {
+    return "success" as const;
+  }
+
+  if (youtubeAuth.uiState === "failed") {
+    return "danger" as const;
+  }
+
+  if (
+    youtubeAuth.uiState === "cancelled" ||
+    youtubeAuth.uiState === "skipped"
+  ) {
+    return "warning" as const;
+  }
+
+  return "secondary" as const;
+}
+
 export default function App() {
   const [settings, setSettings] = useState<FocusSettings>(
     DEFAULT_FOCUS_SETTINGS
@@ -25,17 +56,14 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  useEffect(() => {
-    return subscribeToFocusSettings(setSettings);
-  }, []);
-  useEffect(() => {
-    return subscribeToYouTubeAuthState(setYouTubeAuth);
-  }, []);
+  useEffect(() => subscribeToFocusSettings(setSettings), []);
+  useEffect(() => subscribeToYouTubeAuthState(setYouTubeAuth), []);
 
-  const handleToggleFocus = () => {
+  const handleToggleFocus = (enabled: boolean) => {
     setSaveError(false);
-    patchFocusSettings({ focusModeEnabled: !settings.focusModeEnabled })
-      .catch(() => setSaveError(true));
+    patchFocusSettings({ focusModeEnabled: enabled }).catch(() =>
+      setSaveError(true)
+    );
   };
 
   const handleOpenOptions = () => {
@@ -52,10 +80,12 @@ export default function App() {
       window.open(chrome.runtime.getURL("options.html"));
     }
   };
+
   const handleConnectYouTube = () => {
     if (authLoading) {
       return;
     }
+
     setAuthError(null);
     setAuthLoading(true);
     void connectYouTubeFromUi().then((response) => {
@@ -64,6 +94,7 @@ export default function App() {
         setAuthError(response.message);
         return;
       }
+
       if (!response.result.ok && response.result.status === "failed") {
         setAuthError(response.result.message);
       }
@@ -73,65 +104,68 @@ export default function App() {
   const enabled = settings.focusModeEnabled;
 
   return (
-    <div className="w-[260px] bg-gray-950 p-3 text-white">
-      <div className="flex items-center justify-between">
-        <h1 className="text-sm font-semibold">YouTube Focus</h1>
-        <button
-          className="text-xs text-gray-400 hover:text-white"
-          type="button"
-          onClick={handleOpenOptions}
-        >
-          Settings
-        </button>
-      </div>
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-gray-400">Focus mode</span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enabled}
-          aria-label="Toggle focus mode"
-          onClick={handleToggleFocus}
-          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ${
-            saveError ? "ring-2 ring-red-500" : ""
-          } ${enabled ? "bg-[#2d7dff]" : "bg-gray-600"}`}
-        >
-          <span
-            className={`pointer-events-none inline-block h-5 w-5 translate-y-0.5 rounded-full bg-white shadow transition-transform duration-150 ${
-              enabled ? "translate-x-[22px]" : "translate-x-0.5"
-            }`}
-          />
-        </button>
-      </div>
-      <div className="mt-3 rounded border border-white/10 p-2">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-gray-400">YouTube auth</span>
-          <span className={`text-xs ${getCompactAuthTone(youtubeAuth)}`}>
-            {getAuthChipText(youtubeAuth)}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={handleConnectYouTube}
-          disabled={authLoading}
-          className="mt-2 w-full rounded bg-blue-600 px-2 py-1.5 text-xs font-medium hover:bg-blue-500 disabled:cursor-default disabled:opacity-60"
-        >
-          {authLoading ? "Connecting..." : getAuthPrimaryAction(youtubeAuth)}
-        </button>
-        <button
-          type="button"
-          onClick={handleOpenOptions}
-          className="mt-2 w-full rounded border border-white/10 px-2 py-1.5 text-xs text-gray-300 hover:text-white"
-        >
-          Open options for fallback setup
-        </button>
-      </div>
-      {saveError ? (
-        <p className="mt-2 text-xs text-red-400">Failed to save. Try again.</p>
-      ) : null}
-      {authError ? (
-        <p className="mt-2 text-xs text-red-400">{authError}</p>
-      ) : null}
-    </div>
+    <main className="w-[320px] bg-background p-3 text-foreground">
+      <Card className="border-border/80 bg-card/95 shadow-lg">
+        <CardHeader className="space-y-3 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <CardTitle>YouTube Focus</CardTitle>
+              <CardDescription className="text-xs">
+                Control Focus Mode and playlist import from the popup.
+              </CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleOpenOptions}>
+              Settings
+            </Button>
+          </div>
+          <div className="flex items-center justify-between rounded-md border border-border/70 bg-secondary/30 px-3 py-2">
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">Focus mode</p>
+              <p className="text-xs text-muted-foreground">
+                Hide recommendation-heavy home sections.
+              </p>
+            </div>
+            <Switch
+              aria-label="Toggle focus mode"
+              checked={enabled}
+              onCheckedChange={handleToggleFocus}
+            />
+          </div>
+        </CardHeader>
+
+        <Separator />
+
+        <CardContent className="space-y-3 p-4">
+          <div className="space-y-3 rounded-md border border-border/70 bg-secondary/20 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                YouTube auth
+              </span>
+              <Badge
+                className={getCompactAuthTone(youtubeAuth)}
+                variant={getAuthBadgeVariant(youtubeAuth)}
+              >
+                {getAuthChipText(youtubeAuth)}
+              </Badge>
+            </div>
+            <div className="grid gap-2">
+              <Button onClick={handleConnectYouTube} disabled={authLoading}>
+                {authLoading ? "Connecting..." : getAuthPrimaryAction(youtubeAuth)}
+              </Button>
+              <Button variant="outline" onClick={handleOpenOptions}>
+                Open options for fallback setup
+              </Button>
+            </div>
+          </div>
+
+          {saveError ? (
+            <p className="text-xs text-destructive">Failed to save. Try again.</p>
+          ) : null}
+          {authError ? (
+            <p className="text-xs text-destructive">{authError}</p>
+          ) : null}
+        </CardContent>
+      </Card>
+    </main>
   );
 }

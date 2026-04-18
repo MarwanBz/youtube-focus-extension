@@ -49,6 +49,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T108A | Done | P2 | Render Focus Home playlists as native-like cards | T105 | Focus Home shows Watch Later plus playlist cards with thumbnail-led styling for imported playlists, graceful fallbacks for manual playlists, and stable responsive grid behavior. |
 | T108B | Done | P2 | Render Focus Home playlist shelves with video thumbnails | T104A, T108A | Focus Home shows each selected imported playlist as a titled shelf with thumbnails from videos inside that playlist, while Watch Later and manual playlists keep a clear fallback treatment when preview data is unavailable. |
 | T109 | Todo | P2 | Add cross-browser build scripts | T012 | Chrome and Firefox build commands are documented and tested. |
+| T110 | Done | P2 | Integrate `shadcn/ui` into popup and options surfaces | T009, T102A, T105 | The repo has shadcn configuration and shared UI primitives, popup and options use the shared component layer, and content-script UI remains custom for Shadow DOM compatibility. |
 
 ## Phase 3 - Persona And AI Content
 

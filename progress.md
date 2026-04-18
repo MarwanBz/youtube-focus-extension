@@ -4,7 +4,7 @@
 
 Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
 
-Current focus: Authenticated playlist import optimization and onboarding polish.
+Current focus: Authenticated playlist import optimization, onboarding polish, and the newly shared popup/options UI layer.
 
 Next task: T104 - Add API pagination and cache.
 
@@ -53,6 +53,8 @@ Next task: T104 - Add API pagination and cache.
 | 2026-04-18 | T108B Focus Home playlist shelves | Done | Replaced flat playlist cards with titled shelves that show thumbnails from videos inside each selected imported playlist, while keeping Watch Later and manual playlists on explicit fallback treatments when preview data is unavailable. |
 | 2026-04-18 | Verify T104A + T108B | Done | Ran `npm run lint`, `npx playwright test tests/preview-api.spec.ts tests/focus-overlay-sections.spec.ts tests/focus-overlay-cards.spec.ts tests/youtube-api.spec.ts tests/youtube-selection.spec.ts tests/settings-schema.spec.ts tests/youtube-status-copy.spec.ts tests/auth-client.spec.ts`, and `npm run build`. All targeted tests passed and build succeeded. |
 | 2026-04-18 | Native YouTube UI Reskin | Done | Completely redesigned the HomeFocusBanner and HomeFocusOverlay to match YouTube's native dark-mode aesthetic. Replaced generated gradients and glowing badges with flat colors, standard 12px thumbnails, and accurate vector SVG tracking for Playlist and Watch Later icons. |
+| 2026-04-18 | T110 shadcn popup/options integration | Done | Added `components.json`, shared shadcn-compatible UI primitives under `src/components/ui`, theme tokens in global Tailwind styles, and migrated the popup plus options page to the shared component layer while leaving the Shadow DOM content-script UI custom. |
+| 2026-04-18 | Verify T110 | Done | Ran `npm run lint`, `npm run build`, and `npx playwright test tests/auth-client.spec.ts tests/auth.spec.ts tests/settings-schema.spec.ts tests/youtube-selection.spec.ts tests/youtube-status-copy.spec.ts`. Lint and build passed, and all 21 focused tests passed. No direct popup/options browser tests exist yet; content-script UI was intentionally left unchanged in this pass. |
 
 ## Decision Log
 
@@ -70,6 +72,7 @@ Next task: T104 - Add API pagination and cache.
 | 2026-04-18 | Phase 2 setup priority is OAuth first, Add current playlist second | The primary product path should be Connect YouTube and import real playlists; the secondary no-auth path should capture the current YouTube playlist page before falling all the way back to manual URL entry. |
 | 2026-04-18 | OAuth-first onboarding now overrides the earlier finish-Phase-1-first order | The repo still has T010 through T012 open, but product priority now makes T100 and the onboarding/import lane the official next track. |
 | 2026-04-18 | Video-thumbnail playlist shelves need a separate cache step | The current imported-playlist cache only stores playlist-level metadata; showing thumbnails from videos inside each playlist requires playlist-item preview data for selected imported playlists and should not scrape the YouTube page. |
+| 2026-04-18 | Use shadcn only for extension-owned React surfaces in this pass | Popup and options benefit from shared primitives and tokenized styling, but the YouTube content-script UI is Shadow DOM-scoped and intentionally tuned to native YouTube chrome, so it stays custom for now. |
 
 ## Feature State
 
@@ -93,6 +96,7 @@ Next task: T104 - Add API pagination and cache.
 | T108A Focus Home playlist cards | Done | Focus Home now renders imported playlists as thumbnail-led cards with title and lightweight metadata, while Watch Later and manual playlists use stable fallback cards. |
 | T104A selected-playlist preview cache | Done | Background now caches lightweight preview videos for selected imported playlists so Focus Home can render video-thumbnail shelves without scraping YouTube pages. |
 | T108B Focus Home playlist shelves | Done | Focus Home now renders each selected imported playlist as a titled shelf using thumbnails from videos inside that playlist, with Watch Later and manual playlists kept on clear fallback treatments. |
+| T110 shadcn popup/options integration | Done | Popup and options now share a shadcn-style primitive layer, including cards, buttons, inputs, labels, badges, separators, scroll areas, and switches, while the content-script UI remains on its custom Shadow DOM styling path. |
 | Persona settings | Deferred | Phase 3. |
 | AI text messages | Deferred | Phase 3 and opt-in only. |
 | AI images | Deferred | Phase 3 or later, low priority. |
