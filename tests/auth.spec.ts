@@ -5,6 +5,7 @@ import {
   isConnectYouTubeMessage,
 } from "../src/auth/messages";
 import {
+  getAuthStateLabel,
   DEFAULT_YOUTUBE_AUTH_STATE,
   normalizeYouTubeAuthState,
 } from "../src/auth/schema";
@@ -62,7 +63,34 @@ test.describe("YouTube auth state normalization", () => {
     ).toEqual({
       accessToken: "token-123",
       connected: true,
+      uiState: "connected",
       lastError: null,
     });
+  });
+
+  test("keeps skipped state when not connected", () => {
+    expect(
+      normalizeYouTubeAuthState({
+        accessToken: null,
+        connected: false,
+        uiState: "skipped",
+        lastError: null,
+      })
+    ).toEqual({
+      accessToken: null,
+      connected: false,
+      uiState: "skipped",
+      lastError: null,
+    });
+  });
+});
+
+test.describe("YouTube auth labels", () => {
+  test("maps ui states to compact labels", () => {
+    expect(getAuthStateLabel("not_connected")).toBe("Not connected");
+    expect(getAuthStateLabel("skipped")).toBe("Skipped");
+    expect(getAuthStateLabel("cancelled")).toBe("Cancelled");
+    expect(getAuthStateLabel("failed")).toBe("Needs retry");
+    expect(getAuthStateLabel("connected")).toBe("Connected");
   });
 });

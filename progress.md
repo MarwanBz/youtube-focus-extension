@@ -4,9 +4,9 @@
 
 Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
 
-Current focus: OAuth-first onboarding planning and implementation.
+Current focus: Auth-complete onboarding UX and fallback handling.
 
-Next task: T102A - Add OAuth failure and manual fallback states.
+Next task: T103 - Fetch playlists with YouTube Data API.
 
 ## Implementation Log
 
@@ -38,6 +38,8 @@ Next task: T102A - Add OAuth failure and manual fallback states.
 | 2026-04-18 | T101 Google Cloud setup doc | Done | Added a dedicated Google Cloud setup document covering stable extension ID, Chrome Extension OAuth client creation, YouTube Data API enablement, consent screen setup, and the initial `youtube.readonly` scope for `T102`. |
 | 2026-04-18 | T102 Chrome identity OAuth flow | Done | Added the manifest OAuth prerequisites through the build config, implemented a background-owned `chrome.identity.getAuthToken` flow, stored minimal YouTube auth state in local storage, and added a Connect YouTube entrypoint to the options page. |
 | 2026-04-18 | Verify T102 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed the existing suite plus new auth result-shape coverage. |
+| 2026-04-18 | T102A OAuth fallback and recovery states | Done | Expanded auth state to include not-connected/skipped/cancelled/failed/connected UI states, added Skip for now plus retry/reconnect behavior in options, and added compact auth status and recovery action in popup without blocking no-auth setup. |
+| 2026-04-18 | Verify T102A | Done | Ran `npm run lint`, `npm test`, and `npm run build`. Lint and build passed. Auth and helper tests passed. Existing browser-dependent Playwright suites failed in sandbox because Chromium was unavailable (`npx playwright install` required in this environment). |
 
 ## Decision Log
 
@@ -69,7 +71,7 @@ Next task: T102A - Add OAuth failure and manual fallback states.
 | Focus overlay | Done | Watch Later and stored manual playlist shortcuts now render inside the Focus Home surface. |
 | Popup toggle | Done | Popup includes a working Focus Mode switch and Settings shortcut. |
 | Options page | Done | Manual playlist shortcuts can be added, edited, removed, and reordered. |
-| YouTube OAuth | Done | Connect YouTube now authenticates through Chrome identity from the Options page. |
+| YouTube OAuth | Done | Options and popup now surface auth state with skip/cancel/fail/retry/reconnect handling while preserving manual fallback paths. |
 | YouTube API playlist fetch | Deferred | Phase 2 only. |
 | Persona settings | Deferred | Phase 3. |
 | AI text messages | Deferred | Phase 3 and opt-in only. |
@@ -80,9 +82,9 @@ Next task: T102A - Add OAuth failure and manual fallback states.
 
 Next implementation handoff:
 
-1. Start T102A by turning the basic connect outcome into a full skip/cancel/fail/retry/reconnect and fallback experience.
-2. Keep Add current playlist as the secondary no-auth bridge and manual URL entry as the last fallback.
-3. Move into T103 after the auth-state UX is stable enough to support playlist fetch and error handling.
+1. Start T103 by fetching authenticated YouTube playlists only after OAuth success.
+2. Keep fallback copy explicit so no-auth paths remain clear when token fetch fails.
+3. Add empty, pagination, revoked-token, and API-unavailable handling before claiming import is complete.
 4. Leave T010 through T012 open, but treat them as temporarily deprioritized until the onboarding/import path is established.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.

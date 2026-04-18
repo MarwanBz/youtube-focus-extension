@@ -9,14 +9,16 @@ import { createRoot } from "react-dom/client";
 import "@lib/styles/globals.css";
 import { DEFAULT_FOCUS_SETTINGS } from "./settings/defaults";
 import {
-  CONNECT_YOUTUBE_MESSAGE,
-  type ConnectYouTubeMessage,
-} from "./auth/messages";
-import {
   DEFAULT_YOUTUBE_AUTH_STATE,
-  type ConnectYouTubeResult,
   type YouTubeAuthState,
 } from "./auth/schema";
+import {
+  connectYouTubeFromUi,
+  getAuthChipText,
+  getAuthInlineMessage,
+  getAuthPrimaryAction,
+  skipYouTubeAuth,
+} from "./auth/client";
 import { subscribeToYouTubeAuthState } from "./auth/storage";
 import {
   patchFocusSettings,
@@ -176,47 +178,43 @@ export function OptionsApp() {
       return;
     }
 
-    if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
-      setAuthStatus("YouTube auth is unavailable in this environment.");
-      return;
-    }
-
     setAuthLoading(true);
     setAuthStatus("");
 
-    const message: ConnectYouTubeMessage = {
-      type: CONNECT_YOUTUBE_MESSAGE,
-    };
-
-    chrome.runtime.sendMessage(
-      message,
-      (result: ConnectYouTubeResult | undefined) => {
-        setAuthLoading(false);
-
-        const runtimeError = chrome.runtime?.lastError;
-        if (runtimeError) {
-          setAuthStatus(runtimeError.message || "Unable to connect YouTube.");
-          return;
-        }
-
-        if (!result) {
-          setAuthStatus("Unable to connect YouTube.");
-          return;
-        }
-
-        if (result.ok) {
-          setAuthStatus("YouTube connected. Playlist import comes next.");
-          return;
-        }
-
-        if (result.status === "cancelled") {
-          setAuthStatus("YouTube sign-in was cancelled. You can retry any time.");
-          return;
-        }
-
-        setAuthStatus(result.message);
+    void connectYouTubeFromUi().then((response) => {
+      setAuthLoading(false);
+      if (!response.ok) {
+        setAuthStatus(response.message);
+        return;
       }
-    );
+
+      if (response.result.ok) {
+        setAuthStatus("YouTube connected. Playlist import comes next.");
+        return;
+      }
+
+      if (response.result.status === "cancelled") {
+        setAuthStatus("YouTube sign-in was cancelled. You can retry any time.");
+        return;
+      }
+
+      setAuthStatus(response.result.message);
+    });
+  };
+
+  const handleSkipAuth = () => {
+    if (authLoading) {
+      return;
+    }
+
+    setAuthStatus("");
+    void skipYouTubeAuth()
+      .then(() =>
+        setAuthStatus(
+          "You skipped YouTube auth for now. Add current playlist or manual URLs to continue."
+        )
+      )
+      .catch(() => setAuthStatus("Unable to update auth status right now."));
   };
 
   return (
@@ -236,24 +234,40 @@ export function OptionsApp() {
             disabled={authLoading}
             className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium hover:bg-blue-500 disabled:cursor-default disabled:opacity-60"
           >
-            {authLoading
-              ? "Connecting..."
-              : youtubeAuth.connected
-                ? "Reconnect YouTube"
-                : "Connect YouTube"}
+            {authLoading ? "Connecting..." : getAuthPrimaryAction(youtubeAuth)}
           </button>
+          {!youtubeAuth.connected ? (
+            <button
+              type="button"
+              onClick={handleSkipAuth}
+              disabled={authLoading}
+              className="rounded border border-white/15 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white disabled:cursor-default disabled:opacity-60"
+            >
+              Skip for now
+            </button>
+          ) : null}
           <span
             className={`text-xs ${
-              youtubeAuth.connected ? "text-emerald-400" : "text-gray-500"
+              youtubeAuth.connected ? "text-emerald-400" : "text-gray-300"
             }`}
           >
-            {youtubeAuth.connected ? "Connected" : "Not connected"}
+            {getAuthChipText(youtubeAuth)}
           </span>
+        </div>
+        <p className="mt-2 text-xs text-gray-400">
+          {getAuthInlineMessage(youtubeAuth)}
+        </p>
+        <div className="mt-3 rounded border border-white/10 bg-gray-900/50 p-3">
+          <p className="text-xs font-semibold text-gray-200">Fallback paths</p>
+          <p className="mt-1 text-xs text-gray-400">
+            If auth is skipped, cancelled, or fails, keep going with Add current
+            playlist and manual playlist URLs below.
+          </p>
         </div>
         {authStatus ? (
           <p className="mt-2 text-xs text-gray-300">{authStatus}</p>
         ) : null}
-        {youtubeAuth.lastError && !authStatus ? (
+        {youtubeAuth.lastError && !authStatus && youtubeAuth.uiState === "failed" ? (
           <p className="mt-2 text-xs text-red-400">{youtubeAuth.lastError}</p>
         ) : null}
       </div>

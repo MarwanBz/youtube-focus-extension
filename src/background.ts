@@ -33,6 +33,7 @@ export async function connectYouTube(): Promise<
     await patchYouTubeAuthState({
       accessToken: authToken.token ?? null,
       connected: true,
+      uiState: "connected",
       lastError: null,
     });
     return result;
@@ -41,6 +42,7 @@ export async function connectYouTube(): Promise<
   await patchYouTubeAuthState({
     accessToken: null,
     connected: false,
+    uiState: result.status,
     lastError: result.message,
   });
 
