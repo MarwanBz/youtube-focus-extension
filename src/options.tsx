@@ -9,6 +9,16 @@ import { createRoot } from "react-dom/client";
 import "@lib/styles/globals.css";
 import { DEFAULT_FOCUS_SETTINGS } from "./settings/defaults";
 import {
+  CONNECT_YOUTUBE_MESSAGE,
+  type ConnectYouTubeMessage,
+} from "./auth/messages";
+import {
+  DEFAULT_YOUTUBE_AUTH_STATE,
+  type ConnectYouTubeResult,
+  type YouTubeAuthState,
+} from "./auth/schema";
+import { subscribeToYouTubeAuthState } from "./auth/storage";
+import {
   patchFocusSettings,
   subscribeToFocusSettings,
 } from "./settings/storage";
@@ -29,7 +39,12 @@ export function OptionsApp() {
   const [settings, setSettings] = useState<FocusSettings>(
     DEFAULT_FOCUS_SETTINGS
   );
+  const [youtubeAuth, setYouTubeAuth] = useState<YouTubeAuthState>(
+    DEFAULT_YOUTUBE_AUTH_STATE
+  );
   const [status, setStatus] = useState("");
+  const [authStatus, setAuthStatus] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -42,6 +57,10 @@ export function OptionsApp() {
 
   useEffect(() => {
     return subscribeToFocusSettings(setSettings);
+  }, []);
+
+  useEffect(() => {
+    return subscribeToYouTubeAuthState(setYouTubeAuth);
   }, []);
 
   const playlists = settings.manualPlaylists;
@@ -152,9 +171,92 @@ export function OptionsApp() {
       .catch(() => setStatus("Unable to save changes."));
   };
 
+  const handleConnectYouTube = () => {
+    if (authLoading) {
+      return;
+    }
+
+    if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
+      setAuthStatus("YouTube auth is unavailable in this environment.");
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthStatus("");
+
+    const message: ConnectYouTubeMessage = {
+      type: CONNECT_YOUTUBE_MESSAGE,
+    };
+
+    chrome.runtime.sendMessage(
+      message,
+      (result: ConnectYouTubeResult | undefined) => {
+        setAuthLoading(false);
+
+        const runtimeError = chrome.runtime?.lastError;
+        if (runtimeError) {
+          setAuthStatus(runtimeError.message || "Unable to connect YouTube.");
+          return;
+        }
+
+        if (!result) {
+          setAuthStatus("Unable to connect YouTube.");
+          return;
+        }
+
+        if (result.ok) {
+          setAuthStatus("YouTube connected. Playlist import comes next.");
+          return;
+        }
+
+        if (result.status === "cancelled") {
+          setAuthStatus("YouTube sign-in was cancelled. You can retry any time.");
+          return;
+        }
+
+        setAuthStatus(result.message);
+      }
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 px-6 py-8 text-white">
       <h1 className="text-lg font-semibold">{extensionName} Settings</h1>
+
+      <div className="mt-4 max-w-md rounded-md border border-white/15 p-4">
+        <h2 className="text-sm font-semibold">Connect YouTube</h2>
+        <p className="mt-1 text-xs text-gray-400">
+          Connect YouTube to import your playlists. This is the primary setup
+          path. Playlist selection will arrive in the next task.
+        </p>
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleConnectYouTube}
+            disabled={authLoading}
+            className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium hover:bg-blue-500 disabled:cursor-default disabled:opacity-60"
+          >
+            {authLoading
+              ? "Connecting..."
+              : youtubeAuth.connected
+                ? "Reconnect YouTube"
+                : "Connect YouTube"}
+          </button>
+          <span
+            className={`text-xs ${
+              youtubeAuth.connected ? "text-emerald-400" : "text-gray-500"
+            }`}
+          >
+            {youtubeAuth.connected ? "Connected" : "Not connected"}
+          </span>
+        </div>
+        {authStatus ? (
+          <p className="mt-2 text-xs text-gray-300">{authStatus}</p>
+        ) : null}
+        {youtubeAuth.lastError && !authStatus ? (
+          <p className="mt-2 text-xs text-red-400">{youtubeAuth.lastError}</p>
+        ) : null}
+      </div>
 
       <div className="mt-4 max-w-md rounded-md border border-white/15 p-4">
         <label className="flex items-start gap-3 text-sm">
