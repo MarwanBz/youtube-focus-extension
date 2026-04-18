@@ -97,7 +97,8 @@ Current behavior:
 
 - Renders a React popup.
 - Opens the options page.
-- Reads the focus-mode default from extension storage.
+- Reads the focus-mode state from extension storage.
+- Lets the user toggle Focus Mode directly from the popup with the same shared setting used by the content script.
 
 Target focus-mode behavior:
 
@@ -118,13 +119,14 @@ Current behavior:
 - Renders a React options page.
 - Reads extension name and version from the manifest.
 - Persists the focus-mode default in extension storage.
+- Lets the user add, edit, remove, and reorder up to three manual playlist shortcuts with inline validation.
 
 Target focus-mode behavior:
 
 - Configure manual playlists for the MVP.
 - Configure default focus mode.
 - Configure temporary disable durations.
-- Later, configure OAuth, persona prompts, and optional API keys.
+- Later, configure user-initiated YouTube OAuth, import-led onboarding states, persona prompts, and optional API keys.
 
 ### Background Service Worker
 
@@ -141,7 +143,8 @@ Target focus-mode behavior:
 - Listen for storage changes.
 - Own cross-surface message routing where needed.
 - Coordinate YouTube OAuth in Phase 2.
-- Fetch and cache YouTube Data API responses in Phase 2.
+- Fetch and cache authenticated YouTube playlist data in Phase 2.
+- Handle auth success, auth cancel, auth failure, token expiry, token revocation, and reconnect flows without blocking manual setup.
 - Call opt-in AI providers in Phase 3.
 
 ### Content Script
@@ -173,6 +176,8 @@ Target focus-mode behavior:
 - Hide or replace recommendation surfaces when focus mode is active.
 - Render the focus overlay into the Shadow DOM.
 - Avoid duplicate extension roots across YouTube route changes.
+- Do not fetch private YouTube account data directly from the page.
+- Do not scrape YouTube account playlists from the logged-in UI; imported playlist data must come from authenticated background-worker API flows.
 
 ## Vite And CRXJS Build Flow
 
@@ -224,6 +229,8 @@ MVP settings are stored under `youtubeFocusSettings` in `chrome.storage.sync` be
 
 Manual playlist shortcuts are capped at three entries for the MVP. The temporary-disable field exists for T010 but is not exposed as a full UI yet.
 
+No-auth mode supports only manual playlist URLs and local focus preferences. Importing a user's playlists is authenticated data access and must not be implied before OAuth succeeds.
+
 ## Runtime Data Flow
 
 ```text
@@ -236,11 +243,19 @@ Options page or popup
 
 Phase 2 API flow:
 Options page
-  -> requests YouTube sign-in
+  -> offers Connect YouTube from onboarding or settings
   -> background uses Chrome identity API
-  -> background fetches playlists and Watch Later data
+  -> on auth success, background fetches authenticated playlist data
   -> background writes normalized cache
   -> content script reads cached display data
+  -> on auth cancel or failure, options stay usable with manual playlist URLs
+  -> on token expiry or revocation, UI shows reconnect path and retains manual fallback
+
+Phase 2 import boundaries:
+- User playlists cannot be imported without Google authorization.
+- The extension must not promise automatic playlist import at install time.
+- Watch Later may require shortcut or fallback behavior instead of API-backed imported data.
+- If imported playlist caches grow beyond small preference storage, keep them separate from the sync settings object.
 
 Phase 3 AI flow:
 Options page

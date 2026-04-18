@@ -83,11 +83,11 @@ function isPlaylistShortcut(value: unknown): value is PlaylistShortcut {
     typeof value.title === "string" &&
     typeof value.url === "string" &&
     value.title.trim().length > 0 &&
-    isSupportedPlaylistUrl(value.url)
+    isYouTubePlaylistUrl(value.url)
   );
 }
 
-function isSupportedPlaylistUrl(value: string) {
+export function isYouTubePlaylistUrl(value: string) {
   try {
     const url = new URL(value);
     return (

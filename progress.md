@@ -6,7 +6,7 @@ Stage: Phase 1 foundation complete through the design-matched masthead toggle an
 
 Current focus: Phase 1 MVP.
 
-Next task: T008 - Build popup focus toggle.
+Next task: T010 - Add temporary disable setting foundation.
 
 ## Implementation Log
 
@@ -29,6 +29,9 @@ Next task: T008 - Build popup focus toggle.
 | 2026-04-18 | Strengthen Phase 2 import planning | Done | Updated roadmap, task board, and architecture docs so playlist import is a first-class import-led onboarding feature with OAuth fallback, manual fallback, and no-scraping constraints. |
 | 2026-04-18 | T006 focus overlay shell | Done | Added a dedicated Focus Home overlay host and placeholder panel in the content script, kept feed suppression owned by the existing banner flow, and prepared the shell for T007 playlist content without adding OAuth or playlist-editing behavior. |
 | 2026-04-18 | Verify T006 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed the existing suite plus new overlay placement and visibility coverage. |
+| 2026-04-18 | T008 popup focus toggle | Done | Replaced the popup status readout with a real switch that writes `focusModeEnabled`, stays in sync through storage subscription, and preserves the Settings shortcut. |
+| 2026-04-18 | T009 options playlist editor | Done | Expanded the options page so users can add, edit, remove, and reorder up to three manual playlist shortcuts with inline validation. |
+| 2026-04-18 | Verify T008-T009 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed 22 tests after the popup and options changes. |
 | 2026-04-18 | T007 Watch Later and manual playlist display | Done | Updated the Focus Home overlay to always show a Watch Later shortcut, render manual playlist shortcuts from storage, and keep a clear empty-state CTA without pulling playlist editing into the content script. |
 | 2026-04-18 | Verify T007 | Done | Ran `npm run build`, `npm run lint`, and `npm test`. Build and lint passed. Playwright passed the expanded overlay coverage, including Watch Later plus manual playlist source ordering. |
 
@@ -58,8 +61,8 @@ Next task: T008 - Build popup focus toggle.
 | Home status banner styling | Done | Off/on message banners now follow the provided product style direction and use inline icons inspired by the references. |
 | Feed suppression | Done | Native YouTube home recommendations, chip bar, and rich sections are hidden only while focus mode is active on the home route. |
 | Focus overlay | Done | Watch Later and stored manual playlist shortcuts now render inside the Focus Home surface. |
-| Popup toggle | Todo | Required for MVP. |
-| Options page | Todo | Required for manual playlist input. |
+| Popup toggle | Done | Popup includes a working Focus Mode switch and Settings shortcut. |
+| Options page | Done | Manual playlist shortcuts can be added, edited, removed, and reordered. |
 | YouTube OAuth | Deferred | Phase 2 only. |
 | YouTube API playlist fetch | Deferred | Phase 2 only. |
 | Persona settings | Deferred | Phase 3. |
@@ -71,9 +74,9 @@ Next task: T008 - Build popup focus toggle.
 
 Next implementation handoff:
 
-1. Start T008 by turning the popup status readout into a real focus-mode switch that updates the active YouTube tab behavior.
-2. Keep playlist editing in the options page work for T009 instead of adding editing controls to the content script.
-3. Treat the masthead focus toggle and popup control as the two user-facing switches for `focusModeEnabled`.
-4. Keep `identity`, YouTube API calls, and AI features deferred.
+1. Start T010 by adding the temporary-disable state foundation on top of the now-complete masthead, popup, and options controls.
+2. Treat the masthead toggle and popup switch as the two user-facing controls for `focusModeEnabled`.
+3. Keep `identity`, YouTube API calls, and AI features deferred.
+4. Package the Chrome MV3 build and run manual MVP verification once the temporary-disable groundwork is in place.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.

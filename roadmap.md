@@ -17,7 +17,7 @@ The MVP should use manual playlist input instead of OAuth. The extension is succ
 
 Phase 2 starts only after the MVP is manually verified in Chrome.
 
-This phase adds YouTube OAuth, real playlist fetching, better selection UI, and cross-browser build scripts.
+This phase adds import-led onboarding through YouTube OAuth, authenticated playlist fetching, resilient fallback UI, and cross-browser build scripts.
 
 ## Build Later
 
@@ -53,21 +53,28 @@ Exit criteria:
 
 Target: weeks 3-4.
 
+Named milestone: Import-Led Onboarding.
+
 Deliverables:
 
 - Google Cloud OAuth credentials documented.
 - `identity` permission added only when OAuth work starts.
-- YouTube readonly OAuth flow implemented.
-- Playlists and Watch Later fetched through YouTube Data API v3.
-- Pagination and empty states handled.
-- Options page lets user choose and order playlists.
+- YouTube readonly OAuth flow implemented from onboarding or settings, not automatically on install.
+- User journey is: connect YouTube, fetch playlists, search and select or reorder up to three playlists, then continue manually if auth fails or is skipped.
+- Authenticated playlist import is available only after OAuth succeeds; no-auth mode remains manual playlist URLs only.
+- Playlist fetch handles pagination, empty libraries, revoked tokens, and reconnect flows.
+- Watch Later is treated as a product shortcut or fallback surface, not guaranteed imported API data.
+- Options page lets user choose and order playlists from authenticated data when available and shows manual fallback when it is not.
 - Overlay design polished for desktop and responsive widths.
 - Chrome and Firefox build scripts documented.
 
 Exit criteria:
 
-- Authenticated user can fetch playlists.
-- Manual fallback still works if OAuth fails or is disabled.
+- Authenticated user can fetch playlists after completing OAuth.
+- User can skip, cancel, retry, or recover from auth failure without blocking onboarding completion.
+- Manual fallback still works if OAuth fails, is skipped, or is disabled.
+- Large playlist libraries remain usable with search, selection, and ordering.
+- Empty playlist accounts show a useful state and manual fallback.
 - API errors are visible in a useful local debug path.
 - Cross-browser packaging commands are documented.
 
