@@ -29,3 +29,6 @@ vite.config.d.ts
 # Playwright
 test-results/
 playwright-report/
+
+# Agent state
+.omx/
