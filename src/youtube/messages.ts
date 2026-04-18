@@ -10,7 +10,12 @@ export type FetchYouTubePlaylistsResponse =
   | { ok: true; status: "ready" | "empty" }
   | {
       ok: false;
-      status: "not_connected" | "unauthorized" | "unavailable" | "failed";
+      status:
+        | "not_connected"
+        | "channel_required"
+        | "unauthorized"
+        | "unavailable"
+        | "failed";
       message: string;
     };
 
