@@ -70,6 +70,54 @@ test.describe("YouTube playlist API", () => {
       message: "Unable to reach YouTube right now. Check your connection and retry.",
     });
   });
+
+  test("maps 403 no-channel responses to channel required state", async () => {
+    const fetchMock: typeof fetch = async () =>
+      new Response(
+        JSON.stringify({
+          error: { message: "The channelNotFound error occurred for this account." },
+        }),
+        { status: 403 }
+      );
+
+    const result = await fetchYouTubePlaylists("token-123", fetchMock);
+    expect(result).toEqual({
+      ok: false,
+      status: "channel_required",
+      message: "Create a YouTube channel to upload videos or create playlists.",
+    });
+  });
+
+  test("maps 404 channel lookup failures to channel required state", async () => {
+    const fetchMock: typeof fetch = async () =>
+      new Response(
+        JSON.stringify({
+          error: { message: "YouTube channel not found." },
+        }),
+        { status: 404 }
+      );
+
+    const result = await fetchYouTubePlaylists("token-123", fetchMock);
+    expect(result).toEqual({
+      ok: false,
+      status: "channel_required",
+      message: "Create a YouTube channel to upload videos or create playlists.",
+    });
+  });
+
+  test("maps 5xx errors to unavailable state", async () => {
+    const fetchMock: typeof fetch = async () =>
+      new Response(JSON.stringify({ error: { message: "Backend unavailable" } }), {
+        status: 503,
+      });
+
+    const result = await fetchYouTubePlaylists("token-123", fetchMock);
+    expect(result).toEqual({
+      ok: false,
+      status: "unavailable",
+      message: "Backend unavailable",
+    });
+  });
 });
 
 test.describe("YouTube playlist normalization and message mapping", () => {
@@ -106,6 +154,20 @@ test.describe("YouTube playlist normalization and message mapping", () => {
     ).toEqual({
       ok: true,
       status: "empty",
+    });
+  });
+
+  test("maps channel-required errors to channel-required UI status", () => {
+    expect(
+      createFetchPlaylistsResponse({
+        ok: false,
+        status: "channel_required",
+        message: "Create a YouTube channel to upload videos or create playlists.",
+      })
+    ).toEqual({
+      ok: false,
+      status: "channel_required",
+      message: "Create a YouTube channel to upload videos or create playlists.",
     });
   });
 });

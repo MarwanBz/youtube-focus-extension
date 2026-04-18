@@ -6,6 +6,7 @@ export const YOUTUBE_PLAYLIST_FETCH_STATUSES = [
   "loading",
   "ready",
   "empty",
+  "channel_required",
   "unauthorized",
   "unavailable",
   "failed",

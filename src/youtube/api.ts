@@ -14,7 +14,7 @@ type PlaylistsApiSuccess = {
 
 type PlaylistsApiFailure = {
   ok: false;
-  status: "unauthorized" | "unavailable" | "failed";
+  status: "channel_required" | "unauthorized" | "unavailable" | "failed";
   message: string;
 };
 
@@ -116,6 +116,8 @@ function mapErrorResult(
   payload: YouTubeApiErrorPayload | null
 ): PlaylistsApiFailure {
   const apiMessage = extractApiMessage(payload);
+  const normalizedApiMessage = apiMessage?.toLowerCase() ?? "";
+  const channelMissing = isChannelMissingError(normalizedApiMessage);
 
   if (statusCode === 401) {
     return {
@@ -128,12 +130,11 @@ function mapErrorResult(
   }
 
   if (statusCode === 403) {
-    if (apiMessage?.toLowerCase().includes("channel")) {
+    if (channelMissing) {
       return {
         ok: false,
-        status: "failed",
-        message:
-          "No YouTube channel found. Visit youtube.com/channel/create to create one, then try again.",
+        status: "channel_required",
+        message: "Create a YouTube channel to upload videos or create playlists.",
       };
     }
     return {
@@ -153,12 +154,11 @@ function mapErrorResult(
     };
   }
 
-  if (statusCode === 404 && apiMessage?.toLowerCase().includes("channel")) {
+  if (statusCode === 404 && channelMissing) {
     return {
       ok: false,
-      status: "failed",
-      message:
-        "No YouTube channel found. Visit youtube.com/channel/create to create one, then try again.",
+      status: "channel_required",
+      message: "Create a YouTube channel to upload videos or create playlists.",
     };
   }
 
@@ -167,6 +167,20 @@ function mapErrorResult(
     status: "failed",
     message: apiMessage || "Unable to load playlists from YouTube.",
   };
+}
+
+function isChannelMissingError(normalizedApiMessage: string) {
+  if (!normalizedApiMessage) {
+    return false;
+  }
+
+  return (
+    normalizedApiMessage.includes("channelnotfound") ||
+    normalizedApiMessage.includes("channel not found") ||
+    (normalizedApiMessage.includes("channel") &&
+      normalizedApiMessage.includes("found")) ||
+    normalizedApiMessage.includes("youtube channel")
+  );
 }
 
 function extractApiMessage(payload: YouTubeApiErrorPayload | null): string | null {
