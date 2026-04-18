@@ -38,6 +38,7 @@ youtube-focus-extension/
       domIds.ts
       main.tsx
       urlChanges.ts
+      youtubeMasthead.ts
       youtubeHome.ts
   src/
     App.tsx
@@ -148,12 +149,15 @@ Current behavior:
 - Attaches a Shadow DOM root.
 - Injects `@lib/styles/globals.css` as inline CSS into the Shadow DOM.
 - Watches YouTube SPA URL changes.
-- Marks the route state on the host element and renders a small focus-ready status only on the YouTube home route when focus mode is active.
+- Moves the Shadow DOM host into YouTube's masthead center, beside the search controls.
+- Renders a compact focus toggle that persists the global focus-mode setting.
+- Marks the route state on the host element for later feed behavior.
 
 Target focus-mode behavior:
 
 - Keep the Shadow DOM approach to prevent Tailwind Preflight from leaking into YouTube.
 - Detect YouTube SPA route changes.
+- Keep the masthead focus toggle placed after YouTube search controls without duplicate hosts.
 - Only alter the YouTube home route in Phase 1.
 - Hide or replace recommendation surfaces when focus mode is active.
 - Render the focus overlay into the Shadow DOM.
@@ -216,6 +220,7 @@ Options page or popup
   -> reads/writes chrome.storage.sync settings
   -> background ensures defaults on install
   -> content script reacts to storage and URL changes
+  -> masthead toggle updates the same stored focus setting
   -> YouTube DOM is restored or replaced based on active settings
 
 Phase 2 API flow:

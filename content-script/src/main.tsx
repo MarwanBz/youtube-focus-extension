@@ -7,11 +7,13 @@ import {
   EXTENSION_MOUNT_ID,
   EXTENSION_STYLE_ID,
 } from "./domIds";
+import { observeMastheadPlacement } from "./youtubeMasthead";
 
 const existing = document.getElementById(EXTENSION_HOST_ID);
 const host = existing ?? document.createElement("div");
 if (!existing) {
   host.id = EXTENSION_HOST_ID;
+  host.hidden = true;
   document.body.appendChild(host);
 }
 
@@ -38,4 +40,9 @@ if (!mountPoint.dataset.reactMounted) {
       <App />
     </StrictMode>
   );
+}
+
+if (!host.dataset.youtubeFocusMastheadObserver) {
+  host.dataset.youtubeFocusMastheadObserver = "true";
+  observeMastheadPlacement(host);
 }
