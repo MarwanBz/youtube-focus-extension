@@ -115,6 +115,7 @@ export async function disconnectYouTube(): Promise<{
     uiState: "not_connected",
     lastError: null,
   });
+  await writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
   await writeYouTubePlaylistPreviewState(DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE);
 
   return { ok: true };

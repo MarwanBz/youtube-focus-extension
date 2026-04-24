@@ -669,7 +669,7 @@ export function OptionsApp() {
                       ) => setImportedSearch(event.target.value)}
                     />
 
-                    <ScrollArea className="max-h-64">
+                    <ScrollArea className="max-h-[28rem]">
                       <div className="space-y-1.5 pr-3">
                         {filteredImportedPlaylists.map((playlist) => {
                           const selected = isImportedPlaylistSelected(
