@@ -33,6 +33,7 @@ import {
 } from "./youtube/preview-storage";
 import {
   ensureFocusSettings,
+  patchFocusSettings,
   readFocusSettings,
   subscribeToFocusSettings,
 } from "./settings/storage";
@@ -117,6 +118,7 @@ export async function disconnectYouTube(): Promise<{
   });
   await writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
   await writeYouTubePlaylistPreviewState(DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE);
+  await patchFocusSettings({ importedPlaylists: [] });
 
   return { ok: true };
 }
