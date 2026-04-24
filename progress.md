@@ -4,7 +4,7 @@
 
 Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
 
-Current focus: Authenticated playlist import optimization, onboarding polish, and the newly shared popup/options UI layer.
+Current focus: Authenticated playlist import optimization, onboarding polish, and horizontal scrolling UX improvements.
 
 Next task: T104 - Add API pagination and cache.
 
@@ -54,7 +54,13 @@ Next task: T104 - Add API pagination and cache.
 | 2026-04-18 | Verify T104A + T108B | Done | Ran `npm run lint`, `npx playwright test tests/preview-api.spec.ts tests/focus-overlay-sections.spec.ts tests/focus-overlay-cards.spec.ts tests/youtube-api.spec.ts tests/youtube-selection.spec.ts tests/settings-schema.spec.ts tests/youtube-status-copy.spec.ts tests/auth-client.spec.ts`, and `npm run build`. All targeted tests passed and build succeeded. |
 | 2026-04-18 | Native YouTube UI Reskin | Done | Completely redesigned the HomeFocusBanner and HomeFocusOverlay to match YouTube's native dark-mode aesthetic. Replaced generated gradients and glowing badges with flat colors, standard 12px thumbnails, and accurate vector SVG tracking for Playlist and Watch Later icons. |
 | 2026-04-18 | T110 shadcn popup/options integration | Done | Added `components.json`, shared shadcn-compatible UI primitives under `src/components/ui`, theme tokens in global Tailwind styles, and migrated the popup plus options page to the shared component layer while leaving the Shadow DOM content-script UI custom. |
+| 2026-04-18 | T111 Horizontal scrolling YouTube grid | Done | Increased playlist preview item limit from 4 to 20 and updated Focus Home overlay CSS to support horizontal scrolling shelves with scroll-snap and custom scrollbars, matching native YouTube behavior. |
+| 2026-04-18 | T112 Increase playlist limit | Done | Increased `MAX_MANUAL_PLAYLISTS` and `MAX_IMPORTED_PLAYLISTS` from 3 to 12 in `src/settings/schema.ts` to allow users more variety in their focus feed. |
 | 2026-04-18 | Verify T110 | Done | Ran `npm run lint`, `npm run build`, and `npx playwright test tests/auth-client.spec.ts tests/auth.spec.ts tests/settings-schema.spec.ts tests/youtube-selection.spec.ts tests/youtube-status-copy.spec.ts`. Lint and build passed, and all 21 focused tests passed. No direct popup/options browser tests exist yet; content-script UI was intentionally left unchanged in this pass. |
+| 2026-04-18 | T113 Focus Home scroll + playlist links | Done | Routed vertical wheel and trackpad gestures over Focus Home shelves back to the page scroller, kept horizontal intent scrolling inside shelves, exposed each shelf title as a direct playlist link, and simplified home-feed suppression back to `display: none` instead of zero-height hiding. |
+| 2026-04-18 | Verify T113 + full suite | Done | Ran `npm run lint`, `npm run build`, `npx playwright test tests/feed-visibility.spec.ts tests/youtube-home-overlay.spec.ts tests/focus-overlay-sections.spec.ts tests/focus-overlay-wheel.spec.ts`, and `npm test`. All checks passed after rerunning browser suites outside the sandbox because sandboxed Chromium hit macOS Mach-port permission errors. Also updated `tests/youtube-selection.spec.ts` so the max-selection test now uses a fixture larger than the current 12-playlist cap. |
+| 2026-04-24 | Focus-mode feed suppression hotfix | Done | Moved home-feed suppression onto the active Focus Home overlay path so enabling Focus Mode actually hides the native YouTube home feed even while the legacy banner component remains disabled. Also widened the hidden-home selector set to cover reel shelf and continuation renderers that can still surface recommendation content on newer home layouts. |
+| 2026-04-24 | Focus Home empty-state copy refinement | Done | Updated the no-playlist Focus Home state so the main screen tells the user to select lists from Settings and changes the CTA label from a generic Settings button to Select lists. Added a small pure helper plus coverage to keep the copy behavior stable. |
 
 ## Decision Log
 
@@ -73,6 +79,7 @@ Next task: T104 - Add API pagination and cache.
 | 2026-04-18 | OAuth-first onboarding now overrides the earlier finish-Phase-1-first order | The repo still has T010 through T012 open, but product priority now makes T100 and the onboarding/import lane the official next track. |
 | 2026-04-18 | Video-thumbnail playlist shelves need a separate cache step | The current imported-playlist cache only stores playlist-level metadata; showing thumbnails from videos inside each playlist requires playlist-item preview data for selected imported playlists and should not scrape the YouTube page. |
 | 2026-04-18 | Use shadcn only for extension-owned React surfaces in this pass | Popup and options benefit from shared primitives and tokenized styling, but the YouTube content-script UI is Shadow DOM-scoped and intentionally tuned to native YouTube chrome, so it stays custom for now. |
+| 2026-04-18 | Vertical scroll gestures should win over shelf scrolling in Focus Home | The Focus Home overlay uses horizontal shelves, but page-down intent must still move the YouTube home page so the overlay does not feel frozen while browsing multiple playlist sections. |
 
 ## Feature State
 
@@ -97,6 +104,10 @@ Next task: T104 - Add API pagination and cache.
 | T104A selected-playlist preview cache | Done | Background now caches lightweight preview videos for selected imported playlists so Focus Home can render video-thumbnail shelves without scraping YouTube pages. |
 | T108B Focus Home playlist shelves | Done | Focus Home now renders each selected imported playlist as a titled shelf using thumbnails from videos inside that playlist, with Watch Later and manual playlists kept on clear fallback treatments. |
 | T110 shadcn popup/options integration | Done | Popup and options now share a shadcn-style primitive layer, including cards, buttons, inputs, labels, badges, separators, scroll areas, and switches, while the content-script UI remains on its custom Shadow DOM styling path. |
+| T111 Horizontal scrolling grid | Done | Focus Home shelves now support horizontal scrolling for up to 20 items with scroll-snap and custom scrollbars. |
+| T112 Increase playlist limit | Done | Maximum number of manual and imported playlists increased from 3 to 12 in settings schema. |
+| T113 Focus Home scrolling + playlist links | Done | Vertical wheel and trackpad scrolling now continue moving the home page while shelf titles open the full playlist page directly. |
+
 | Persona settings | Deferred | Phase 3. |
 | AI text messages | Deferred | Phase 3 and opt-in only. |
 | AI images | Deferred | Phase 3 or later, low priority. |

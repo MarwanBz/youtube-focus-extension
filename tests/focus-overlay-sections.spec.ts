@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { getFocusOverlaySections } from "../content-script/src/focusOverlay";
+import {
+  getFocusOverlayHeaderContent,
+  getFocusOverlaySections,
+} from "../content-script/src/focusOverlay";
 import type { PlaylistPreview } from "../src/youtube/preview-schema";
 import type { FocusSettings } from "../src/settings/schema";
 import type { ImportedPlaylist } from "../src/youtube/schema";
@@ -12,6 +15,31 @@ const baseSettings: FocusSettings = {
 };
 
 test.describe("Focus overlay sections", () => {
+  test("shows select-lists copy when no playlists are configured", () => {
+    expect(getFocusOverlayHeaderContent(baseSettings, false)).toEqual({
+      body: "Select lists from Settings to build your queue.",
+      buttonLabel: "Select lists",
+    });
+  });
+
+  test("keeps settings copy when manual playlists exist", () => {
+    const settings: FocusSettings = {
+      ...baseSettings,
+      manualPlaylists: [
+        {
+          id: "manual-1",
+          title: "Documentaries",
+          url: "https://www.youtube.com/playlist?list=PL_DOCS",
+        },
+      ],
+    };
+
+    expect(getFocusOverlayHeaderContent(settings, true)).toEqual({
+      body: "Showing Watch Later and your saved manual playlist shortcuts.",
+      buttonLabel: "Settings",
+    });
+  });
+
   test("builds playlist shelves from selected imported playlist previews", () => {
     const settings: FocusSettings = {
       ...baseSettings,

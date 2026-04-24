@@ -36,11 +36,69 @@ export type FocusOverlaySection = {
   items: FocusOverlaySectionItem[];
 };
 
+export type FocusOverlayHeaderContent = {
+  body: string;
+  buttonLabel: string;
+};
+
+export type FocusOverlayWheelRoute =
+  | {
+      kind: "page";
+      delta: number;
+    }
+  | {
+      kind: "section";
+      delta: number;
+    }
+  | {
+      kind: "ignore";
+      delta: 0;
+    };
+
 export function shouldRenderHomeFocusOverlay(
   routeState: YouTubeRouteState,
   focusModeActive: boolean
 ) {
   return routeState.isHome && focusModeActive;
+}
+
+export function getFocusOverlayWheelRoute({
+  deltaX,
+  deltaY,
+  shiftKey,
+}: {
+  deltaX: number;
+  deltaY: number;
+  shiftKey: boolean;
+}): FocusOverlayWheelRoute {
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
+
+  if (absX < 1 && absY < 1) {
+    return {
+      kind: "ignore",
+      delta: 0,
+    };
+  }
+
+  if (shiftKey) {
+    return {
+      kind: "section",
+      delta: deltaX || deltaY,
+    };
+  }
+
+  if (absX > absY) {
+    return {
+      kind: "section",
+      delta: deltaX,
+    };
+  }
+
+  return {
+    kind: "page",
+    delta: deltaY,
+  };
 }
 
 export function getFocusOverlaySources(
@@ -63,6 +121,30 @@ export function getFocusOverlaySources(
       url: playlist.url,
     })),
   ];
+}
+
+export function getFocusOverlayHeaderContent(
+  settings: FocusSettings,
+  hasPlaylistSections: boolean
+): FocusOverlayHeaderContent {
+  if (settings.importedPlaylists.length > 0) {
+    return {
+      body: "Showing Watch Later and your selected playlists.",
+      buttonLabel: "Settings",
+    };
+  }
+
+  if (hasPlaylistSections) {
+    return {
+      body: "Showing Watch Later and your saved manual playlist shortcuts.",
+      buttonLabel: "Settings",
+    };
+  }
+
+  return {
+    body: "Select lists from Settings to build your queue.",
+    buttonLabel: "Select lists",
+  };
 }
 
 export function getFocusOverlayCards(

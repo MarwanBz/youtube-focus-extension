@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type WheelEvent } from "react";
 import { DEFAULT_FOCUS_SETTINGS } from "@/settings/defaults";
 import {
   patchFocusSettings,
@@ -30,6 +30,8 @@ import {
   type YouTubeRouteState,
 } from "./youtubeHome";
 import {
+  getFocusOverlayHeaderContent,
+  getFocusOverlayWheelRoute,
   getFocusOverlaySections,
   shouldRenderHomeFocusOverlay,
 } from "./focusOverlay";
@@ -192,24 +194,7 @@ export function HomeFocusBanner() {
   const { focusModeActive, focusModeEnabled, routeState } = useFocusUiState();
   const banner = getFocusBannerContent(focusModeEnabled);
 
-  useEffect(() => {
-    const sync = () => {
-      syncHomeFeedVisibility(document, routeState.isHome && focusModeActive);
-    };
-
-    sync();
-
-    const observer = new MutationObserver(sync);
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    });
-
-    return () => {
-      observer.disconnect();
-      syncHomeFeedVisibility(document, false);
-    };
-  }, [focusModeActive, routeState.isHome]);
+  useHomeFeedVisibilitySync(routeState.isHome && focusModeActive);
 
   if (!routeState.isHome) {
     return null;
@@ -318,8 +303,13 @@ export function HomeFocusOverlay() {
     playlistState.items,
     playlistPreviewState.playlists
   );
-  const usingImportedPlaylists = settings.importedPlaylists.length > 0;
   const hasPlaylistSections = sections.length > 1;
+  const headerContent = getFocusOverlayHeaderContent(
+    settings,
+    hasPlaylistSections
+  );
+
+  useHomeFeedVisibilitySync(routeState.isHome && focusModeActive);
 
   if (!shouldRenderHomeFocusOverlay(routeState, focusModeActive)) {
     return null;
@@ -338,6 +328,53 @@ export function HomeFocusOverlay() {
         window.open(chrome.runtime.getURL("options.html"));
       }
     }
+  };
+
+  const handleSectionWheel = (event: WheelEvent<HTMLDivElement>) => {
+    const route = getFocusOverlayWheelRoute({
+      deltaX: event.deltaX,
+      deltaY: event.deltaY,
+      shiftKey: event.shiftKey,
+    });
+
+    if (route.kind === "ignore") {
+      return;
+    }
+
+    if (route.kind === "section") {
+      if (
+        event.currentTarget.scrollWidth <= event.currentTarget.clientWidth + 1
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.currentTarget.scrollBy({
+        left: route.delta,
+        behavior: "auto",
+      });
+      return;
+    }
+
+    const pageScroller = getHomePageScrollContainer();
+    if (!pageScroller) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (pageScroller === document.documentElement) {
+      window.scrollBy({
+        top: route.delta,
+        behavior: "auto",
+      });
+      return;
+    }
+
+    pageScroller.scrollBy({
+      top: route.delta,
+      behavior: "auto",
+    });
   };
 
   return (
@@ -421,6 +458,10 @@ export function HomeFocusOverlay() {
           min-width: 0;
         }
 
+        .youtube-focus-overlay__section-heading {
+          min-width: 0;
+        }
+
         .youtube-focus-overlay__section-icon {
           color: #f1f1f1;
           flex: 0 0 auto;
@@ -435,18 +476,51 @@ export function HomeFocusOverlay() {
           margin: 0;
         }
 
+        .youtube-focus-overlay__section-link {
+          color: inherit;
+          text-decoration: none;
+        }
+
+        .youtube-focus-overlay__section-link:hover,
+        .youtube-focus-overlay__section-link:focus-visible {
+          text-decoration: underline;
+        }
+
         .youtube-focus-overlay__grid {
-          display: grid;
+          display: flex;
           gap: 16px;
-          grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+          overflow-x: auto;
+          padding-bottom: 12px;
+          scroll-snap-type: x mandatory;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+
+        .youtube-focus-overlay__grid::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        .youtube-focus-overlay__grid::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .youtube-focus-overlay__grid::-webkit-scrollbar-thumb {
+          background-color: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+        }
+
+        .youtube-focus-overlay__grid::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(255, 255, 255, 0.3);
         }
 
         .youtube-focus-overlay__card {
           color: inherit;
           display: flex;
+          flex: 0 0 210px;
           flex-direction: column;
           gap: 8px;
           min-width: 0;
+          scroll-snap-align: start;
           text-decoration: none;
         }
 
@@ -536,7 +610,11 @@ export function HomeFocusOverlay() {
           }
 
           .youtube-focus-overlay__grid {
-            grid-template-columns: minmax(0, 1fr);
+            padding-bottom: 8px;
+          }
+
+          .youtube-focus-overlay__card {
+            flex: 0 0 180px;
           }
         }
       `}</style>
@@ -549,11 +627,7 @@ export function HomeFocusOverlay() {
             <div className="youtube-focus-overlay__header-text">
               <h2 className="youtube-focus-overlay__title">Your Queue</h2>
               <p className="youtube-focus-overlay__body">
-                {usingImportedPlaylists
-                  ? "Showing Watch Later and your selected playlists."
-                  : hasPlaylistSections
-                    ? "Showing Watch Later and your saved manual playlist shortcuts."
-                    : "Showing Watch Later. Add playlists in Settings to build your queue."}
+                {headerContent.body}
               </p>
             </div>
             <button
@@ -561,7 +635,7 @@ export function HomeFocusOverlay() {
               type="button"
               onClick={handleOpenSettings}
             >
-              Settings
+              {headerContent.buttonLabel}
             </button>
           </div>
           <div className="youtube-focus-overlay__sections">
@@ -573,11 +647,21 @@ export function HomeFocusOverlay() {
                   ) : (
                     <PlaylistIcon className="youtube-focus-overlay__section-icon" />
                   )}
-                  <h3 className="youtube-focus-overlay__section-title">
-                    {section.title}
-                  </h3>
+                  <div className="youtube-focus-overlay__section-heading">
+                    <h3 className="youtube-focus-overlay__section-title">
+                      <a
+                        className="youtube-focus-overlay__section-link"
+                        href={section.url}
+                      >
+                        {section.title}
+                      </a>
+                    </h3>
+                  </div>
                 </div>
-                <div className="youtube-focus-overlay__grid">
+                <div
+                  className="youtube-focus-overlay__grid"
+                  onWheel={handleSectionWheel}
+                >
                   {section.items.map((item) => (
                     <a
                       key={`${section.title}:${item.url}`}
@@ -624,6 +708,42 @@ export function HomeFocusOverlay() {
 }
 
 export default MastheadFocusToggle;
+
+function useHomeFeedVisibilitySync(shouldHideHomeFeed: boolean) {
+  useEffect(() => {
+    const sync = () => {
+      syncHomeFeedVisibility(document, shouldHideHomeFeed);
+    };
+
+    sync();
+
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+      syncHomeFeedVisibility(document, false);
+    };
+  }, [shouldHideHomeFeed]);
+}
+
+function getHomePageScrollContainer() {
+  const candidates = [
+    document.scrollingElement,
+    document.querySelector("ytd-app"),
+    document.documentElement,
+    document.body,
+  ].filter((value): value is HTMLElement => value instanceof HTMLElement);
+
+  return (
+    candidates.find(
+      (candidate) => candidate.scrollHeight > candidate.clientHeight + 1
+    ) ?? document.documentElement
+  );
+}
 
 function BannerIcon({ variant }: { variant: FocusBannerVariant }) {
   if (variant === "on") {

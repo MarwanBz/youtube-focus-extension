@@ -7,6 +7,8 @@ const HOME_FEED_FIXTURE = `
       <ytd-feed-filter-chip-bar-renderer id="chips"></ytd-feed-filter-chip-bar-renderer>
       <ytd-rich-grid-renderer id="grid"></ytd-rich-grid-renderer>
       <ytd-rich-section-renderer id="section"></ytd-rich-section-renderer>
+      <ytd-reel-shelf-renderer id="reel-shelf"></ytd-reel-shelf-renderer>
+      <ytd-continuation-item-renderer id="continuation"></ytd-continuation-item-renderer>
     </ytd-browse>
     <ytd-watch-flexy>
       <ytd-rich-grid-renderer id="watch-grid"></ytd-rich-grid-renderer>
@@ -32,6 +34,12 @@ test.describe("YouTube home feed visibility", () => {
         sectionDisplay: getComputedStyle(
           document.getElementById("section")!
         ).display,
+        reelShelfDisplay: getComputedStyle(
+          document.getElementById("reel-shelf")!
+        ).display,
+        continuationDisplay: getComputedStyle(
+          document.getElementById("continuation")!
+        ).display,
         watchGridDisplay: getComputedStyle(
           document.getElementById("watch-grid")!
         ).display,
@@ -44,8 +52,10 @@ test.describe("YouTube home feed visibility", () => {
     expect(result.chipsDisplay).toBe("none");
     expect(result.gridDisplay).toBe("none");
     expect(result.sectionDisplay).toBe("none");
+    expect(result.reelShelfDisplay).toBe("none");
+    expect(result.continuationDisplay).toBe("none");
     expect(result.watchGridDisplay).not.toBe("none");
-    expect(result.hiddenMarkers).toBe(3);
+    expect(result.hiddenMarkers).toBe(5);
   });
 
   test("restores previously hidden home feed containers", async ({ page }) => {
@@ -66,6 +76,12 @@ test.describe("YouTube home feed visibility", () => {
         sectionDisplay: getComputedStyle(
           document.getElementById("section")!
         ).display,
+        reelShelfDisplay: getComputedStyle(
+          document.getElementById("reel-shelf")!
+        ).display,
+        continuationDisplay: getComputedStyle(
+          document.getElementById("continuation")!
+        ).display,
         hiddenMarkers: document.querySelectorAll(
           '[data-youtube-focus-hidden="true"]'
         ).length,
@@ -76,8 +92,10 @@ test.describe("YouTube home feed visibility", () => {
     expect(result.chipsDisplay).not.toBe("none");
     expect(result.gridDisplay).not.toBe("none");
     expect(result.sectionDisplay).not.toBe("none");
+    expect(result.reelShelfDisplay).not.toBe("none");
+    expect(result.continuationDisplay).not.toBe("none");
     expect(result.hiddenMarkers).toBe(0);
-    expect(result.restoredCount).toBe(3);
+    expect(result.restoredCount).toBe(5);
   });
 
   test("is idempotent across repeated hide calls", async ({ page }) => {
@@ -102,9 +120,9 @@ test.describe("YouTube home feed visibility", () => {
     }, syncHomeFeedVisibility.toString());
 
     expect(result).toEqual({
-      firstHiddenCount: 3,
+      firstHiddenCount: 5,
       secondHiddenCount: 0,
-      hiddenMarkers: 3,
+      hiddenMarkers: 5,
     });
   });
 });
