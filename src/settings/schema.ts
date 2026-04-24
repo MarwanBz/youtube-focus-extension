@@ -1,7 +1,7 @@
 export const SETTINGS_STORAGE_KEY = "youtubeFocusSettings";
 export const SETTINGS_STORAGE_AREA = "sync";
-export const MAX_MANUAL_PLAYLISTS = 3;
-export const MAX_IMPORTED_PLAYLISTS = 3;
+export const MAX_MANUAL_PLAYLISTS = 12;
+export const MAX_IMPORTED_PLAYLISTS = 12;
 
 export type PlaylistShortcut = {
   id: string;

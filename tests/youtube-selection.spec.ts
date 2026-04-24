@@ -57,16 +57,25 @@ test.describe("youtube imported playlist selection helpers", () => {
   });
 
   test("enforces max selected imported playlists", () => {
-    const selected = importedPlaylists.reduce((current, playlist) => {
+    const manyPlaylists: ImportedPlaylist[] = Array.from(
+      { length: MAX_IMPORTED_PLAYLISTS + 1 },
+      (_, index) => ({
+        id: `pl-${index + 1}`,
+        title: `Playlist ${index + 1}`,
+        url: `https://www.youtube.com/playlist?list=PL_${index + 1}`,
+        videoCount: index + 1,
+        thumbnailUrl: null,
+      })
+    );
+
+    const selected = manyPlaylists.reduce((current, playlist) => {
       return selectImportedPlaylist(current, playlist);
     }, [] as { id: string; title: string; url: string }[]);
 
     expect(selected).toHaveLength(MAX_IMPORTED_PLAYLISTS);
-    expect(selected.map((playlist) => playlist.id)).toEqual([
-      "pl-1",
-      "pl-2",
-      "pl-3",
-    ]);
+    expect(selected.map((playlist) => playlist.id)).toEqual(
+      manyPlaylists.slice(0, MAX_IMPORTED_PLAYLISTS).map((playlist) => playlist.id)
+    );
   });
 
   test("reorders and removes selected playlists", () => {

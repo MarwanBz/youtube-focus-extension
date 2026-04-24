@@ -1,7 +1,7 @@
 export const YOUTUBE_PLAYLIST_PREVIEWS_STORAGE_KEY =
   "youtubeFocusPlaylistPreviews";
 export const YOUTUBE_PLAYLIST_PREVIEWS_STORAGE_AREA = "local";
-export const MAX_PLAYLIST_PREVIEW_ITEMS = 4;
+export const MAX_PLAYLIST_PREVIEW_ITEMS = 20;
 
 export type PlaylistPreviewVideo = {
   videoId: string;

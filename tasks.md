@@ -50,6 +50,9 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T108B | Done | P2 | Render Focus Home playlist shelves with video thumbnails | T104A, T108A | Focus Home shows each selected imported playlist as a titled shelf with thumbnails from videos inside that playlist, while Watch Later and manual playlists keep a clear fallback treatment when preview data is unavailable. |
 | T109 | Todo | P2 | Add cross-browser build scripts | T012 | Chrome and Firefox build commands are documented and tested. |
 | T110 | Done | P2 | Integrate `shadcn/ui` into popup and options surfaces | T009, T102A, T105 | The repo has shadcn configuration and shared UI primitives, popup and options use the shared component layer, and content-script UI remains custom for Shadow DOM compatibility. |
+| T111 | Done | P1 | Implement horizontal scrolling for playlist shelves | T108B | Focus Home shelves support horizontal scrolling for up to 20 items, providing a native-like browsing experience without feed wrapping. |
+| T112 | Done | P1 | Increase maximum playlist limit to 12 | T111 | Maximum number of manual and imported playlists increased from 3 to 12 in settings schema. |
+| T113 | Done | P1 | Restore Focus Home vertical scrolling and add playlist-level links | T108B, T111 | Vertical wheel or trackpad scrolling still moves the YouTube home page while Focus Home shelves remain usable, and each playlist shelf exposes a direct link to open the full playlist page. |
 
 ## Phase 3 - Persona And AI Content
 
