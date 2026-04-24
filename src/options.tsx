@@ -581,6 +581,15 @@ export function OptionsApp() {
                 <StatusMessage>{playlistStatus}</StatusMessage>
               ) : null}
 
+              {playlistState.status === "loading" ? (
+                <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-secondary/10 px-4 py-6">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <p className="text-sm text-muted-foreground">
+                    Loading playlists...
+                  </p>
+                </div>
+              ) : null}
+
               {shouldShowImportedSelectionWorkspace(
                 playlistState.status,
                 playlistState.items.length
