@@ -2,11 +2,11 @@
 
 ## Current Status
 
-Stage: Phase 1 foundation complete through the design-matched masthead toggle and home banner.
+Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: Authenticated playlist import optimization, onboarding polish, and horizontal scrolling UX improvements.
+Current focus: Finish the live Chrome manual MVP verification pass for Phase 1, then return to Phase 2 cache and onboarding work.
 
-Next task: T104 - Add API pagination and cache.
+Next task: T012 - run the live Chrome developer-mode verification pass against YouTube.
 
 ## Implementation Log
 
@@ -61,6 +61,9 @@ Next task: T104 - Add API pagination and cache.
 | 2026-04-18 | Verify T113 + full suite | Done | Ran `npm run lint`, `npm run build`, `npx playwright test tests/feed-visibility.spec.ts tests/youtube-home-overlay.spec.ts tests/focus-overlay-sections.spec.ts tests/focus-overlay-wheel.spec.ts`, and `npm test`. All checks passed after rerunning browser suites outside the sandbox because sandboxed Chromium hit macOS Mach-port permission errors. Also updated `tests/youtube-selection.spec.ts` so the max-selection test now uses a fixture larger than the current 12-playlist cap. |
 | 2026-04-24 | Focus-mode feed suppression hotfix | Done | Moved home-feed suppression onto the active Focus Home overlay path so enabling Focus Mode actually hides the native YouTube home feed even while the legacy banner component remains disabled. Also widened the hidden-home selector set to cover reel shelf and continuation renderers that can still surface recommendation content on newer home layouts. |
 | 2026-04-24 | Focus Home empty-state copy refinement | Done | Updated the no-playlist Focus Home state so the main screen tells the user to select lists from Settings and changes the CTA label from a generic Settings button to Select lists. Added a small pure helper plus coverage to keep the copy behavior stable. |
+| 2026-04-27 | T010 temporary pause foundation | Done | Added fixed 15-minute, 30-minute, and 1-hour temporary pause controls to both popup and options, kept Focus Mode logically enabled while paused, added paused-until plus resume-now states, and wired content-script auto-resume so Focus Home returns automatically when the timer expires. |
+| 2026-04-27 | T011 unpacked Chrome packaging | Done | Removed the hard build dependency on `GOOGLE_CLIENT_ID` so the Phase 1 manual-playlist MVP can build without OAuth credentials, preserved optional OAuth manifest injection when credentials exist, and documented the local Chrome `Load unpacked` workflow in `README.md`. |
+| 2026-04-27 | T012 Phase 1 verification | Blocked | Ran automated coverage for temporary pause helpers, focus-mode active-state behavior, lint, and build verification including a no-OAuth build path. Live Chrome developer-mode verification against YouTube home behavior is still pending because that manual browser session was not completed in this environment. |
 
 ## Decision Log
 
@@ -80,6 +83,7 @@ Next task: T104 - Add API pagination and cache.
 | 2026-04-18 | Video-thumbnail playlist shelves need a separate cache step | The current imported-playlist cache only stores playlist-level metadata; showing thumbnails from videos inside each playlist requires playlist-item preview data for selected imported playlists and should not scrape the YouTube page. |
 | 2026-04-18 | Use shadcn only for extension-owned React surfaces in this pass | Popup and options benefit from shared primitives and tokenized styling, but the YouTube content-script UI is Shadow DOM-scoped and intentionally tuned to native YouTube chrome, so it stays custom for now. |
 | 2026-04-18 | Vertical scroll gestures should win over shelf scrolling in Focus Home | The Focus Home overlay uses horizontal shelves, but page-down intent must still move the YouTube home page so the overlay does not feel frozen while browsing multiple playlist sections. |
+| 2026-04-27 | Temporary pause stays subordinate to the main Focus Mode toggle | Phase 1 only needs a lightweight utility control, so pause lives as a secondary control row with fixed presets rather than becoming a competing primary action or a full scheduling surface. |
 
 ## Feature State
 
@@ -107,6 +111,8 @@ Next task: T104 - Add API pagination and cache.
 | T111 Horizontal scrolling grid | Done | Focus Home shelves now support horizontal scrolling for up to 20 items with scroll-snap and custom scrollbars. |
 | T112 Increase playlist limit | Done | Maximum number of manual and imported playlists increased from 3 to 12 in settings schema. |
 | T113 Focus Home scrolling + playlist links | Done | Vertical wheel and trackpad scrolling now continue moving the home page while shelf titles open the full playlist page directly. |
+| Temporary pause foundation | Done | Popup and options now offer 15-minute, 30-minute, and 1-hour pause presets, plus paused-until and resume-now states that reuse the existing `disabledUntil` setting. |
+| Unpacked Chrome packaging | Done | The Phase 1 build now succeeds without OAuth credentials and the README documents how to load `dist/` in Chrome developer mode. |
 
 | Persona settings | Deferred | Phase 3. |
 | AI text messages | Deferred | Phase 3 and opt-in only. |

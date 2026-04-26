@@ -4,6 +4,7 @@ import {
   patchFocusSettings,
   subscribeToFocusSettings,
 } from "@/settings/storage";
+import { useTemporaryDisableNow } from "@/settings/useTemporaryDisableNow";
 import {
   isFocusModeActive,
   type FocusSettings,
@@ -73,7 +74,7 @@ export function MastheadFocusToggle() {
 
     void patchFocusSettings({
       focusModeEnabled,
-      disabledUntil: focusModeEnabled ? null : settings.disabledUntil,
+      disabledUntil: null,
     })
       .then(() => setSaveState("idle"))
       .catch(() => setSaveState("error"));
@@ -802,6 +803,7 @@ function useFocusUiState(): FocusUiState {
   const [routeState, setRouteState] = useState<YouTubeRouteState>(() =>
     getYouTubeRouteState(window.location.href)
   );
+  const now = useTemporaryDisableNow(settings.disabledUntil);
 
   useEffect(() => {
     return subscribeToFocusSettings(setSettings);
@@ -822,7 +824,7 @@ function useFocusUiState(): FocusUiState {
   }, []);
 
   return {
-    focusModeActive: isFocusModeActive(settings),
+    focusModeActive: isFocusModeActive(settings, now),
     focusModeEnabled: settings.focusModeEnabled,
     routeState,
     settings,

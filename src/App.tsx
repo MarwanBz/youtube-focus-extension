@@ -23,7 +23,14 @@ import {
 } from "./auth/schema";
 import { subscribeToYouTubeAuthState } from "./auth/storage";
 import { DEFAULT_FOCUS_SETTINGS } from "./settings/defaults";
+import {
+  createTemporaryDisableUntilIso,
+  getTemporaryDisableUiState,
+  TEMPORARY_DISABLE_PRESET_MINUTES,
+  type TemporaryDisablePresetMinutes,
+} from "./settings/temporary-disable";
 import { patchFocusSettings, subscribeToFocusSettings } from "./settings/storage";
+import { useTemporaryDisableNow } from "./settings/useTemporaryDisableNow";
 import type { FocusSettings } from "./settings/schema";
 
 function getAuthBadgeVariant(youtubeAuth: YouTubeAuthState) {
@@ -55,13 +62,33 @@ export default function App() {
   const [saveError, setSaveError] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const now = useTemporaryDisableNow(settings.disabledUntil);
+  const temporaryDisableUi = getTemporaryDisableUiState(settings, { now });
 
   useEffect(() => subscribeToFocusSettings(setSettings), []);
   useEffect(() => subscribeToYouTubeAuthState(setYouTubeAuth), []);
 
   const handleToggleFocus = (enabled: boolean) => {
     setSaveError(false);
-    patchFocusSettings({ focusModeEnabled: enabled }).catch(() =>
+    patchFocusSettings({
+      focusModeEnabled: enabled,
+      disabledUntil: null,
+    }).catch(() =>
+      setSaveError(true)
+    );
+  };
+
+  const handleTemporaryDisable = (minutes: TemporaryDisablePresetMinutes) => {
+    setSaveError(false);
+    void patchFocusSettings({
+      focusModeEnabled: true,
+      disabledUntil: createTemporaryDisableUntilIso(minutes),
+    }).catch(() => setSaveError(true));
+  };
+
+  const handleResumeNow = () => {
+    setSaveError(false);
+    void patchFocusSettings({ disabledUntil: null }).catch(() =>
       setSaveError(true)
     );
   };
@@ -122,7 +149,8 @@ export default function App() {
             <div className="space-y-0.5">
               <p className="text-sm font-medium">Focus mode</p>
               <p className="text-xs text-muted-foreground">
-                Hide recommendation-heavy home sections.
+                {temporaryDisableUi.statusText ??
+                  "Hide recommendation-heavy home sections."}
               </p>
             </div>
             <Switch
@@ -131,6 +159,41 @@ export default function App() {
               onCheckedChange={handleToggleFocus}
             />
           </div>
+          {enabled ? (
+            <div className="space-y-2 rounded-md border border-border/70 bg-background/60 px-3 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  Temporary pause
+                </p>
+                <Badge variant={temporaryDisableUi.isPaused ? "warning" : "secondary"}>
+                  {temporaryDisableUi.isPaused ? "Paused" : "Active"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {temporaryDisableUi.statusText ??
+                  "Pause Focus Mode briefly, then let it resume automatically."}
+              </p>
+              {temporaryDisableUi.showPauseActions ? (
+                <div className="flex flex-wrap gap-2">
+                  {TEMPORARY_DISABLE_PRESET_MINUTES.map((minutes) => (
+                    <Button
+                      key={minutes}
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleTemporaryDisable(minutes)}
+                    >
+                      {minutes === 60 ? "1h" : `${minutes}m`}
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+              {temporaryDisableUi.showResumeAction ? (
+                <Button size="sm" variant="outline" onClick={handleResumeNow}>
+                  Resume now
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </CardHeader>
 
         <Separator />

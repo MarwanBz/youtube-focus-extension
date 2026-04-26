@@ -32,6 +32,18 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 
 ## Status
 
-Current stage: Phase 1 foundation complete through feed suppression on the YouTube home route.
+Current stage: Phase 1 implementation is complete through temporary pause and unpacked packaging, with live Chrome manual verification still pending.
 
-Next concrete action: T102 - implement the Chrome identity OAuth flow now that the onboarding direction and Google Cloud setup are documented.
+Next concrete action: T012 - run the live Chrome developer-mode verification pass against YouTube, then return to T104 cache work.
+
+## Phase 1 Local Load
+
+For the manual-playlist MVP, a Phase 1 build does not require `GOOGLE_CLIENT_ID`.
+
+Local Chrome workflow:
+
+1. Run `npm run build`.
+2. Open `chrome://extensions`.
+3. Turn on Developer Mode.
+4. Choose `Load unpacked`.
+5. Select the generated `dist/` folder.

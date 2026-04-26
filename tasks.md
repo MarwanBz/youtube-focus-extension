@@ -25,9 +25,9 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T007 | Done | P0 | Display Watch Later and manual playlists | T003, T006 | Overlay shows Watch Later plus up to three selected playlist links. |
 | T008 | Done | P0 | Build popup focus toggle | T003 | Popup switch persists focus mode and updates active YouTube tab behavior. |
 | T009 | Done | P0 | Build options page for manual playlist settings | T003 | User can add, edit, remove, and order manual playlist entries. |
-| T010 | Todo | P0 | Add temporary disable setting foundation | T003, T008 | Settings model supports disabled-until behavior even if UI is basic. |
-| T011 | Todo | P0 | Package Chrome MV3 build | T001-T010 | Build output can be loaded in Chrome developer mode. |
-| T012 | Todo | P0 | Manual MVP verification | T011 | Verification notes in `progress.md` cover enabled, disabled, route-change, and playlist-link behavior. |
+| T010 | Done | P0 | Add temporary disable setting foundation | T003, T008 | Settings model supports disabled-until behavior even if UI is basic. |
+| T011 | Done | P0 | Package Chrome MV3 build | T001-T010 | Build output can be loaded in Chrome developer mode. |
+| T012 | Blocked | P0 | Manual MVP verification | T011 | Verification notes in `progress.md` cover enabled, disabled, route-change, and playlist-link behavior. |
 
 ## Phase 2 - YouTube API And Improved UI
 

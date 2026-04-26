@@ -7,23 +7,24 @@ import manifest from "./manifest.json";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const googleClientId = env.GOOGLE_CLIENT_ID;
-
-  if (!googleClientId) {
-    throw new Error("Missing GOOGLE_CLIENT_ID in environment.");
-  }
+  const extensionManifest = googleClientId
+    ? {
+        ...manifest,
+        permissions: [
+          ...new Set([...(manifest.permissions ?? []), "identity"]),
+        ],
+        oauth2: {
+          client_id: googleClientId,
+          scopes: ["https://www.googleapis.com/auth/youtube.readonly"],
+        },
+      }
+    : manifest;
 
   return {
     plugins: [
       react(),
       crx({
-        manifest: {
-          ...manifest,
-          permissions: [...new Set([...(manifest.permissions ?? []), "identity"])],
-          oauth2: {
-            client_id: googleClientId,
-            scopes: ["https://www.googleapis.com/auth/youtube.readonly"],
-          },
-        },
+        manifest: extensionManifest,
       }),
     ],
     server: {

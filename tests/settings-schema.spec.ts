@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   MAX_IMPORTED_PLAYLISTS,
   cloneFocusSettings,
+  isFocusModeActive,
   normalizeFocusSettings,
 } from "../src/settings/schema";
 import { DEFAULT_FOCUS_SETTINGS } from "../src/settings/defaults";
@@ -62,5 +63,35 @@ test.describe("focus settings schema", () => {
     cloned.importedPlaylists[0].title = "Changed";
 
     expect(original.importedPlaylists[0].title).toBe("Imported One");
+  });
+
+  test("treats a future disabledUntil value as temporarily inactive", () => {
+    const now = Date.parse("2026-04-27T10:00:00.000Z");
+
+    expect(
+      isFocusModeActive(
+        {
+          ...DEFAULT_FOCUS_SETTINGS,
+          focusModeEnabled: true,
+          disabledUntil: "2026-04-27T10:15:00.000Z",
+        },
+        now
+      )
+    ).toBe(false);
+  });
+
+  test("reactivates focus mode after disabledUntil passes", () => {
+    const now = Date.parse("2026-04-27T10:16:00.000Z");
+
+    expect(
+      isFocusModeActive(
+        {
+          ...DEFAULT_FOCUS_SETTINGS,
+          focusModeEnabled: true,
+          disabledUntil: "2026-04-27T10:15:00.000Z",
+        },
+        now
+      )
+    ).toBe(true);
   });
 });

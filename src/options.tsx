@@ -41,9 +41,16 @@ import {
 import { subscribeToYouTubeAuthState } from "./auth/storage";
 import { DEFAULT_FOCUS_SETTINGS } from "./settings/defaults";
 import {
+  createTemporaryDisableUntilIso,
+  getTemporaryDisableUiState,
+  TEMPORARY_DISABLE_PRESET_MINUTES,
+  type TemporaryDisablePresetMinutes,
+} from "./settings/temporary-disable";
+import {
   patchFocusSettings,
   subscribeToFocusSettings,
 } from "./settings/storage";
+import { useTemporaryDisableNow } from "./settings/useTemporaryDisableNow";
 import {
   isYouTubePlaylistUrl,
   MAX_IMPORTED_PLAYLISTS,
@@ -207,6 +214,7 @@ export function OptionsApp() {
   const [editTitle, setEditTitle] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
+  const now = useTemporaryDisableNow(settings.disabledUntil);
 
   useEffect(() => subscribeToFocusSettings(setSettings), []);
   useEffect(() => subscribeToYouTubeAuthState(setYouTubeAuth), []);
@@ -223,12 +231,33 @@ export function OptionsApp() {
     () => filterImportedPlaylists(playlistState.items, importedSearch),
     [importedSearch, playlistState.items]
   );
+  const temporaryDisableUi = getTemporaryDisableUiState(settings, { now });
 
   const handleFocusDefaultChange = (checked: boolean) => {
     setStatus("Saving...");
-    void patchFocusSettings({ focusModeEnabled: checked })
+    void patchFocusSettings({
+      focusModeEnabled: checked,
+      disabledUntil: null,
+    })
       .then(() => setStatus("Settings saved."))
       .catch(() => setStatus("Unable to save settings."));
+  };
+
+  const handleTemporaryDisable = (minutes: TemporaryDisablePresetMinutes) => {
+    setStatus("Saving...");
+    void patchFocusSettings({
+      focusModeEnabled: true,
+      disabledUntil: createTemporaryDisableUntilIso(minutes),
+    })
+      .then(() => setStatus(`Focus Mode paused for ${minutes} minutes.`))
+      .catch(() => setStatus("Unable to pause Focus Mode."));
+  };
+
+  const handleResumeFocus = () => {
+    setStatus("Saving...");
+    void patchFocusSettings({ disabledUntil: null })
+      .then(() => setStatus("Focus Mode resumed."))
+      .catch(() => setStatus("Unable to resume Focus Mode."));
   };
 
   const handleAddPlaylist = (event: FormEvent) => {
@@ -747,7 +776,7 @@ export function OptionsApp() {
 
           {/* ── Focus Mode ── */}
           <Card className="border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">
-            <CardContent className="py-5">
+            <CardContent className="space-y-5 py-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <Label htmlFor="focus-mode" className="text-sm font-medium">
@@ -763,6 +792,51 @@ export function OptionsApp() {
                   onCheckedChange={handleFocusDefaultChange}
                 />
               </div>
+
+              {settings.focusModeEnabled ? (
+                <div className="space-y-3 rounded-lg border border-border/60 bg-secondary/20 px-4 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                        Temporary pause
+                      </p>
+                      <p className="text-sm">
+                        {temporaryDisableUi.statusText ??
+                          "Pause Focus Mode briefly and let it resume automatically."}
+                      </p>
+                    </div>
+                    <Badge variant={temporaryDisableUi.isPaused ? "warning" : "secondary"}>
+                      {temporaryDisableUi.isPaused ? "Paused" : "Active"}
+                    </Badge>
+                  </div>
+
+                  {temporaryDisableUi.showPauseActions ? (
+                    <div className="flex flex-wrap gap-2">
+                      {TEMPORARY_DISABLE_PRESET_MINUTES.map((minutes) => (
+                        <Button
+                          key={minutes}
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleTemporaryDisable(minutes)}
+                        >
+                          Pause for {minutes === 60 ? "1 hour" : `${minutes} min`}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {temporaryDisableUi.showResumeAction ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleResumeFocus}
+                      className="w-fit"
+                    >
+                      Resume now
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
