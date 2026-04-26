@@ -56,6 +56,24 @@ export function formatTemporaryDisableUntil(
   return formatter(new Date(expiresAt));
 }
 
+export function getTemporaryDisableBadgeText(
+  disabledUntil: string | null,
+  now = Date.now()
+) {
+  const delay = getTemporaryDisableDelayMs(disabledUntil, now);
+  if (delay === null || delay <= 0) {
+    return "";
+  }
+
+  const remainingMinutes = Math.max(1, Math.ceil(delay / 60_000));
+  if (remainingMinutes < 60) {
+    return `${remainingMinutes}m`;
+  }
+
+  const remainingHours = Math.ceil(remainingMinutes / 60);
+  return `${remainingHours}h`;
+}
+
 export function getTemporaryDisableUiState(
   settings: FocusSettings,
   options?: {

@@ -37,16 +37,43 @@ import {
   readFocusSettings,
   subscribeToFocusSettings,
 } from "./settings/storage";
+import {
+  getTemporaryDisableBadgeText,
+  getTemporaryDisableDelayMs,
+  getTemporaryDisableUiState,
+  type TemporaryDisableUiState,
+} from "./settings/temporary-disable";
+
+const TEMPORARY_DISABLE_BADGE_TICK_ALARM = "temporary-disable-badge-tick";
+const TEMPORARY_DISABLE_BADGE_CLEAR_ALARM = "temporary-disable-badge-clear";
+const TEMPORARY_DISABLE_BADGE_COLOR = "#f59e0b";
 
 chrome.runtime.onInstalled.addListener(() => {
   void ensureFocusSettings();
   void writeYouTubeAuthState(DEFAULT_YOUTUBE_AUTH_STATE);
   void writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
   void writeYouTubePlaylistPreviewState(DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE);
+  void syncTemporaryDisableBadge();
+});
+
+chrome.runtime.onStartup?.addListener(() => {
+  void syncTemporaryDisableBadge();
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (
+    alarm.name !== TEMPORARY_DISABLE_BADGE_TICK_ALARM &&
+    alarm.name !== TEMPORARY_DISABLE_BADGE_CLEAR_ALARM
+  ) {
+    return;
+  }
+
+  void syncTemporaryDisableBadge();
 });
 
 void subscribeToFocusSettings(() => {
   void syncSelectedPlaylistPreviews();
+  void syncTemporaryDisableBadge();
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -256,6 +283,84 @@ async function syncSelectedPlaylistPreviews(): Promise<void> {
     playlists: previews,
     updatedAt: new Date().toISOString(),
   });
+}
+
+async function syncTemporaryDisableBadge() {
+  const settings = await readFocusSettings();
+  const uiState = getTemporaryDisableUiState(settings);
+
+  if (!uiState.isPaused) {
+    await clearTemporaryDisableBadge();
+    return;
+  }
+
+  const badgeText = getTemporaryDisableBadgeText(settings.disabledUntil);
+  await chrome.action.setBadgeBackgroundColor({
+    color: TEMPORARY_DISABLE_BADGE_COLOR,
+  });
+  await chrome.action.setBadgeText({ text: badgeText });
+  await chrome.action.setTitle({
+    title: getTemporaryDisableBadgeTitle(uiState),
+  });
+
+  void scheduleTemporaryDisableBadgeAlarms(settings.disabledUntil);
+}
+
+async function clearTemporaryDisableBadge() {
+  await chrome.action.setBadgeText({ text: "" });
+  await chrome.action.setTitle({ title: "Open popup" });
+  await safeClearAlarm(TEMPORARY_DISABLE_BADGE_TICK_ALARM);
+  await safeClearAlarm(TEMPORARY_DISABLE_BADGE_CLEAR_ALARM);
+}
+
+async function scheduleTemporaryDisableBadgeAlarms(disabledUntil: string | null) {
+  const delay = getTemporaryDisableDelayMs(disabledUntil);
+
+  if (delay === null || delay <= 0) {
+    await safeClearAlarm(TEMPORARY_DISABLE_BADGE_TICK_ALARM);
+    await safeClearAlarm(TEMPORARY_DISABLE_BADGE_CLEAR_ALARM);
+    return;
+  }
+
+  const clearAlarmWhen = Date.now() + delay;
+
+  try {
+    // Only create the tick alarm once to avoid resetting the 1-minute timer
+    const existingTick = await chrome.alarms.get(TEMPORARY_DISABLE_BADGE_TICK_ALARM);
+    if (!existingTick) {
+      await chrome.alarms.create(TEMPORARY_DISABLE_BADGE_TICK_ALARM, {
+        periodInMinutes: 1,
+      });
+    }
+  } catch {
+    // best-effort: alarm API may throw if permission is missing
+  }
+
+  try {
+    await chrome.alarms.create(TEMPORARY_DISABLE_BADGE_CLEAR_ALARM, {
+      when: clearAlarmWhen,
+    });
+  } catch {
+    // best-effort
+  }
+}
+
+async function safeClearAlarm(name: string) {
+  try {
+    await chrome.alarms.clear(name);
+  } catch {
+    // best-effort
+  }
+}
+
+function getTemporaryDisableBadgeTitle(
+  uiState: TemporaryDisableUiState
+) {
+  if (!uiState.pausedUntilText) {
+    return "Open popup";
+  }
+
+  return `Focus Mode paused until ${uiState.pausedUntilText}`;
 }
 
 function getAuthToken(): Promise<{ token?: string; error?: unknown }> {

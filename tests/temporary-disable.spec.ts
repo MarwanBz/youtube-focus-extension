@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { DEFAULT_FOCUS_SETTINGS } from "../src/settings/defaults";
 import {
+  getTemporaryDisableBadgeText,
   createTemporaryDisableUntilIso,
   getTemporaryDisableDelayMs,
   getTemporaryDisableUiState,
@@ -78,5 +79,17 @@ test.describe("temporary disable helpers", () => {
       getTemporaryDisableDelayMs("2026-04-27T10:15:00.000Z", now)
     ).toBe(900000);
     expect(getTemporaryDisableDelayMs(null, now)).toBeNull();
+  });
+
+  test("formats compact badge text for the remaining pause time", () => {
+    const now = Date.parse("2026-04-27T10:00:00.000Z");
+
+    expect(
+      getTemporaryDisableBadgeText("2026-04-27T10:15:00.000Z", now)
+    ).toBe("15m");
+    expect(
+      getTemporaryDisableBadgeText("2026-04-27T11:00:00.000Z", now)
+    ).toBe("1h");
+    expect(getTemporaryDisableBadgeText(null, now)).toBe("");
   });
 });
