@@ -22,7 +22,7 @@ test.describe("Focus overlay cards", () => {
       source: "watch-later",
       title: "Watch Later",
       url: WATCH_LATER_URL,
-      subtitle: "Saved videos",
+      subtitle: "Opens on YouTube",
       thumbnailUrl: null,
     });
   });
@@ -90,5 +90,21 @@ test.describe("Focus overlay cards", () => {
       subtitle: "Playlist",
       thumbnailUrl: null,
     });
+  });
+
+  test("keeps Watch Later separate from the playlist limit", () => {
+    const settings: FocusSettings = {
+      ...baseSettings,
+      importedPlaylists: Array.from({ length: 12 }, (_, index) => ({
+        id: `playlist-${index + 1}`,
+        title: `Playlist ${index + 1}`,
+        url: `https://www.youtube.com/playlist?list=PL_${index + 1}`,
+      })),
+    };
+
+    const cards = getFocusOverlayCards(settings, []);
+
+    expect(cards).toHaveLength(13);
+    expect(cards[0].kind).toBe("watch-later");
   });
 });

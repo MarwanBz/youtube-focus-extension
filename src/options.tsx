@@ -398,7 +398,7 @@ export function OptionsApp() {
     void skipYouTubeAuth()
       .then(() =>
         setAuthStatus(
-          "You skipped YouTube auth for now. Add current playlist or manual URLs to continue."
+          "You skipped YouTube auth for now. Watch Later still works, and you can add manual playlist URLs below."
         )
       )
       .catch(() => setAuthStatus("Unable to update auth status right now."));
@@ -575,7 +575,7 @@ export function OptionsApp() {
                 <div className="space-y-1">
                   <CardTitle>Imported Playlists</CardTitle>
                   <CardDescription>
-                    Select from your YouTube library
+                    Select from your YouTube library. Watch Later stays a direct YouTube shortcut in Focus Home.
                   </CardDescription>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -598,7 +598,7 @@ export function OptionsApp() {
             <CardContent className="space-y-4">
               {!youtubeAuth.connected ? (
                 <StatusMessage tone="warning">
-                  Connect YouTube first, or use manual shortcuts below.
+                  Connect YouTube to import playlists. Watch Later still opens directly on YouTube, and manual shortcuts stay available below.
                 </StatusMessage>
               ) : null}
               {playlistStatusCopy ? (

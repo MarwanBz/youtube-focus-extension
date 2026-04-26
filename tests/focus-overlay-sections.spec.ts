@@ -17,8 +17,8 @@ const baseSettings: FocusSettings = {
 test.describe("Focus overlay sections", () => {
   test("shows select-lists copy when no playlists are configured", () => {
     expect(getFocusOverlayHeaderContent(baseSettings, false)).toEqual({
-      body: "Select lists from Settings to build your queue.",
-      buttonLabel: "Select lists",
+      body: "Start with Watch Later, then connect YouTube or add playlists from Settings.",
+      buttonLabel: "Connect or add lists",
     });
   });
 
@@ -35,7 +35,25 @@ test.describe("Focus overlay sections", () => {
     };
 
     expect(getFocusOverlayHeaderContent(settings, true)).toEqual({
-      body: "Showing Watch Later and your saved manual playlist shortcuts.",
+      body: "Watch Later opens on YouTube alongside your saved playlist shortcuts.",
+      buttonLabel: "Settings",
+    });
+  });
+
+  test("clarifies Watch Later behavior when imported playlists exist", () => {
+    const settings: FocusSettings = {
+      ...baseSettings,
+      importedPlaylists: [
+        {
+          id: "playlist-1",
+          title: "Engineering",
+          url: "https://www.youtube.com/playlist?list=PL_ENGINEERING",
+        },
+      ],
+    };
+
+    expect(getFocusOverlayHeaderContent(settings, true)).toEqual({
+      body: "Watch Later opens on YouTube, and your selected playlists stay here.",
       buttonLabel: "Settings",
     });
   });
@@ -117,6 +135,25 @@ test.describe("Focus overlay sections", () => {
           title: "Documentaries",
           url: "https://www.youtube.com/playlist?list=PL_DOCS",
           subtitle: "Playlist",
+          thumbnailUrl: null,
+        },
+      ],
+    });
+  });
+
+  test("keeps Watch Later visible when no playlists are configured", () => {
+    const sections = getFocusOverlaySections(baseSettings, [], []);
+
+    expect(sections[0]).toEqual({
+      kind: "watch-later",
+      source: "watch-later",
+      title: "Watch Later",
+      url: "https://www.youtube.com/playlist?list=WL",
+      items: [
+        {
+          title: "Watch Later",
+          url: "https://www.youtube.com/playlist?list=WL",
+          subtitle: "Opens on YouTube",
           thumbnailUrl: null,
         },
       ],

@@ -46,6 +46,19 @@ test.describe("auth client display helpers", () => {
         ...baseState,
         uiState: "skipped",
       })
-    ).toContain("manual URLs");
+    ).toContain("Watch Later");
+  });
+
+  test("keeps Watch Later visible in connected and default states", () => {
+    expect(
+      getAuthInlineMessage({
+        ...baseState,
+        accessToken: "token-1",
+        connected: true,
+        uiState: "connected",
+      })
+    ).toContain("Watch Later");
+
+    expect(getAuthInlineMessage(baseState)).toContain("Watch Later");
   });
 });

@@ -41,6 +41,8 @@ export type FocusOverlayHeaderContent = {
   buttonLabel: string;
 };
 
+const WATCH_LATER_SHORTCUT_SUBTITLE = "Opens on YouTube";
+
 export type FocusOverlayWheelRoute =
   | {
       kind: "page";
@@ -129,21 +131,21 @@ export function getFocusOverlayHeaderContent(
 ): FocusOverlayHeaderContent {
   if (settings.importedPlaylists.length > 0) {
     return {
-      body: "Showing Watch Later and your selected playlists.",
+      body: "Watch Later opens on YouTube, and your selected playlists stay here.",
       buttonLabel: "Settings",
     };
   }
 
   if (hasPlaylistSections) {
     return {
-      body: "Showing Watch Later and your saved manual playlist shortcuts.",
+      body: "Watch Later opens on YouTube alongside your saved playlist shortcuts.",
       buttonLabel: "Settings",
     };
   }
 
   return {
-    body: "Select lists from Settings to build your queue.",
-    buttonLabel: "Select lists",
+    body: "Start with Watch Later, then connect YouTube or add playlists from Settings.",
+    buttonLabel: "Connect or add lists",
   };
 }
 
@@ -193,7 +195,7 @@ export function getFocusOverlayCards(
       source: "watch-later",
       title: "Watch Later",
       url: WATCH_LATER_URL,
-      subtitle: "Saved videos",
+      subtitle: WATCH_LATER_SHORTCUT_SUBTITLE,
       thumbnailUrl: null,
     },
     ...playlistCards,
@@ -269,7 +271,7 @@ export function getFocusOverlaySections(
         {
           title: "Watch Later",
           url: WATCH_LATER_URL,
-          subtitle: "Saved videos",
+          subtitle: WATCH_LATER_SHORTCUT_SUBTITLE,
           thumbnailUrl: null,
         },
       ],

@@ -129,10 +129,10 @@ export function getCompactAuthTone(state: YouTubeAuthState) {
 
 export function getAuthInlineMessage(state: YouTubeAuthState) {
   if (state.connected) {
-    return "YouTube is connected. Playlist import becomes available in the next task.";
+    return "YouTube is connected. Import playlists in Settings while Watch Later stays available as a shortcut.";
   }
   if (state.uiState === "skipped") {
-    return "You skipped auth for now. You can continue with Add current playlist or manual URLs.";
+    return "You skipped auth for now. You can still use Watch Later and add manual playlist URLs.";
   }
   if (state.uiState === "cancelled") {
     return "Sign-in was cancelled. Retry when you are ready.";
@@ -140,7 +140,7 @@ export function getAuthInlineMessage(state: YouTubeAuthState) {
   if (state.uiState === "failed") {
     return state.lastError || "Auth failed. Retry or use fallback setup.";
   }
-  return "Not connected yet. You can still continue without auth.";
+  return "Not connected yet. Watch Later still works, and you can continue with manual playlist shortcuts.";
 }
 
 export function getAuthChipText(state: YouTubeAuthState) {
