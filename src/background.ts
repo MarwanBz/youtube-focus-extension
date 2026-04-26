@@ -107,8 +107,9 @@ export async function disconnectYouTube(): Promise<{
   const authState = await readYouTubeAuthState();
 
   if (authState.accessToken) {
-    await removeCachedAuthToken(authState.accessToken);
+    await revokeTokenOnServer(authState.accessToken);
   }
+  await clearAllCachedAuthTokens();
 
   await patchYouTubeAuthState({
     accessToken: null,
@@ -123,17 +124,27 @@ export async function disconnectYouTube(): Promise<{
   return { ok: true };
 }
 
-function removeCachedAuthToken(token: string): Promise<void> {
+function clearAllCachedAuthTokens(): Promise<void> {
   return new Promise((resolve) => {
-    if (!chrome.identity?.removeCachedAuthToken) {
+    if (!chrome.identity?.clearAllCachedAuthTokens) {
       resolve();
       return;
     }
 
-    chrome.identity.removeCachedAuthToken({ token }, () => {
+    chrome.identity.clearAllCachedAuthTokens(() => {
       resolve();
     });
   });
+}
+
+async function revokeTokenOnServer(token: string): Promise<void> {
+  try {
+    await fetch(
+      `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`
+    );
+  } catch {
+    // best-effort: if the network call fails, the local cache is already cleared
+  }
 }
 
 export async function fetchAndStoreYouTubePlaylists(): Promise<FetchYouTubePlaylistsResponse> {
