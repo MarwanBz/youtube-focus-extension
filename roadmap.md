@@ -23,9 +23,9 @@ Current priority override: the product now treats this onboarding/import track a
 
 ## Build Later
 
-Phase 3 and Phase 4 are intentionally deferred.
+Phase 3 through Phase 5 are intentionally deferred.
 
-Persona prompts, AI messages, AI images, stats, themes, and store publishing are valuable only after the extension reliably changes YouTube behavior without breaking normal browsing.
+Persona prompts, AI messages, gamification, themes, and store publishing are valuable only after the extension reliably changes YouTube behavior without breaking normal browsing.
 
 ## Phase 1 - MVP Focus Mode
 
@@ -110,15 +110,36 @@ Exit criteria:
 - Generated content is cached to avoid repeated calls.
 - Overlay remains usable if AI providers fail.
 
-## Phase 4 - Advanced Features And Quality
+## Phase 4 - Gamification And Retention
 
 Target: weeks 7-8.
 
 Deliverables:
 
+- Local-only gamification data model kept separate from synced user preferences.
+- Focus session tracking for intentional use of Focus Mode.
+- Daily streaks, momentum, or consistency indicators that stay lightweight and understandable.
+- Milestones and subtle rewards such as first session today, session count, or streak unlocks.
+- Popup progress summary for current streak and today's progress.
+- Focus Home overlay progress feedback that reinforces intentional viewing without overwhelming the main UI.
+- Optional pause-friction tuning that remains reversible and non-punitive.
+
+Exit criteria:
+
+- Gamification works only when Focus Mode is active and does not affect normal browsing when Focus Mode is off.
+- Session rewards and streak progress do not duplicate across YouTube SPA route changes.
+- Pause or disable actions affect momentum predictably and reversibly.
+- Gamification data stays local-first and does not require external analytics or social features.
+- Existing overlay, popup, auth, and playlist flows continue to work without regression.
+
+## Phase 5 - Advanced Features And Quality
+
+Target: weeks 9-10.
+
+Deliverables:
+
 - Temporary disable by duration, time, or schedule.
 - Optional friction features outside the home page, such as Shorts hiding or thumbnail blur.
-- Watch Later count and lightweight personal nudges.
 - Mood presets and themes.
 - Store assets, screenshots, privacy policy, and permission explanation.
 - README, contribution guide, license, and release checklist.
@@ -135,6 +156,7 @@ Exit criteria:
 - AI image generation.
 - YouTube history or partially watched video support.
 - Detailed behavior analytics.
+- Social leaderboards or shared competition features.
 - Full theme system.
 - Store publishing work.
 

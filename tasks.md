@@ -43,7 +43,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T105 | Done | P1 | Improve playlist selection UI | T103 | User can search, choose, and reorder playlists from authenticated cached results; the dropdown or checklist appears only when authenticated playlist data exists; otherwise the UI shows reconnect plus fallback paths and privacy copy that avoids implying automatic account access. |
 | T106 | Todo | P1 | Build import-led onboarding flow | T100, T102, T103, T105 | Onboarding starts with Connect YouTube, then fetch, search, select, and reorder up to three playlists, while preserving fallback exits when auth fails or is skipped. |
 | T106A | Todo | P1 | Add current-playlist quick capture without OAuth | T012 | When the user is on a YouTube playlist page, the extension offers Add this playlist and saves it into Focus Home without requiring Google sign-in. |
-| T106B | Todo | P1 | Fetch Watch Later or provide supported fallback | T102 | Watch Later display uses real data only when supported; otherwise the product shows a clearly labeled shortcut or fallback instead of promising imported Watch Later API data. |
+| T106B | Done | P1 | Fetch Watch Later or provide supported fallback | T102 | Watch Later remains a clearly labeled first-position shortcut that opens YouTube directly, without promising imported Watch Later API data. |
 | T107 | Todo | P2 | Add continue watching research spike | T102 | Feasibility and privacy constraints are documented before implementation. |
 | T108 | Todo | P2 | Polish overlay responsiveness and states | T012 | Overlay handles narrow widths, empty states, loading, and errors. |
 | T108A | Done | P2 | Render Focus Home playlists as native-like cards | T105 | Focus Home shows Watch Later plus playlist cards with thumbnail-led styling for imported playlists, graceful fallbacks for manual playlists, and stable responsive grid behavior. |
@@ -64,17 +64,28 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T204 | Deferred | P3 | Add optional AI image provider settings | T201 | User can opt in to image generation separately from text. |
 | T205 | Deferred | P3 | Generate and cache AI images | T204 | Images cache daily or per playlist; fallback appears on failure. |
 
-## Phase 4 - Advanced Features And Release
+## Phase 4 - Gamification And Retention
 
 | ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
 | --- | --- | --- | --- | --- | --- |
-| T301 | Todo | P2 | Expand temporary disable controls | T010 | User can disable for X minutes or until a selected time. |
-| T302 | Deferred | P3 | Add scheduled breaks | T301 | Schedule works without surprising the user. |
-| T303 | Deferred | P3 | Add friction outside home page | T012 | Shorts hiding or thumbnail blur is opt-in and reversible. |
-| T304 | Deferred | P3 | Add personal nudges and counts | T103, T104 | Counts are local, understandable, and privacy-preserving. |
-| T305 | Deferred | P3 | Add mood presets and themes | T108 | Themes do not reduce readability or accessibility. |
-| T306 | Todo | P2 | Prepare store publishing assets | Stable release | Icons, screenshots, privacy policy, and permission statement exist. |
-| T307 | Todo | P2 | Prepare open-source release docs | Stable release | README, license, contribution guide, and release checklist exist. |
+| T401 | Deferred | P2 | Add local gamification schema and storage | T012, T108 | A separate local-only data model exists for `currentSession`, `dailyStats`, `streakStats`, `milestones`, and `gamificationPrefs` without expanding synced preference storage beyond user settings. |
+| T402 | Deferred | P2 | Track focus sessions | T401 | Focus sessions start and stop predictably from Focus Mode usage, ignore off-state browsing, and do not double-count across YouTube SPA route changes. |
+| T403 | Deferred | P2 | Add streaks and momentum indicators | T402 | Daily streaks and a lightweight momentum or consistency indicator update locally, remain understandable, and react predictably to pause or disable actions. |
+| T404 | Deferred | P2 | Add milestone rewards and subtle celebrations | T402, T403 | Milestones such as first session today, multi-session days, or streak unlocks appear as subtle rewards without overwhelming the extension UI. |
+| T405 | Deferred | P2 | Add popup progress summary | T403 | The popup shows today's progress, current streak, and paused or resume state without replacing the core Focus Mode controls. |
+| T406 | Deferred | P2 | Add Focus Home overlay progress feedback | T403, T108 | The home overlay shows progress and retention cues in a low-noise way that reinforces intentional viewing and preserves playlist usability. |
+| T407 | Deferred | P3 | Tune pause friction and gamification preferences | T403, T010 | Pause behavior can apply light, reversible friction and optional gamification intensity preferences without becoming punitive or surprising. |
+
+## Phase 5 - Advanced Features And Release
+
+| ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
+| --- | --- | --- | --- | --- | --- |
+| T501 | Todo | P2 | Expand temporary disable controls | T010 | User can disable for X minutes or until a selected time. |
+| T502 | Deferred | P3 | Add scheduled breaks | T501 | Schedule works without surprising the user. |
+| T503 | Deferred | P3 | Add friction outside home page | T012 | Shorts hiding or thumbnail blur is opt-in and reversible. |
+| T504 | Deferred | P3 | Add mood presets and themes | T108 | Themes do not reduce readability or accessibility. |
+| T505 | Todo | P2 | Prepare store publishing assets | Stable release | Icons, screenshots, privacy policy, and permission statement exist. |
+| T506 | Todo | P2 | Prepare open-source release docs | Stable release | README, license, contribution guide, and release checklist exist. |
 
 ## Backlog Triage
 
@@ -94,6 +105,7 @@ Defer:
 
 - AI image generation.
 - behavior analytics.
+- gamification implementation until Phase 2 onboarding/cache work and Phase 3 personal AI are in place.
 - theme presets.
 - publishing.
 

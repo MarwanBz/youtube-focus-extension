@@ -4,9 +4,9 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: Finish the live Chrome manual MVP verification pass for Phase 1, then return to Phase 2 cache and onboarding work.
+Current focus: Continue Phase 2 cache and onboarding work while the live Chrome manual MVP verification pass for Phase 1 remains pending.
 
-Next task: T012 - run the live Chrome developer-mode verification pass against YouTube.
+Next task: T104 - tighten playlist and preview cache freshness, then return to T012 for live Chrome verification.
 
 ## Implementation Log
 
@@ -59,11 +59,14 @@ Next task: T012 - run the live Chrome developer-mode verification pass against Y
 | 2026-04-18 | Verify T110 | Done | Ran `npm run lint`, `npm run build`, and `npx playwright test tests/auth-client.spec.ts tests/auth.spec.ts tests/settings-schema.spec.ts tests/youtube-selection.spec.ts tests/youtube-status-copy.spec.ts`. Lint and build passed, and all 21 focused tests passed. No direct popup/options browser tests exist yet; content-script UI was intentionally left unchanged in this pass. |
 | 2026-04-18 | T113 Focus Home scroll + playlist links | Done | Routed vertical wheel and trackpad gestures over Focus Home shelves back to the page scroller, kept horizontal intent scrolling inside shelves, exposed each shelf title as a direct playlist link, and simplified home-feed suppression back to `display: none` instead of zero-height hiding. |
 | 2026-04-18 | Verify T113 + full suite | Done | Ran `npm run lint`, `npm run build`, `npx playwright test tests/feed-visibility.spec.ts tests/youtube-home-overlay.spec.ts tests/focus-overlay-sections.spec.ts tests/focus-overlay-wheel.spec.ts`, and `npm test`. All checks passed after rerunning browser suites outside the sandbox because sandboxed Chromium hit macOS Mach-port permission errors. Also updated `tests/youtube-selection.spec.ts` so the max-selection test now uses a fixture larger than the current 12-playlist cap. |
+| 2026-04-27 | Re-sequence later phases around personal AI then gamification | Done | Updated roadmap, task board, README guidance, and architecture so personal AI stays in Phase 3, gamification becomes a dedicated Phase 4 retention lane with local-only storage boundaries, and advanced quality or release work moves to Phase 5. |
 | 2026-04-24 | Focus-mode feed suppression hotfix | Done | Moved home-feed suppression onto the active Focus Home overlay path so enabling Focus Mode actually hides the native YouTube home feed even while the legacy banner component remains disabled. Also widened the hidden-home selector set to cover reel shelf and continuation renderers that can still surface recommendation content on newer home layouts. |
 | 2026-04-24 | Focus Home empty-state copy refinement | Done | Updated the no-playlist Focus Home state so the main screen tells the user to select lists from Settings and changes the CTA label from a generic Settings button to Select lists. Added a small pure helper plus coverage to keep the copy behavior stable. |
 | 2026-04-27 | T010 temporary pause foundation | Done | Added fixed 15-minute, 30-minute, and 1-hour temporary pause controls to both popup and options, kept Focus Mode logically enabled while paused, added paused-until plus resume-now states, and wired content-script auto-resume so Focus Home returns automatically when the timer expires. |
 | 2026-04-27 | T011 unpacked Chrome packaging | Done | Removed the hard build dependency on `GOOGLE_CLIENT_ID` so the Phase 1 manual-playlist MVP can build without OAuth credentials, preserved optional OAuth manifest injection when credentials exist, and documented the local Chrome `Load unpacked` workflow in `README.md`. |
 | 2026-04-27 | T012 Phase 1 verification | Blocked | Ran automated coverage for temporary pause helpers, focus-mode active-state behavior, lint, and build verification including a no-OAuth build path. Live Chrome developer-mode verification against YouTube home behavior is still pending because that manual browser session was not completed in this environment. |
+| 2026-04-27 | T106B Watch Later supported fallback | Done | Clarified Watch Later as a permanent Focus Home shortcut that always opens YouTube directly, updated overlay and auth/options copy so it does not imply imported API data, and kept the shortcut pinned ahead of imported or manual playlists without adding new permissions, scopes, or fetch pipelines. |
+| 2026-04-27 | Verify T106B | Done | Ran `npm run lint`, `npm run build`, and `npm test -- tests/auth-client.spec.ts tests/focus-overlay-cards.spec.ts tests/focus-overlay-sections.spec.ts tests/youtube-home-overlay.spec.ts`. All checks passed, including Watch Later ordering, empty-state visibility, copy, and same-link URL coverage. |
 
 ## Decision Log
 
@@ -84,6 +87,7 @@ Next task: T012 - run the live Chrome developer-mode verification pass against Y
 | 2026-04-18 | Use shadcn only for extension-owned React surfaces in this pass | Popup and options benefit from shared primitives and tokenized styling, but the YouTube content-script UI is Shadow DOM-scoped and intentionally tuned to native YouTube chrome, so it stays custom for now. |
 | 2026-04-18 | Vertical scroll gestures should win over shelf scrolling in Focus Home | The Focus Home overlay uses horizontal shelves, but page-down intent must still move the YouTube home page so the overlay does not feel frozen while browsing multiple playlist sections. |
 | 2026-04-27 | Temporary pause stays subordinate to the main Focus Mode toggle | Phase 1 only needs a lightweight utility control, so pause lives as a secondary control row with fixed presets rather than becoming a competing primary action or a full scheduling surface. |
+| 2026-04-27 | Watch Later stays a direct shortcut instead of imported data | Current YouTube API support does not provide a stable supported path for imported Watch Later data, so Focus Home should keep Watch Later as a clearly labeled click-through shortcut without probing unsupported API behavior or adding new scopes. |
 
 ## Feature State
 
@@ -104,6 +108,7 @@ Next task: T012 - run the live Chrome developer-mode verification pass against Y
 | Playlist channel-required state | Done | Signed-in accounts without a YouTube channel now map to a friendly `channel_required` state instead of a generic failure, while no-playlists and auth/token errors remain separate states. |
 | T105 imported selection UI | Done | Options now supports search/select/reorder of imported playlists (up to three), persists selected imported snapshots, and hides selection workspace unless imported data is ready. |
 | Focus Home source precedence + copy cleanup | Done | Focus Home now shows Watch Later + selected imported playlists first (with manual fallback when none selected) and uses concise utility copy instead of promotional text blocks. |
+| T106B Watch Later fallback | Done | Watch Later now remains pinned as the first Focus Home shortcut, uses explicit click-through copy, appears without auth or playlist setup, and is described in settings as a direct YouTube shortcut rather than imported data. |
 | T108A Focus Home playlist cards | Done | Focus Home now renders imported playlists as thumbnail-led cards with title and lightweight metadata, while Watch Later and manual playlists use stable fallback cards. |
 | T104A selected-playlist preview cache | Done | Background now caches lightweight preview videos for selected imported playlists so Focus Home can render video-thumbnail shelves without scraping YouTube pages. |
 | T108B Focus Home playlist shelves | Done | Focus Home now renders each selected imported playlist as a titled shelf using thumbnails from videos inside that playlist, with Watch Later and manual playlists kept on clear fallback treatments. |
@@ -117,7 +122,8 @@ Next task: T012 - run the live Chrome developer-mode verification pass against Y
 | Persona settings | Deferred | Phase 3. |
 | AI text messages | Deferred | Phase 3 and opt-in only. |
 | AI images | Deferred | Phase 3 or later, low priority. |
-| Store publishing | Deferred | Phase 4. |
+| Gamification and retention | Deferred | Phase 4 with local-only session, streak, milestone, and popup or overlay feedback work. |
+| Store publishing | Deferred | Phase 5. |
 
 ## Agent Handoff
 
@@ -126,6 +132,7 @@ Next implementation handoff:
 1. Start T104 by tightening cache freshness and avoiding redundant playlist + preview fetches.
 2. Keep reconnect plus manual fallback paths visible when imported data is missing or auth is revoked.
 3. Move to T106 import-led onboarding flow after cache behavior is stable.
-4. Leave T010 through T012 open, but treat them as temporarily deprioritized until onboarding/import milestones are complete.
+4. Keep Phase 3 personal AI ahead of Phase 4 gamification when later-phase planning resumes.
+5. Leave T010 through T012 open, but treat them as temporarily deprioritized until onboarding/import milestones are complete.
 
 Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.

@@ -19,7 +19,7 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 7. Add popup toggle for focus mode.
 8. Add options page for playlist input, default focus mode, temporary disable settings, and later API keys.
 9. Package and manually verify in Chrome.
-10. Add OAuth, YouTube API fetching, persona messages, AI imagery, and cross-browser polish after the MVP is stable.
+10. Add OAuth, YouTube API fetching, personal AI guidance, gamification, and cross-browser polish after the MVP is stable.
 
 ## Document Map
 

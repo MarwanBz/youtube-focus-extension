@@ -236,7 +236,7 @@ Upcoming manifest guidance:
 - Do not add `identity` until Phase 2 OAuth work begins.
 - When `T102` starts, add the manifest `oauth2` block and keep the extension ID stable with a manifest `key`.
 
-Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. Do not add future permissions early.
+Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. `alarms` is required for the temporary-disable countdown badge that updates on the extension action icon. Do not add future permissions early.
 
 ## Settings Storage
 
@@ -284,6 +284,14 @@ Options page
   -> background generates short mentor message or image
   -> background writes daily/session cache
   -> content script displays cached result
+
+Phase 4 gamification flow:
+Popup, options, or content script
+  -> reads local-only gamification state
+  -> starts or resumes a focus session only while Focus Mode is active
+  -> background or shared state layer records completed sessions, streaks, and milestones
+  -> content script shows subtle overlay progress feedback
+  -> popup shows compact progress summary
 ```
 
 ## Planned Source Organization
@@ -306,6 +314,12 @@ src/
     api.ts
     oauth.ts
     normalize.ts
+  gamification/
+    schema.ts
+    storage.ts
+    sessions.ts
+    streaks.ts
+    milestones.ts
   ai/
     mentor.ts
     images.ts
@@ -341,7 +355,7 @@ Use a small wrapper over `chrome.storage.sync` and `chrome.storage.local`.
 Recommended split:
 
 - `chrome.storage.sync`: user preferences that should follow the user across browsers.
-- `chrome.storage.local`: cached YouTube API results, generated AI content, and larger transient data.
+- `chrome.storage.local`: cached YouTube API results, generated AI content, gamification state, and larger transient data.
 
 Initial settings shape:
 
@@ -411,6 +425,46 @@ type FocusModeCache = {
 };
 ```
 
+Planned gamification-local shape:
+
+```ts
+type FocusGamificationState = {
+  currentSession: {
+    startedAt: string;
+    routeKey: string;
+    playlistId?: string;
+    playlistTitle?: string;
+  } | null;
+  dailyStats: Record<
+    string,
+    {
+      completedSessions: number;
+      focusedMinutes: number;
+      pauseCount: number;
+    }
+  >;
+  streakStats: {
+    current: number;
+    best: number;
+    lastCompletedDay: string | null;
+  };
+  milestones: Array<{
+    id: string;
+    unlockedAt: string;
+  }>;
+  gamificationPrefs: {
+    intensity: "subtle" | "moderate";
+    celebrationsEnabled: boolean;
+  };
+};
+```
+
+Guidance:
+
+- Keep gamification state separate from `youtubeFocusSettings`.
+- Keep gamification local-first and do not sync history by default.
+- Do not require external analytics, leaderboards, or social comparison for Phase 4.
+
 ## YouTube DOM Strategy
 
 YouTube is a single-page app, so normal page-load assumptions are not enough.
@@ -460,10 +514,15 @@ Handle:
 
 Use opt-in text and image generation. Users provide their own API keys. Cache generated content daily or per session.
 
+### Phase 4
+
+Use local-only session tracking, streaks, milestones, and subtle retention feedback. Gamification must not require remote telemetry and must fail closed without affecting core Focus Mode behavior.
+
 ## Privacy Strategy
 
 - Store settings in browser extension storage.
 - Do not collect analytics by default.
+- Keep gamification history and retention state local-only unless a future feature explicitly changes that contract.
 - Do not send playlist data to AI providers unless the user explicitly enables the relevant integration.
 - Keep provider keys in extension storage only after explaining the tradeoff to the user.
 - Keep external API calls in the background service worker.
