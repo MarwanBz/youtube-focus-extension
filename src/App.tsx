@@ -131,24 +131,25 @@ export default function App() {
   const enabled = settings.focusModeEnabled;
 
   return (
-    <main className="w-[320px] bg-background p-3 text-foreground">
-      <Card className="border-primary/20 bg-card shadow-[0_4px_24px_rgba(255,78,69,0.08)] backdrop-blur-xl transition-shadow duration-300">
-        <CardHeader className="space-y-3 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <CardTitle>YouTube Focus</CardTitle>
-              <CardDescription className="text-xs">
-                Control Focus Mode and playlist import from the popup.
+    <main className="w-[270px] bg-background p-1.5 text-foreground">
+      <Card className="border-primary/30 bg-card overflow-hidden backdrop-blur-xl">
+        <div className="h-0.5 w-full bg-primary" />
+        <CardHeader className="space-y-2 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-0.5">
+              <CardTitle className="text-sm">YouTube Focus</CardTitle>
+              <CardDescription className="text-[10px] leading-tight">
+                Control Focus Mode and playlist import.
               </CardDescription>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleOpenOptions}>
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px]" onClick={handleOpenOptions}>
               Settings
             </Button>
           </div>
-          <div className="flex items-center justify-between rounded-md border border-border/70 bg-secondary/30 px-3 py-2">
+          <div className="flex items-center justify-between rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5">
             <div className="space-y-0.5">
-              <p className="text-sm font-medium">Focus mode</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] font-medium">Focus mode</p>
+              <p className="text-[10px] leading-tight text-muted-foreground">
                 {temporaryDisableUi.statusText ??
                   "Hide recommendation-heavy home sections."}
               </p>
@@ -160,26 +161,27 @@ export default function App() {
             />
           </div>
           {enabled ? (
-            <div className="space-y-2 rounded-md border border-border/70 bg-background/60 px-3 py-3">
+            <div className="space-y-1.5 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-2">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                  Temporary pause
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  Pause
                 </p>
-                <Badge variant={temporaryDisableUi.isPaused ? "warning" : "secondary"}>
+                <Badge variant={temporaryDisableUi.isPaused ? "warning" : "success"} className="text-[10px] h-4 px-1.5">
                   {temporaryDisableUi.isPaused ? "Paused" : "Active"}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] leading-tight text-muted-foreground">
                 {temporaryDisableUi.statusText ??
-                  "Pause Focus Mode briefly, then let it resume automatically."}
+                  "Pause briefly, resume automatically."}
               </p>
               {temporaryDisableUi.showPauseActions ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {TEMPORARY_DISABLE_PRESET_MINUTES.map((minutes) => (
                     <Button
                       key={minutes}
                       size="sm"
                       variant="secondary"
+                      className="h-7 px-2 text-[11px]"
                       onClick={() => handleTemporaryDisable(minutes)}
                     >
                       {minutes === 60 ? "1h" : `${minutes}m`}
@@ -188,7 +190,7 @@ export default function App() {
                 </div>
               ) : null}
               {temporaryDisableUi.showResumeAction ? (
-                <Button size="sm" variant="outline" onClick={handleResumeNow}>
+                <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={handleResumeNow}>
                   Resume now
                 </Button>
               ) : null}
@@ -198,10 +200,10 @@ export default function App() {
 
         <Separator />
 
-        <CardContent className="space-y-3 p-4">
-          <div className="space-y-3 rounded-md border border-border/70 bg-secondary/20 p-3">
+        <CardContent className="space-y-2 p-3">
+          <div className="space-y-2 rounded-md border border-border/70 bg-secondary/20 p-2.5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
+              <span className="text-[10px] font-medium text-muted-foreground">
                 YouTube auth
               </span>
               <Badge
@@ -211,21 +213,21 @@ export default function App() {
                 {getAuthChipText(youtubeAuth)}
               </Badge>
             </div>
-            <div className="grid gap-2">
-              <Button onClick={handleConnectYouTube} disabled={authLoading}>
+            <div className="grid gap-1.5">
+              <Button onClick={handleConnectYouTube} disabled={authLoading} size="sm" className="h-7 text-[11px]">
                 {authLoading ? "Connecting..." : getAuthPrimaryAction(youtubeAuth)}
               </Button>
-              <Button variant="outline" onClick={handleOpenOptions}>
+              <Button variant="outline" size="sm" className="h-7 text-[11px]" onClick={handleOpenOptions}>
                 Open options for fallback setup
               </Button>
             </div>
           </div>
 
           {saveError ? (
-            <p className="text-xs text-destructive">Failed to save. Try again.</p>
+            <p className="text-[10px] text-destructive">Failed to save. Try again.</p>
           ) : null}
           {authError ? (
-            <p className="text-xs text-destructive">{authError}</p>
+            <p className="text-[10px] text-destructive">{authError}</p>
           ) : null}
         </CardContent>
       </Card>
