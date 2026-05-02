@@ -139,7 +139,7 @@ Target: weeks 9-10.
 Deliverables:
 
 - Temporary disable by duration, time, or schedule.
-- Optional friction features outside the home page, such as Shorts hiding or thumbnail blur.
+- Optional soft-focus behavior on the standard watch page, starting with dimmed and inert right-rail recommendations, hidden-by-default comments, and explicit reveal controls. Shorts remains a separate follow-up.
 - Mood presets and themes.
 - Store assets, screenshots, privacy policy, and permission explanation.
 - README, contribution guide, license, and release checklist.

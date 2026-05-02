@@ -82,7 +82,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | --- | --- | --- | --- | --- | --- |
 | T501 | Todo | P2 | Expand temporary disable controls | T010 | User can disable for X minutes or until a selected time. |
 | T502 | Deferred | P3 | Add scheduled breaks | T501 | Schedule works without surprising the user. |
-| T503 | Deferred | P3 | Add friction outside home page | T012 | Shorts hiding or thumbnail blur is opt-in and reversible. |
+| T503 | Todo | P2 | Add soft-focus mode for the watch page | T012 | When Focus Mode is active on `/watch`, the right rail is visible but dimmed and not clickable, comments are hidden by default, separate reveal controls plus a reveal-all control are available, reveals apply only to the current watch page, and normal playback remains intact. |
 | T504 | Deferred | P3 | Add mood presets and themes | T108 | Themes do not reduce readability or accessibility. |
 | T505 | Todo | P2 | Prepare store publishing assets | Stable release | Icons, screenshots, privacy policy, and permission statement exist. |
 | T506 | Todo | P2 | Prepare open-source release docs | Stable release | README, license, contribution guide, and release checklist exist. |
