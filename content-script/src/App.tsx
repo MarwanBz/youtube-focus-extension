@@ -27,6 +27,11 @@ import {
 } from "./focusBanner";
 import { subscribeToUrlChanges } from "./urlChanges";
 import {
+  extractWatchSuggestionMetadata,
+  shouldRenderWatchSoftFocus,
+  type WatchSuggestionMetadata,
+} from "./watchSoftFocus";
+import {
   getYouTubeRouteState,
   type YouTubeRouteState,
 } from "./youtubeHome";
@@ -45,6 +50,126 @@ type FocusUiState = {
   playlistState: YouTubePlaylistState;
   playlistPreviewState: YouTubePlaylistPreviewState;
 };
+
+export function WatchPageFocusFoundation() {
+  const { focusModeActive, routeState } = useFocusUiState();
+  const [suggestions, setSuggestions] = useState<WatchSuggestionMetadata[]>([]);
+
+  useEffect(() => {
+    if (!shouldRenderWatchSoftFocus(routeState, focusModeActive)) {
+      setSuggestions([]);
+      return;
+    }
+
+    const sync = () => {
+      setSuggestions(extractWatchSuggestionMetadata(document));
+    };
+
+    sync();
+
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [focusModeActive, routeState]);
+
+  if (!shouldRenderWatchSoftFocus(routeState, focusModeActive)) {
+    return null;
+  }
+
+  return (
+    <>
+      <style>{`
+        .youtube-focus-watch {
+          box-sizing: border-box;
+          color: #f1f1f1;
+          font-family: Roboto, Arial, sans-serif;
+          margin-bottom: 16px;
+          width: 100%;
+        }
+
+        .youtube-focus-watch__panel {
+          backdrop-filter: blur(16px);
+          background: linear-gradient(180deg, rgba(28, 28, 28, 0.96), rgba(22, 22, 22, 0.92));
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 18px;
+          box-sizing: border-box;
+          overflow: hidden;
+          padding: 16px 18px;
+          position: relative;
+        }
+
+        .youtube-focus-watch__panel::after {
+          background: linear-gradient(90deg, rgba(255, 78, 69, 0.18), rgba(62, 166, 255, 0));
+          content: "";
+          inset: 0;
+          pointer-events: none;
+          position: absolute;
+        }
+
+        .youtube-focus-watch__eyebrow {
+          color: #aaaaaa;
+          display: block;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.12em;
+          margin-bottom: 8px;
+          position: relative;
+          text-transform: uppercase;
+          z-index: 1;
+        }
+
+        .youtube-focus-watch__title {
+          font-size: 18px;
+          font-weight: 700;
+          line-height: 1.35;
+          margin: 0;
+          position: relative;
+          z-index: 1;
+        }
+
+        .youtube-focus-watch__body {
+          color: #c7c7c7;
+          font-size: 13px;
+          line-height: 1.55;
+          margin: 8px 0 0;
+          position: relative;
+          z-index: 1;
+        }
+
+        .youtube-focus-watch__foot {
+          color: #8f8f8f;
+          display: block;
+          font-size: 12px;
+          margin-top: 10px;
+          position: relative;
+          z-index: 1;
+        }
+      `}</style>
+      <section className="youtube-focus-watch" data-testid="youtube-focus-watch">
+        <div className="youtube-focus-watch__panel">
+          <span className="youtube-focus-watch__eyebrow">Watch Focus</span>
+          <h2 className="youtube-focus-watch__title">
+            Soft-focus controls are being prepared for this video.
+          </h2>
+          <p className="youtube-focus-watch__body">
+            We&apos;re wiring the watch page foundation now so suggestions and comments
+            can be softened intentionally instead of hijacking the next click.
+          </p>
+          <span className="youtube-focus-watch__foot">
+            Context ready from {suggestions.length} suggested videos for future
+            reveal controls and optional AI guidance.
+          </span>
+        </div>
+      </section>
+    </>
+  );
+}
 
 export function MastheadFocusToggle() {
   const { focusModeActive, focusModeEnabled, routeState, settings } =

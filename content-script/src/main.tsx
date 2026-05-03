@@ -5,6 +5,7 @@ import {
   // HomeFocusBanner,
   HomeFocusOverlay,
   MastheadFocusToggle,
+  WatchPageFocusFoundation,
 } from "./App";
 import {
   // EXTENSION_BANNER_HOST_ID,
@@ -13,11 +14,14 @@ import {
   EXTENSION_MOUNT_ID,
   EXTENSION_OVERLAY_HOST_ID,
   EXTENSION_OVERLAY_MOUNT_ID,
+  EXTENSION_WATCH_HOST_ID,
+  EXTENSION_WATCH_MOUNT_ID,
   EXTENSION_STYLE_ID,
 } from "./domIds";
 // import { observeHomeBannerPlacement } from "./youtubeHomeBanner";
 import { observeHomeOverlayPlacement } from "./youtubeHomeOverlay";
 import { observeMastheadPlacement } from "./youtubeMasthead";
+import { observeWatchSoftFocusPlacement } from "./watchSoftFocus";
 
 const mastheadHost = mountShadowApp({
   hostId: EXTENSION_HOST_ID,
@@ -50,6 +54,17 @@ const overlayHost = mountShadowApp({
 if (!overlayHost.dataset.youtubeFocusOverlayObserver) {
   overlayHost.dataset.youtubeFocusOverlayObserver = "true";
   observeHomeOverlayPlacement(overlayHost);
+}
+
+const watchHost = mountShadowApp({
+  hostId: EXTENSION_WATCH_HOST_ID,
+  mountId: EXTENSION_WATCH_MOUNT_ID,
+  render: <WatchPageFocusFoundation />,
+});
+
+if (!watchHost.dataset.youtubeFocusWatchObserver) {
+  watchHost.dataset.youtubeFocusWatchObserver = "true";
+  observeWatchSoftFocusPlacement(watchHost);
 }
 
 function mountShadowApp({

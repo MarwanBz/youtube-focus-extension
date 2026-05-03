@@ -4,9 +4,9 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: Continue Phase 2 cache and onboarding work while the live Chrome manual MVP verification pass for Phase 1 remains pending.
+Current focus: Start the watch-page soft-focus foundation while the live Chrome manual MVP verification pass for Phase 1 remains pending.
 
-Next task: T104 - tighten playlist and preview cache freshness, then return to T012 for live Chrome verification.
+Next task: T503 - build the watch-page soft-focus behavior on top of the new right-rail context foundation.
 
 ## Implementation Log
 
@@ -67,6 +67,7 @@ Next task: T104 - tighten playlist and preview cache freshness, then return to T
 | 2026-04-27 | T012 Phase 1 verification | Blocked | Ran automated coverage for temporary pause helpers, focus-mode active-state behavior, lint, and build verification including a no-OAuth build path. Live Chrome developer-mode verification against YouTube home behavior is still pending because that manual browser session was not completed in this environment. |
 | 2026-04-27 | T106B Watch Later supported fallback | Done | Clarified Watch Later as a permanent Focus Home shortcut that always opens YouTube directly, updated overlay and auth/options copy so it does not imply imported API data, and kept the shortcut pinned ahead of imported or manual playlists without adding new permissions, scopes, or fetch pipelines. |
 | 2026-04-27 | Verify T106B | Done | Ran `npm run lint`, `npm run build`, and `npm test -- tests/auth-client.spec.ts tests/focus-overlay-cards.spec.ts tests/focus-overlay-sections.spec.ts tests/youtube-home-overlay.spec.ts`. All checks passed, including Watch Later ordering, empty-state visibility, copy, and same-link URL coverage. |
+| 2026-05-02 | T503 watch-page foundation | Doing | Added a dedicated watch-page foundation host in the right rail, route-aware watch soft-focus scaffolding, and local extraction of suggested-video titles plus channel names so later dimming, reveal controls, and optional AI-generated reframing text have a concrete home and metadata source. Also updated Phase 3 AI task wording so the future watch-page text overlay idea is captured in the board. |
 
 ## Decision Log
 
@@ -88,6 +89,7 @@ Next task: T104 - tighten playlist and preview cache freshness, then return to T
 | 2026-04-18 | Vertical scroll gestures should win over shelf scrolling in Focus Home | The Focus Home overlay uses horizontal shelves, but page-down intent must still move the YouTube home page so the overlay does not feel frozen while browsing multiple playlist sections. |
 | 2026-04-27 | Temporary pause stays subordinate to the main Focus Mode toggle | Phase 1 only needs a lightweight utility control, so pause lives as a secondary control row with fixed presets rather than becoming a competing primary action or a full scheduling surface. |
 | 2026-04-27 | Watch Later stays a direct shortcut instead of imported data | Current YouTube API support does not provide a stable supported path for imported Watch Later data, so Focus Home should keep Watch Later as a clearly labeled click-through shortcut without probing unsupported API behavior or adding new scopes. |
+| 2026-05-02 | Watch-page AI guidance should build on local suggestion metadata, not new permissions | The future AI layer for the watch page should derive titles and channel names from already-rendered suggested videos so the app can experiment with reframing text without expanding OAuth scope or adding separate video-discovery APIs. |
 
 ## Feature State
 
