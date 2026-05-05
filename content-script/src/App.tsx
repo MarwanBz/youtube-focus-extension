@@ -28,6 +28,7 @@ import {
 import { subscribeToUrlChanges } from "./urlChanges";
 import {
   extractWatchSuggestionMetadata,
+  syncWatchSoftFocusVisibility,
   shouldRenderWatchSoftFocus,
   type WatchSuggestionMetadata,
 } from "./watchSoftFocus";
@@ -54,15 +55,30 @@ type FocusUiState = {
 export function WatchPageFocusFoundation() {
   const { focusModeActive, routeState } = useFocusUiState();
   const [suggestions, setSuggestions] = useState<WatchSuggestionMetadata[]>([]);
+  const [suggestionsRevealed, setSuggestionsRevealed] = useState(false);
+  const [commentsRevealed, setCommentsRevealed] = useState(false);
+
+  useEffect(() => {
+    setSuggestionsRevealed(false);
+    setCommentsRevealed(false);
+  }, [routeState.href]);
 
   useEffect(() => {
     if (!shouldRenderWatchSoftFocus(routeState, focusModeActive)) {
       setSuggestions([]);
+      syncWatchSoftFocusVisibility(document, {
+        dimSuggestions: false,
+        dimComments: false,
+      });
       return;
     }
 
     const sync = () => {
       setSuggestions(extractWatchSuggestionMetadata(document));
+      syncWatchSoftFocusVisibility(document, {
+        dimSuggestions: !suggestionsRevealed,
+        dimComments: !commentsRevealed,
+      });
     };
 
     sync();
@@ -75,12 +91,18 @@ export function WatchPageFocusFoundation() {
 
     return () => {
       observer.disconnect();
+      syncWatchSoftFocusVisibility(document, {
+        dimSuggestions: false,
+        dimComments: false,
+      });
     };
-  }, [focusModeActive, routeState]);
+  }, [commentsRevealed, focusModeActive, routeState, suggestionsRevealed]);
 
   if (!shouldRenderWatchSoftFocus(routeState, focusModeActive)) {
     return null;
   }
+
+  const revealCount = Number(!suggestionsRevealed) + Number(!commentsRevealed);
 
   return (
     <>
@@ -150,21 +172,91 @@ export function WatchPageFocusFoundation() {
           position: relative;
           z-index: 1;
         }
+
+        .youtube-focus-watch__actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 14px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .youtube-focus-watch__button {
+          align-items: center;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 999px;
+          color: #f1f1f1;
+          cursor: pointer;
+          display: inline-flex;
+          font-family: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          height: 32px;
+          padding: 0 12px;
+          transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+        }
+
+        .youtube-focus-watch__button:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .youtube-focus-watch__button:focus-visible {
+          outline: 2px solid #ffffff;
+          outline-offset: 2px;
+        }
+
+        .youtube-focus-watch__button:disabled {
+          cursor: default;
+          opacity: 0.48;
+        }
       `}</style>
       <section className="youtube-focus-watch" data-testid="youtube-focus-watch">
         <div className="youtube-focus-watch__panel">
           <span className="youtube-focus-watch__eyebrow">Watch Focus</span>
           <h2 className="youtube-focus-watch__title">
-            Soft-focus controls are being prepared for this video.
+            Suggestions are softened so you can stay with this video.
           </h2>
           <p className="youtube-focus-watch__body">
-            We&apos;re wiring the watch page foundation now so suggestions and comments
-            can be softened intentionally instead of hijacking the next click.
+            Related videos and comments are dimmed and inert until you ask
+            for them. Reveal only the distraction surface you actually
+            need.
           </p>
           <span className="youtube-focus-watch__foot">
-            Context ready from {suggestions.length} suggested videos for future
-            reveal controls and optional AI guidance.
+            Focus context ready from {suggestions.length} suggested videos for
+            future reveal controls and optional AI guidance.
           </span>
+          <div className="youtube-focus-watch__actions">
+            <button
+              className="youtube-focus-watch__button"
+              type="button"
+              disabled={suggestionsRevealed}
+              onClick={() => setSuggestionsRevealed(true)}
+            >
+              {suggestionsRevealed ? "Suggestions visible" : "Show suggestions"}
+            </button>
+            <button
+              className="youtube-focus-watch__button"
+              type="button"
+              disabled={commentsRevealed}
+              onClick={() => setCommentsRevealed(true)}
+            >
+              {commentsRevealed ? "Comments visible" : "Show comments"}
+            </button>
+            <button
+              className="youtube-focus-watch__button"
+              type="button"
+              disabled={revealCount === 0}
+              onClick={() => {
+                setSuggestionsRevealed(true);
+                setCommentsRevealed(true);
+              }}
+            >
+              Reveal all
+            </button>
+          </div>
         </div>
       </section>
     </>
