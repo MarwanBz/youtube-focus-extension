@@ -50,10 +50,6 @@ export async function connectYouTubeFromUi() {
         return;
       }
 
-      if (result.ok) {
-        void requestYouTubePlaylistFetch();
-      }
-
       resolve({ ok: true, result });
     });
   });
@@ -129,7 +125,7 @@ export function getCompactAuthTone(state: YouTubeAuthState) {
 
 export function getAuthInlineMessage(state: YouTubeAuthState) {
   if (state.connected) {
-    return "YouTube is connected. Import playlists in Settings while Watch Later stays available as a shortcut.";
+    return "YouTube is connected. Import playlists and subscribed channels in Settings while Watch Later stays available as a shortcut.";
   }
   if (state.uiState === "skipped") {
     return "You skipped auth for now. You can still use Watch Later and add manual playlist URLs.";
@@ -140,7 +136,7 @@ export function getAuthInlineMessage(state: YouTubeAuthState) {
   if (state.uiState === "failed") {
     return state.lastError || "Auth failed. Retry or use fallback setup.";
   }
-  return "Not connected yet. Watch Later still works, and you can continue with manual playlist shortcuts.";
+  return "Not connected yet. Watch Later still works, and you can continue with manual playlist shortcuts until you connect YouTube for playlists and channels.";
 }
 
 export function getAuthChipText(state: YouTubeAuthState) {

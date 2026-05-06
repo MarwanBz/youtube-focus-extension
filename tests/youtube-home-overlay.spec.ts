@@ -199,6 +199,7 @@ test.describe("Home overlay visibility", () => {
       focusModeEnabled: true,
       disabledUntil: null,
       importedPlaylists: [],
+      selectedChannels: [],
       manualPlaylists: [
         {
           id: "playlist-1",
@@ -238,6 +239,7 @@ test.describe("Home overlay visibility", () => {
       disabledUntil: null,
       importedPlaylists: [],
       manualPlaylists: [],
+      selectedChannels: [],
     });
 
     expect(sources).toEqual([
@@ -267,6 +269,7 @@ test.describe("Home overlay visibility", () => {
           url: "https://www.youtube.com/playlist?list=PL_MANUAL_TRAVEL",
         },
       ],
+      selectedChannels: [],
     });
 
     expect(sources).toEqual([
@@ -279,6 +282,35 @@ test.describe("Home overlay visibility", () => {
         kind: "playlist",
         title: "Imported Engineering",
         url: "https://www.youtube.com/playlist?list=PL_IMPORTED_ENGINEERING",
+      },
+    ]);
+  });
+
+  test("appends selected channels after playlist sources", () => {
+    const sources = getFocusOverlaySources({
+      focusModeEnabled: true,
+      disabledUntil: null,
+      importedPlaylists: [],
+      manualPlaylists: [],
+      selectedChannels: [
+        {
+          id: "channel-1",
+          title: "Engineering Daily",
+          url: "https://www.youtube.com/channel/UC_ENGINEERING",
+        },
+      ],
+    });
+
+    expect(sources).toEqual([
+      {
+        kind: "watch-later",
+        title: "Watch Later",
+        url: WATCH_LATER_URL,
+      },
+      {
+        kind: "channel",
+        title: "Engineering Daily",
+        url: "https://www.youtube.com/channel/UC_ENGINEERING",
       },
     ]);
   });

@@ -3,6 +3,7 @@ import {
   getFocusOverlayCards,
   WATCH_LATER_URL,
 } from "../content-script/src/focusOverlay";
+import type { ChannelPreview } from "../src/youtube/channel-preview-schema";
 import type { FocusSettings } from "../src/settings/schema";
 import type { ImportedPlaylist } from "../src/youtube/schema";
 
@@ -11,6 +12,7 @@ const baseSettings: FocusSettings = {
   disabledUntil: null,
   importedPlaylists: [],
   manualPlaylists: [],
+  selectedChannels: [],
 };
 
 test.describe("Focus overlay cards", () => {
@@ -106,5 +108,43 @@ test.describe("Focus overlay cards", () => {
 
     expect(cards).toHaveLength(13);
     expect(cards[0].kind).toBe("watch-later");
+  });
+
+  test("appends selected channels after playlist cards", () => {
+    const settings: FocusSettings = {
+      ...baseSettings,
+      selectedChannels: [
+        {
+          id: "channel-1",
+          title: "Engineering Daily",
+          url: "https://www.youtube.com/channel/UC_ENGINEERING",
+        },
+      ],
+    };
+    const channelPreviews: ChannelPreview[] = [
+      {
+        channelId: "channel-1",
+        updatedAt: "2026-05-06T00:00:00.000Z",
+        items: [
+          {
+            videoId: "channel-video-1",
+            title: "Latest Architecture Notes",
+            thumbnailUrl: "https://i.ytimg.com/channel-video-1.jpg",
+            channelTitle: "Engineering Daily",
+          },
+        ],
+      },
+    ];
+
+    const cards = getFocusOverlayCards(settings, [], channelPreviews);
+
+    expect(cards[1]).toEqual({
+      kind: "channel",
+      source: "subscriptions",
+      title: "Engineering Daily",
+      url: "https://www.youtube.com/channel/UC_ENGINEERING",
+      subtitle: "Latest uploads",
+      thumbnailUrl: "https://i.ytimg.com/channel-video-1.jpg",
+    });
   });
 });

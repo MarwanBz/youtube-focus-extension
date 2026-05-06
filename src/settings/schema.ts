@@ -2,8 +2,15 @@ export const SETTINGS_STORAGE_KEY = "youtubeFocusSettings";
 export const SETTINGS_STORAGE_AREA = "sync";
 export const MAX_MANUAL_PLAYLISTS = 12;
 export const MAX_IMPORTED_PLAYLISTS = 12;
+export const MAX_SELECTED_CHANNELS = 5;
 
 export type PlaylistShortcut = {
+  id: string;
+  title: string;
+  url: string;
+};
+
+export type ChannelShortcut = {
   id: string;
   title: string;
   url: string;
@@ -13,6 +20,7 @@ export type FocusSettings = {
   focusModeEnabled: boolean;
   manualPlaylists: PlaylistShortcut[];
   importedPlaylists: PlaylistShortcut[];
+  selectedChannels: ChannelShortcut[];
   disabledUntil: string | null;
 };
 
@@ -31,6 +39,7 @@ export function normalizeFocusSettings(
         : fallback.focusModeEnabled,
     manualPlaylists: normalizePlaylists(value.manualPlaylists),
     importedPlaylists: normalizeImportedPlaylists(value.importedPlaylists),
+    selectedChannels: normalizeSelectedChannels(value.selectedChannels),
     disabledUntil:
       typeof value.disabledUntil === "string" || value.disabledUntil === null
         ? value.disabledUntil
@@ -46,6 +55,9 @@ export function cloneFocusSettings(settings: FocusSettings): FocusSettings {
     })),
     importedPlaylists: settings.importedPlaylists.map((playlist) => ({
       ...playlist,
+    })),
+    selectedChannels: settings.selectedChannels.map((channel) => ({
+      ...channel,
     })),
   };
 }
@@ -85,9 +97,20 @@ function normalizeImportedPlaylists(value: unknown): PlaylistShortcut[] {
   }
 
   return value
-    .filter(isPlaylistShortcut)
-    .slice(0, MAX_IMPORTED_PLAYLISTS)
-    .map((playlist) => ({ ...playlist }));
+     .filter(isPlaylistShortcut)
+     .slice(0, MAX_IMPORTED_PLAYLISTS)
+     .map((playlist) => ({ ...playlist }));
+}
+
+function normalizeSelectedChannels(value: unknown): ChannelShortcut[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isChannelShortcut)
+    .slice(0, MAX_SELECTED_CHANNELS)
+    .map((channel) => ({ ...channel }));
 }
 
 function isPlaylistShortcut(value: unknown): value is PlaylistShortcut {
@@ -104,6 +127,20 @@ function isPlaylistShortcut(value: unknown): value is PlaylistShortcut {
   );
 }
 
+function isChannelShortcut(value: unknown): value is ChannelShortcut {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.url === "string" &&
+    value.title.trim().length > 0 &&
+    isYouTubeChannelUrl(value.url)
+  );
+}
+
 export function isYouTubePlaylistUrl(value: string) {
   try {
     const url = new URL(value);
@@ -111,6 +148,24 @@ export function isYouTubePlaylistUrl(value: string) {
       url.hostname === "www.youtube.com" &&
       url.pathname === "/playlist" &&
       url.searchParams.has("list")
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function isYouTubeChannelUrl(value: string) {
+  try {
+    const url = new URL(value);
+    if (url.hostname !== "www.youtube.com") {
+      return false;
+    }
+
+    return (
+      url.pathname.startsWith("/@") ||
+      url.pathname.startsWith("/channel/") ||
+      url.pathname.startsWith("/c/") ||
+      url.pathname.startsWith("/user/")
     );
   } catch {
     return false;

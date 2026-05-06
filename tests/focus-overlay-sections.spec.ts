@@ -3,6 +3,7 @@ import {
   getFocusOverlayHeaderContent,
   getFocusOverlaySections,
 } from "../content-script/src/focusOverlay";
+import type { ChannelPreview } from "../src/youtube/channel-preview-schema";
 import type { PlaylistPreview } from "../src/youtube/preview-schema";
 import type { FocusSettings } from "../src/settings/schema";
 import type { ImportedPlaylist } from "../src/youtube/schema";
@@ -12,11 +13,12 @@ const baseSettings: FocusSettings = {
   disabledUntil: null,
   importedPlaylists: [],
   manualPlaylists: [],
+  selectedChannels: [],
 };
 
 test.describe("Focus overlay sections", () => {
   test("shows select-lists copy when no playlists are configured", () => {
-    expect(getFocusOverlayHeaderContent(baseSettings, false)).toEqual({
+    expect(getFocusOverlayHeaderContent(baseSettings)).toEqual({
       body: "Start with Watch Later, then connect YouTube or add playlists from Settings.",
       buttonLabel: "Connect or add lists",
     });
@@ -34,7 +36,7 @@ test.describe("Focus overlay sections", () => {
       ],
     };
 
-    expect(getFocusOverlayHeaderContent(settings, true)).toEqual({
+    expect(getFocusOverlayHeaderContent(settings)).toEqual({
       body: "Watch Later opens on YouTube alongside your saved playlist shortcuts.",
       buttonLabel: "Settings",
     });
@@ -52,8 +54,26 @@ test.describe("Focus overlay sections", () => {
       ],
     };
 
-    expect(getFocusOverlayHeaderContent(settings, true)).toEqual({
+    expect(getFocusOverlayHeaderContent(settings)).toEqual({
       body: "Watch Later opens on YouTube, and your selected playlists stay here.",
+      buttonLabel: "Settings",
+    });
+  });
+
+  test("clarifies latest-channel behavior when selected channels exist", () => {
+    const settings: FocusSettings = {
+      ...baseSettings,
+      selectedChannels: [
+        {
+          id: "channel-1",
+          title: "Engineering Daily",
+          url: "https://www.youtube.com/channel/UC_ENGINEERING",
+        },
+      ],
+    };
+
+    expect(getFocusOverlayHeaderContent(settings)).toEqual({
+      body: "Watch Later opens on YouTube alongside the latest videos from your selected channels.",
       buttonLabel: "Settings",
     });
   });
@@ -155,6 +175,55 @@ test.describe("Focus overlay sections", () => {
           url: "https://www.youtube.com/playlist?list=WL",
           subtitle: "Opens on YouTube",
           thumbnailUrl: null,
+        },
+      ],
+    });
+  });
+
+  test("appends selected channel shelves after playlists", () => {
+    const settings: FocusSettings = {
+      ...baseSettings,
+      selectedChannels: [
+        {
+          id: "channel-1",
+          title: "Engineering Daily",
+          url: "https://www.youtube.com/channel/UC_ENGINEERING",
+        },
+      ],
+    };
+    const channelPreviews: ChannelPreview[] = [
+      {
+        channelId: "channel-1",
+        updatedAt: "2026-05-06T00:00:00.000Z",
+        items: [
+          {
+            videoId: "channel-video-1",
+            title: "Latest Architecture Notes",
+            thumbnailUrl: "https://i.ytimg.com/channel-video-1.jpg",
+            channelTitle: "Engineering Daily",
+          },
+        ],
+      },
+    ];
+
+    const sections = getFocusOverlaySections(
+      settings,
+      [],
+      [],
+      channelPreviews
+    );
+
+    expect(sections[1]).toEqual({
+      kind: "channel",
+      source: "subscriptions",
+      title: "Engineering Daily",
+      url: "https://www.youtube.com/channel/UC_ENGINEERING",
+      items: [
+        {
+          title: "Latest Architecture Notes",
+          url: "https://www.youtube.com/watch?v=channel-video-1",
+          subtitle: "Engineering Daily",
+          thumbnailUrl: "https://i.ytimg.com/channel-video-1.jpg",
         },
       ],
     });

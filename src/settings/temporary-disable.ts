@@ -67,11 +67,11 @@ export function getTemporaryDisableBadgeText(
 
   const remainingMinutes = Math.max(1, Math.ceil(delay / 60_000));
   if (remainingMinutes < 60) {
-    return `${remainingMinutes}\u1D50`;
+    return `${remainingMinutes}m`;
   }
 
   const remainingHours = Math.ceil(remainingMinutes / 60);
-  return `${remainingHours}\u02B0`;
+  return `${remainingHours}h`;
 }
 
 export function getTemporaryDisableUiState(

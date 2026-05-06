@@ -1,13 +1,23 @@
 import { expect, test } from "@playwright/test";
-import { MAX_IMPORTED_PLAYLISTS } from "../src/settings/schema";
 import {
+  MAX_IMPORTED_PLAYLISTS,
+  MAX_SELECTED_CHANNELS,
+} from "../src/settings/schema";
+import {
+  filterSubscribedChannels,
+  isChannelSelected,
   filterImportedPlaylists,
+  removeChannelSelection,
   removeImportedPlaylistSelection,
+  reorderChannelSelections,
   reorderImportedPlaylistSelections,
+  selectChannel,
   selectImportedPlaylist,
+  shouldShowChannelSelectionWorkspace,
   shouldShowImportedSelectionWorkspace,
 } from "../src/youtube/selection";
 import type { ImportedPlaylist } from "../src/youtube/schema";
+import type { SubscriptionChannel } from "../src/youtube/subscriptions-schema";
 
 const importedPlaylists: ImportedPlaylist[] = [
   {
@@ -36,6 +46,21 @@ const importedPlaylists: ImportedPlaylist[] = [
     title: "System Design",
     url: "https://www.youtube.com/playlist?list=PL_4",
     videoCount: 6,
+    thumbnailUrl: null,
+  },
+];
+
+const subscribedChannels: SubscriptionChannel[] = [
+  {
+    id: "channel-1",
+    title: "Engineering Daily",
+    url: "https://www.youtube.com/channel/UC_ENGINEERING",
+    thumbnailUrl: null,
+  },
+  {
+    id: "channel-2",
+    title: "Travel Notes",
+    url: "https://www.youtube.com/channel/UC_TRAVEL",
     thumbnailUrl: null,
   },
 ];
@@ -97,5 +122,60 @@ test.describe("youtube imported playlist selection helpers", () => {
 
     const removed = removeImportedPlaylistSelection(moved, "pl-2");
     expect(removed.map((playlist) => playlist.id)).toEqual(["pl-1"]);
+  });
+
+  test("shows channel selection workspace only when subscriptions are ready", () => {
+    expect(shouldShowChannelSelectionWorkspace("ready", 1)).toBe(true);
+    expect(shouldShowChannelSelectionWorkspace("ready", 0)).toBe(false);
+    expect(shouldShowChannelSelectionWorkspace("loading", 2)).toBe(false);
+  });
+
+  test("filters subscribed channels by search query", () => {
+    expect(filterSubscribedChannels(subscribedChannels, "travel")).toEqual([
+      subscribedChannels[1],
+    ]);
+  });
+
+  test("selects subscribed channels up to the maximum", () => {
+    const manyChannels: SubscriptionChannel[] = Array.from(
+      { length: MAX_SELECTED_CHANNELS + 1 },
+      (_, index) => ({
+        id: `channel-${index + 1}`,
+        title: `Channel ${index + 1}`,
+        url: `https://www.youtube.com/channel/UC_${index + 1}`,
+        thumbnailUrl: null,
+      })
+    );
+
+    const selected = manyChannels.reduce((current, channel) => {
+      return selectChannel(current, channel);
+    }, [] as { id: string; title: string; url: string }[]);
+
+    expect(selected).toHaveLength(MAX_SELECTED_CHANNELS);
+    expect(isChannelSelected(selected, "channel-1")).toBe(true);
+  });
+
+  test("reorders and removes selected channels", () => {
+    const selected = [
+      {
+        id: "channel-1",
+        title: "Engineering Daily",
+        url: "https://www.youtube.com/channel/UC_ENGINEERING",
+      },
+      {
+        id: "channel-2",
+        title: "Travel Notes",
+        url: "https://www.youtube.com/channel/UC_TRAVEL",
+      },
+    ];
+
+    const moved = reorderChannelSelections(selected, 1, -1);
+    expect(moved.map((channel) => channel.id)).toEqual([
+      "channel-2",
+      "channel-1",
+    ]);
+
+    const removed = removeChannelSelection(moved, "channel-2");
+    expect(removed.map((channel) => channel.id)).toEqual(["channel-1"]);
   });
 });

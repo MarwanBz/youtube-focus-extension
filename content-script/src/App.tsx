@@ -15,6 +15,11 @@ import {
 } from "@/youtube/schema";
 import { subscribeToYouTubePlaylistState } from "@/youtube/storage";
 import {
+  DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE,
+  type YouTubeChannelPreviewState,
+} from "@/youtube/channel-preview-schema";
+import { subscribeToYouTubeChannelPreviewState } from "@/youtube/channel-preview-storage";
+import {
   DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE,
   type YouTubePlaylistPreviewState,
 } from "@/youtube/preview-schema";
@@ -50,6 +55,7 @@ type FocusUiState = {
   settings: FocusSettings;
   playlistState: YouTubePlaylistState;
   playlistPreviewState: YouTubePlaylistPreviewState;
+  channelPreviewState: YouTubeChannelPreviewState;
 };
 
 export function WatchPageFocusFoundation() {
@@ -515,17 +521,15 @@ export function HomeFocusOverlay() {
     settings,
     playlistState,
     playlistPreviewState,
+    channelPreviewState,
   } = useFocusUiState();
   const sections = getFocusOverlaySections(
     settings,
     playlistState.items,
-    playlistPreviewState.playlists
+    playlistPreviewState.playlists,
+    channelPreviewState.channels
   );
-  const hasPlaylistSections = sections.length > 1;
-  const headerContent = getFocusOverlayHeaderContent(
-    settings,
-    hasPlaylistSections
-  );
+  const headerContent = getFocusOverlayHeaderContent(settings);
 
   useHomeFeedVisibilitySync(routeState.isHome && focusModeActive);
 
@@ -862,6 +866,8 @@ export function HomeFocusOverlay() {
                 <div className="youtube-focus-overlay__section-head">
                   {section.kind === "watch-later" ? (
                     <WatchLaterIcon className="youtube-focus-overlay__section-icon" />
+                  ) : section.kind === "channel" ? (
+                    <ChannelIcon className="youtube-focus-overlay__section-icon" />
                   ) : (
                     <PlaylistIcon className="youtube-focus-overlay__section-icon" />
                   )}
@@ -896,12 +902,14 @@ export function HomeFocusOverlay() {
                             src={item.thumbnailUrl}
                           />
                         ) : (
-                          <span className="youtube-focus-overlay__card-placeholder">
-                            {section.source === "watch-later" ? (
-                              <WatchLaterIcon />
-                            ) : (
-                              <PlaylistIcon />
-                            )}
+                            <span className="youtube-focus-overlay__card-placeholder">
+                              {section.source === "watch-later" ? (
+                                <WatchLaterIcon />
+                              ) : section.kind === "channel" ? (
+                                <ChannelIcon />
+                              ) : (
+                                <PlaylistIcon />
+                              )}
                           </span>
                         )}
                       </span>
@@ -1006,6 +1014,14 @@ function PlaylistIcon({ className }: { className?: string }) {
   );
 }
 
+function ChannelIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    </svg>
+  );
+}
+
 function useFocusUiState(): FocusUiState {
   const [settings, setSettings] = useState<FocusSettings>(
     DEFAULT_FOCUS_SETTINGS
@@ -1017,6 +1033,8 @@ function useFocusUiState(): FocusUiState {
     useState<YouTubePlaylistPreviewState>(
       DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE
     );
+  const [channelPreviewState, setChannelPreviewState] =
+    useState<YouTubeChannelPreviewState>(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
   const [routeState, setRouteState] = useState<YouTubeRouteState>(() =>
     getYouTubeRouteState(window.location.href)
   );
@@ -1035,6 +1053,10 @@ function useFocusUiState(): FocusUiState {
   }, []);
 
   useEffect(() => {
+    return subscribeToYouTubeChannelPreviewState(setChannelPreviewState);
+  }, []);
+
+  useEffect(() => {
     return subscribeToUrlChanges((url) => {
       setRouteState(getYouTubeRouteState(url));
     });
@@ -1047,5 +1069,6 @@ function useFocusUiState(): FocusUiState {
     settings,
     playlistState,
     playlistPreviewState,
+    channelPreviewState,
   };
 }

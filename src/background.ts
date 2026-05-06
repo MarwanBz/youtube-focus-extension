@@ -10,6 +10,12 @@ import {
 } from "./auth/storage";
 import { DEFAULT_YOUTUBE_AUTH_STATE } from "./auth/schema";
 import { fetchYouTubePlaylists } from "./youtube/api";
+import { fetchYouTubeChannelVideos } from "./youtube/channel-api";
+import {
+  DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE,
+  type ChannelPreview,
+} from "./youtube/channel-preview-schema";
+import { writeYouTubeChannelPreviewState } from "./youtube/channel-preview-storage";
 import {
   createFetchPlaylistsResponse,
   isFetchYouTubePlaylistsMessage,
@@ -31,6 +37,15 @@ import {
 import {
   writeYouTubePlaylistPreviewState,
 } from "./youtube/preview-storage";
+import { fetchYouTubeSubscriptions } from "./youtube/subscriptions-api";
+import {
+  DEFAULT_YOUTUBE_SUBSCRIPTION_STATE,
+  type YouTubeSubscriptionState,
+} from "./youtube/subscriptions-schema";
+import {
+  patchYouTubeSubscriptionState,
+  writeYouTubeSubscriptionState,
+} from "./youtube/subscriptions-storage";
 import {
   ensureFocusSettings,
   patchFocusSettings,
@@ -53,6 +68,8 @@ chrome.runtime.onInstalled.addListener(() => {
   void writeYouTubeAuthState(DEFAULT_YOUTUBE_AUTH_STATE);
   void writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
   void writeYouTubePlaylistPreviewState(DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE);
+  void writeYouTubeSubscriptionState(DEFAULT_YOUTUBE_SUBSCRIPTION_STATE);
+  void writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
   void syncTemporaryDisableBadge();
 });
 
@@ -73,6 +90,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 void subscribeToFocusSettings(() => {
   void syncSelectedPlaylistPreviews();
+  void syncSelectedChannelPreviews();
   void syncTemporaryDisableBadge();
 });
 
@@ -146,7 +164,9 @@ export async function disconnectYouTube(): Promise<{
   });
   await writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
   await writeYouTubePlaylistPreviewState(DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE);
-  await patchFocusSettings({ importedPlaylists: [] });
+  await writeYouTubeSubscriptionState(DEFAULT_YOUTUBE_SUBSCRIPTION_STATE);
+  await writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
+  await patchFocusSettings({ importedPlaylists: [], selectedChannels: [] });
 
   return { ok: true };
 }
@@ -184,6 +204,8 @@ export async function fetchAndStoreYouTubePlaylists(): Promise<FetchYouTubePlayl
       lastError: null,
       nextPageSeen: false,
     });
+    await writeYouTubeSubscriptionState(DEFAULT_YOUTUBE_SUBSCRIPTION_STATE);
+    await writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
     return {
       ok: false,
       status: "not_connected",
@@ -212,6 +234,11 @@ export async function fetchAndStoreYouTubePlaylists(): Promise<FetchYouTubePlayl
         uiState: "failed",
         lastError: result.message,
       });
+      await writeYouTubePlaylistPreviewState(
+        DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE
+      );
+      await writeYouTubeSubscriptionState(DEFAULT_YOUTUBE_SUBSCRIPTION_STATE);
+      await writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
     }
     await patchYouTubePlaylistState(nextState);
     return response;
@@ -225,8 +252,65 @@ export async function fetchAndStoreYouTubePlaylists(): Promise<FetchYouTubePlayl
     nextPageSeen: result.nextPageSeen,
   });
   await syncSelectedPlaylistPreviews();
+  await fetchAndStoreYouTubeSubscriptions();
 
   return response;
+}
+
+async function fetchAndStoreYouTubeSubscriptions(): Promise<void> {
+  const authState = await readYouTubeAuthState();
+  if (!authState.connected || !authState.accessToken) {
+    await patchYouTubeSubscriptionState({
+      status: "idle",
+      items: [],
+      updatedAt: null,
+      lastError: null,
+      nextPageSeen: false,
+    });
+    await writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
+    return;
+  }
+
+  await patchYouTubeSubscriptionState({
+    status: "loading",
+    lastError: null,
+  });
+
+  const result = await fetchYouTubeSubscriptions(authState.accessToken);
+
+  if (!result.ok) {
+    const nextState: Partial<YouTubeSubscriptionState> = {
+      status: result.status,
+      lastError: result.message,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (result.status === "unauthorized") {
+      await patchYouTubeAuthState({
+        accessToken: null,
+        connected: false,
+        uiState: "failed",
+        lastError: result.message,
+      });
+      await writeYouTubePlaylistPreviewState(
+        DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE
+      );
+      await writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
+      await writeYouTubeSubscriptionState(DEFAULT_YOUTUBE_SUBSCRIPTION_STATE);
+    }
+
+    await patchYouTubeSubscriptionState(nextState);
+    return;
+  }
+
+  await patchYouTubeSubscriptionState({
+    status: result.items.length > 0 ? "ready" : "empty",
+    items: result.items,
+    updatedAt: new Date().toISOString(),
+    lastError: null,
+    nextPageSeen: result.nextPageSeen,
+  });
+  await syncSelectedChannelPreviews();
 }
 
 async function syncSelectedPlaylistPreviews(): Promise<void> {
@@ -261,6 +345,10 @@ async function syncSelectedPlaylistPreviews(): Promise<void> {
         await writeYouTubePlaylistPreviewState(
           DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE
         );
+        await writeYouTubeChannelPreviewState(
+          DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE
+        );
+        await writeYouTubeSubscriptionState(DEFAULT_YOUTUBE_SUBSCRIPTION_STATE);
         return;
       }
 
@@ -281,6 +369,64 @@ async function syncSelectedPlaylistPreviews(): Promise<void> {
 
   await writeYouTubePlaylistPreviewState({
     playlists: previews,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+async function syncSelectedChannelPreviews(): Promise<void> {
+  const authState = await readYouTubeAuthState();
+  const settings = await readFocusSettings();
+
+  if (
+    !authState.connected ||
+    !authState.accessToken ||
+    settings.selectedChannels.length === 0
+  ) {
+    await writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
+    return;
+  }
+
+  const previews: ChannelPreview[] = [];
+
+  for (const channel of settings.selectedChannels) {
+    const result = await fetchYouTubeChannelVideos(
+      authState.accessToken,
+      channel.id
+    );
+
+    if (!result.ok) {
+      if (result.status === "unauthorized") {
+        await patchYouTubeAuthState({
+          accessToken: null,
+          connected: false,
+          uiState: "failed",
+          lastError: result.message,
+        });
+        await writeYouTubePlaylistPreviewState(
+          DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE
+        );
+        await writeYouTubeSubscriptionState(DEFAULT_YOUTUBE_SUBSCRIPTION_STATE);
+        await writeYouTubeChannelPreviewState(DEFAULT_YOUTUBE_CHANNEL_PREVIEW_STATE);
+        return;
+      }
+
+      previews.push({
+        channelId: channel.id,
+        items: [],
+        updatedAt: new Date().toISOString(),
+      });
+      continue;
+    }
+
+    previews.push({
+      channelId: channel.id,
+      items: result.items,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  await writeYouTubeChannelPreviewState({
+    channels: previews,
     updatedAt: new Date().toISOString(),
   });
 }

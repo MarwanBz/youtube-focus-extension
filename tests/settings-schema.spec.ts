@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  MAX_SELECTED_CHANNELS,
   MAX_IMPORTED_PLAYLISTS,
   cloneFocusSettings,
   isFocusModeActive,
@@ -19,6 +20,7 @@ test.describe("focus settings schema", () => {
     );
 
     expect(normalized.importedPlaylists).toEqual([]);
+    expect(normalized.selectedChannels).toEqual([]);
   });
 
   test("caps imported playlist snapshots to maximum", () => {
@@ -63,6 +65,28 @@ test.describe("focus settings schema", () => {
     cloned.importedPlaylists[0].title = "Changed";
 
     expect(original.importedPlaylists[0].title).toBe("Imported One");
+  });
+
+  test("caps selected channel snapshots to maximum", () => {
+    const normalized = normalizeFocusSettings(
+      {
+        focusModeEnabled: true,
+        manualPlaylists: [],
+        importedPlaylists: [],
+        selectedChannels: Array.from(
+          { length: MAX_SELECTED_CHANNELS + 2 },
+          (_, index) => ({
+            id: `channel-${index}`,
+            title: `Channel ${index}`,
+            url: `https://www.youtube.com/channel/UC_${index}`,
+          })
+        ),
+        disabledUntil: null,
+      },
+      DEFAULT_FOCUS_SETTINGS
+    );
+
+    expect(normalized.selectedChannels).toHaveLength(MAX_SELECTED_CHANNELS);
   });
 
   test("treats a future disabledUntil value as temporarily inactive", () => {

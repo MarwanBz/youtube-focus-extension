@@ -81,7 +81,9 @@ function isPlaylistPreview(value: unknown): value is PlaylistPreview {
   );
 }
 
-function isPlaylistPreviewVideo(value: unknown): value is PlaylistPreviewVideo {
+export function isPlaylistPreviewVideo(
+  value: unknown
+): value is PlaylistPreviewVideo {
   if (!isRecord(value)) {
     return false;
   }
