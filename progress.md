@@ -4,9 +4,9 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: Start the watch-page soft-focus foundation while the live Chrome manual MVP verification pass for Phase 1 remains pending.
+Current focus: T114 channel shelves are complete; return to cache freshness and onboarding follow-up work while the live Chrome manual MVP verification pass for Phase 1 remains pending.
 
-Next task: T503 - build the watch-page soft-focus behavior on top of the new right-rail context foundation.
+Next task: T104 - tighten playlist and channel cache freshness while preserving reconnect and fallback states.
 
 ## Implementation Log
 
@@ -69,6 +69,7 @@ Next task: T503 - build the watch-page soft-focus behavior on top of the new rig
 | 2026-04-27 | Verify T106B | Done | Ran `npm run lint`, `npm run build`, and `npm test -- tests/auth-client.spec.ts tests/focus-overlay-cards.spec.ts tests/focus-overlay-sections.spec.ts tests/youtube-home-overlay.spec.ts`. All checks passed, including Watch Later ordering, empty-state visibility, copy, and same-link URL coverage. |
 | 2026-05-02 | T503 watch-page foundation | Doing | Added a dedicated watch-page foundation host in the right rail, route-aware watch soft-focus scaffolding, local extraction of suggested-video titles plus channel names, dimmed and inert right-rail behavior (opacity 0.28 + blur 4px for both suggestions and comments), and separate reveal controls plus reveal-all for the current watch page. Also updated Phase 3 AI task wording so the future watch-page text overlay idea is captured in the board. |
 | 2026-05-06 | T503 watch-page soft focus | Done | Refined the watch-page soft-focus behavior so the right rail and comments stay visible but softly blurred, dimmed, and inert until revealed, reset reveal state on each new watch route, and preferred `#secondary-inner` placement so the panel anchors at the top of the right rail. Verified with `npm run lint`, `npm run build`, and `npx playwright test tests/watch-soft-focus.spec.ts`, and the user confirmed the updated in-browser behavior. |
+| 2026-05-06 | T114 channel shelves from subscriptions | Done | Added selected-channel settings, authenticated subscriptions cache, latest-channel video preview cache, and a new options-page Channels card that lets the user pick up to five subscribed channels. Focus Home now renders those channel shelves after playlists, channel previews auto-refresh on settings changes, and verification passed with `npm run lint`, `npm test`, and `npm run build`. |
 
 ## Decision Log
 
@@ -91,6 +92,7 @@ Next task: T503 - build the watch-page soft-focus behavior on top of the new rig
 | 2026-04-27 | Temporary pause stays subordinate to the main Focus Mode toggle | Phase 1 only needs a lightweight utility control, so pause lives as a secondary control row with fixed presets rather than becoming a competing primary action or a full scheduling surface. |
 | 2026-04-27 | Watch Later stays a direct shortcut instead of imported data | Current YouTube API support does not provide a stable supported path for imported Watch Later data, so Focus Home should keep Watch Later as a clearly labeled click-through shortcut without probing unsupported API behavior or adding new scopes. |
 | 2026-05-02 | Watch-page AI guidance should build on local suggestion metadata, not new permissions | The future AI layer for the watch page should derive titles and channel names from already-rendered suggested videos so the app can experiment with reframing text without expanding OAuth scope or adding separate video-discovery APIs. |
+| 2026-05-06 | Channel shelves should come from subscribed channels, not global search | The user wants a personal source list tied to their connected account. Using `subscriptions.list` for selection and `search.list` for latest videos keeps Focus Home aligned with channels the user already follows while staying inside the existing OAuth boundary. |
 
 ## Feature State
 
@@ -119,6 +121,7 @@ Next task: T503 - build the watch-page soft-focus behavior on top of the new rig
 | T111 Horizontal scrolling grid | Done | Focus Home shelves now support horizontal scrolling for up to 20 items with scroll-snap and custom scrollbars. |
 | T112 Increase playlist limit | Done | Maximum number of manual and imported playlists increased from 3 to 12 in settings schema. |
 | T113 Focus Home scrolling + playlist links | Done | Vertical wheel and trackpad scrolling now continue moving the home page while shelf titles open the full playlist page directly. |
+| Selected channel shelves | Done | Options now lets the user pick up to five subscribed channels, background caches their latest uploads, and Focus Home renders those channel shelves after playlists. |
 | Temporary pause foundation | Done | Popup and options now offer 15-minute, 30-minute, and 1-hour pause presets, plus paused-until and resume-now states that reuse the existing `disabledUntil` setting. |
 | Unpacked Chrome packaging | Done | The Phase 1 build now succeeds without OAuth credentials and the README documents how to load `dist/` in Chrome developer mode. |
 

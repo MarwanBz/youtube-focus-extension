@@ -53,6 +53,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T111 | Done | P1 | Implement horizontal scrolling for playlist shelves | T108B | Focus Home shelves support horizontal scrolling for up to 20 items, providing a native-like browsing experience without feed wrapping. |
 | T112 | Done | P1 | Increase maximum playlist limit to 12 | T111 | Maximum number of manual and imported playlists increased from 3 to 12 in settings schema. |
 | T113 | Done | P1 | Restore Focus Home vertical scrolling and add playlist-level links | T108B, T111 | Vertical wheel or trackpad scrolling still moves the YouTube home page while Focus Home shelves remain usable, and each playlist shelf exposes a direct link to open the full playlist page. |
+| T114 | Done | P2 | Add channel video shelf to Focus Home | T102, T103 | User can add a YouTube channel (by URL or channel ID) and see that channel's latest video thumbnails as a Focus Home shelf alongside playlist shelves; channel videos are fetched via YouTube Data API `search.list` or `channels.list` uploads playlist and cached in `chrome.storage.local`. |
 
 ## Phase 3 - Persona And AI Content
 
