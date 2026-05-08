@@ -63,10 +63,12 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
 | --- | --- | --- | --- | --- | --- |
 | T201 | Done | P2 | Add persona preset settings | T012 | User can choose Funny, Strict, Calm, or Custom; tune funny/strict/kind sliders; allow mild profanity; and preview the tone without AI calls. |
-| T202 | Todo | P2 | Add text generation provider settings | T201 | API key and provider settings are stored only after opt-in. |
+| T202 | Done | P2 | Add text generation provider settings | T201 | API key and provider settings are stored only after opt-in. |
 | T203 | Todo | P2 | Generate cached recommendation stickers | T202 | When watch-page recommendations are revealed, each visible recommended video can show a small AI-generated sticker based on its title/channel and persona settings; stickers are dismissible per video, cached per title per day, and fail closed without breaking reveal behavior. |
 | T204 | Deferred | P3 | Add optional AI image provider settings | T201 | User can opt in to image generation separately from text. |
 | T205 | Deferred | P3 | Generate and cache AI images | T204 | Images cache daily or per playlist; fallback appears on failure. |
+| T206 | Todo | P2 | Add backend AI proxy for production use | T203 | Extension calls a hosted proxy so shipped users never receive the owner OpenAI key. |
+| T207 | Todo | P2 | Add per-Google-user AI quota enforcement | T206 | Quota is enforced per authenticated Google user; owner/admin can bypass. |
 
 ## Phase 4 - Gamification And Retention
 

@@ -47,6 +47,12 @@ import {
   type TemporaryDisablePresetMinutes,
 } from "./settings/temporary-disable";
 import {
+  patchAiSettings,
+  subscribeToAiSettings,
+  DEFAULT_AI_SETTINGS,
+  type AiSettings,
+} from "./settings/ai";
+import {
   patchFocusSettings,
   subscribeToFocusSettings,
 } from "./settings/storage";
@@ -269,6 +275,8 @@ export function OptionsApp() {
   const [importedSearch, setImportedSearch] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
   const [channelStatus, setChannelStatus] = useState("");
+  const [aiSettings, setAiSettings] = useState<AiSettings>(DEFAULT_AI_SETTINGS);
+  const [aiStatus, setAiStatus] = useState("");
 
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -284,6 +292,7 @@ export function OptionsApp() {
   useEffect(() => subscribeToYouTubeAuthState(setYouTubeAuth), []);
   useEffect(() => subscribeToYouTubePlaylistState(setPlaylistState), []);
   useEffect(() => subscribeToYouTubeSubscriptionState(setSubscriptionState), []);
+  useEffect(() => subscribeToAiSettings(setAiSettings), []);
 
   const playlists = settings.manualPlaylists;
   const selectedImportedPlaylists = settings.importedPlaylists;
@@ -683,6 +692,47 @@ export function OptionsApp() {
     void patchFocusSettings({ allowMildProfanity })
       .then(() => setStatus("Language preference saved."))
       .catch(() => setStatus("Unable to save language preference."));
+  };
+
+  const handleAiEnabledChange = (enabled: boolean) => {
+    setAiSettings((current) => ({ ...current, enabled }));
+    setAiStatus("Saving...");
+    void patchAiSettings({ enabled })
+      .then(() =>
+        setAiStatus(
+          enabled ? "AI stickers enabled." : "AI stickers disabled."
+        )
+      )
+      .catch(() => setAiStatus("Unable to save AI settings."));
+  };
+
+  const handleAiModelChange = (model: string) => {
+    setAiSettings((current) => ({ ...current, model }));
+    setAiStatus("Saving...");
+    void patchAiSettings({ model })
+      .then(() => setAiStatus("AI model saved."))
+      .catch(() => setAiStatus("Unable to save AI model."));
+  };
+
+  const handleAiApiKeyChange = (apiKey: string) => {
+    setAiSettings((current) => ({ ...current, apiKey }));
+  };
+
+  const handleAiApiKeySave = () => {
+    setAiStatus("Saving...");
+    void patchAiSettings({ apiKey: aiSettings.apiKey })
+      .then(() => setAiStatus("API key saved."))
+      .catch(() => setAiStatus("Unable to save API key."));
+  };
+
+  const handleAiApiKeyClear = () => {
+    setAiStatus("Saving...");
+    void patchAiSettings({ apiKey: "" })
+      .then((result) => {
+        setAiSettings(result);
+        setAiStatus("API key cleared.");
+      })
+      .catch(() => setAiStatus("Unable to clear API key."));
   };
 
   return (
@@ -1242,6 +1292,119 @@ export function OptionsApp() {
                 <p className="mt-2 text-sm leading-relaxed">
                   {personaPreviewText}
                 </p>
+              </div>
+
+              <Separator />
+
+              {/* ── AI Stickers Provider ── */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="ai-stickers-enabled" className="text-sm font-medium">
+                      AI Stickers
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Enable AI-generated sticker labels for recommendation cards. Requires an OpenAI API key.
+                    </p>
+                  </div>
+                  <Switch
+                    id="ai-stickers-enabled"
+                    checked={aiSettings.enabled}
+                    onCheckedChange={handleAiEnabledChange}
+                  />
+                </div>
+
+                {aiSettings.enabled ? (
+                  <div className="space-y-4 rounded-lg border border-border/60 bg-secondary/20 px-4 py-4">
+                    {/* Model */}
+                    <div className="space-y-2">
+                      <Label htmlFor="ai-model" className="text-xs">
+                        Model
+                      </Label>
+                      <Input
+                        id="ai-model"
+                        type="text"
+                        placeholder="gpt-5.4-mini"
+                        value={aiSettings.model}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                          handleAiModelChange(event.target.value)
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Defaults to gpt-5.4-mini. Change only if you know which model to use.
+                      </p>
+                    </div>
+
+                    {/* API Key */}
+                    {aiSettings.apiKey ? (
+                      <div className="space-y-2 rounded-lg border border-muted bg-background/60 px-3 py-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="space-y-0.5 min-w-0">
+                            <p className="text-sm font-medium">
+                              API key saved locally
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              Stored in this browser only (local extension storage)
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setAiSettings((current) => ({
+                                  ...current,
+                                  apiKey: "",
+                                }))
+                              }
+                            >
+                              Replace
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleAiApiKeyClear}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="ai-api-key" className="text-xs">
+                          OpenAI API key
+                        </Label>
+                        <Input
+                          id="ai-api-key"
+                          type="password"
+                          placeholder="sk-..."
+                          value={aiSettings.apiKey}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            handleAiApiKeyChange(event.target.value)
+                          }
+                        />
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handleAiApiKeySave}
+                            disabled={!aiSettings.apiKey.trim()}
+                          >
+                            Save key
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Your key stays in this browser&rsquo;s local extension storage and is never sent to external services except OpenAI.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+
+                {aiStatus ? (
+                  <StatusMessage>{aiStatus}</StatusMessage>
+                ) : null}
               </div>
             </CardContent>
           </Card>

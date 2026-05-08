@@ -47,6 +47,9 @@ import {
   writeYouTubeSubscriptionState,
 } from "./youtube/subscriptions-storage";
 import {
+  ensureAiSettings,
+} from "./settings/ai";
+import {
   ensureFocusSettings,
   patchFocusSettings,
   readFocusSettings,
@@ -65,6 +68,7 @@ const TEMPORARY_DISABLE_BADGE_COLOR = "#f59e0b";
 
 chrome.runtime.onInstalled.addListener(() => {
   void ensureFocusSettings();
+  void ensureAiSettings();
   void writeYouTubeAuthState(DEFAULT_YOUTUBE_AUTH_STATE);
   void writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
   void writeYouTubePlaylistPreviewState(DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE);

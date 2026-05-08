@@ -236,7 +236,7 @@ Upcoming manifest guidance:
 - Do not add `identity` until Phase 2 OAuth work begins.
 - When `T102` starts, add the manifest `oauth2` block and keep the extension ID stable with a manifest `key`.
 
-Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. `alarms` is required for the temporary-disable countdown badge that updates on the extension action icon. Do not add future permissions early.
+Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. `alarms` is required for the temporary-disable countdown badge that updates on the extension action icon. `host_permissions` for `https://api.openai.com/*` enables the opt-in AI sticker generation in Phase 3. Do not add future permissions early.
 
 ## Settings Storage
 
@@ -280,10 +280,13 @@ Phase 2 import boundaries:
 
 Phase 3 AI flow:
 Options page
-  -> user opts in and saves provider settings
-  -> background generates short mentor copy or recommendation stickers
+  -> user opts in and saves AI provider settings in `chrome.storage.local`
+  -> AI provider settings include `enabled`, `provider: "openai"`, `model: "gpt-5.4-mini"`, and `apiKey`
+  -> API key is stored only in local extension storage, never synced
+  -> background generates short mentor copy or recommendation stickers using `createOpenAI({ apiKey })` from `@ai-sdk/openai`
   -> background writes daily/session cache
   -> content script displays cached result
+  -> no generation calls happen in T202; the plumbing is ready for T203
 
 Phase 4 gamification flow:
 Popup, options, or content script
@@ -426,6 +429,18 @@ type FocusModeCache = {
     remoteUrl?: string;
   };
 };
+```
+
+AI provider settings (local storage, never synced):
+
+```ts
+type AiSettings = {
+  enabled: boolean;
+  provider: "openai";
+  model: string;        // defaults to "gpt-5.4-mini"
+  apiKey: string;
+};
+```
 ```
 
 Planned gamification-local shape:

@@ -4,9 +4,9 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: T201 persona mood settings are complete; next AI work is T202 provider settings followed by T203 generated recommendation stickers.
+Current focus: T202 provider settings are complete; next AI work is T203 generated recommendation stickers.
 
-Next task: T202 - add opt-in text generation provider settings for the persona-driven AI layer.
+Next task: T203 - generate AI-powered cached recommendation stickers using the persona and provider settings from T201/T202.
 
 ## Implementation Log
 
@@ -71,6 +71,7 @@ Next task: T202 - add opt-in text generation provider settings for the persona-d
 | 2026-05-06 | T503 watch-page soft focus | Done | Refined the watch-page soft-focus behavior so the right rail and comments stay visible but softly blurred, dimmed, and inert until revealed, reset reveal state on each new watch route, and preferred `#secondary-inner` placement so the panel anchors at the top of the right rail. Verified with `npm run lint`, `npm run build`, and `npx playwright test tests/watch-soft-focus.spec.ts`, and the user confirmed the updated in-browser behavior. |
 | 2026-05-06 | T114 channel shelves from subscriptions | Done | Added selected-channel settings, authenticated subscriptions cache, latest-channel video preview cache, and a new options-page Channels card that lets the user pick up to five subscribed channels. Focus Home now renders those channel shelves after playlists, channel previews auto-refresh on settings changes, and verification passed with `npm run lint`, `npm test`, and `npm run build`. |
 | 2026-05-08 | T201 persona mood settings | Done | Added synced persona settings for Funny, Strict, Calm, and Custom modes, funny/strict/kind sliders, mild profanity preference, custom instruction storage, and an options-page tone preview without making AI provider calls. |
+| 2026-05-08 | T202 AI text provider settings | Done | Added `ai` and `@ai-sdk/openai` dependencies, created `src/settings/ai.ts` with local-only AI settings schema and storage helpers (`enabled`, `provider: "openai"`, `model: "gpt-5.4-mini"`, `apiKey`), added `https://api.openai.com/*` host permission in manifest, wired AI provider controls into the existing AI Mood card with enable toggle, model input, masked API key display with Replace/Clear actions, and background ensure-defaults on install. Verified with `npm run lint`, `npm run build`, and `npx playwright test tests/ai-settings.spec.ts` (20 tests passed). |
 
 ## Decision Log
 
@@ -128,7 +129,8 @@ Next task: T202 - add opt-in text generation provider settings for the persona-d
 | Unpacked Chrome packaging | Done | The Phase 1 build now succeeds without OAuth credentials and the README documents how to load `dist/` in Chrome developer mode. |
 
 | Persona settings | Done | Options now stores Funny, Strict, Calm, and Custom modes with funny/strict/kind sliders, custom instructions, mild profanity preference, and a local tone preview. |
-| AI text messages | Todo | Phase 3 and opt-in only; next step is provider settings before real generated recommendation stickers. |
+| AI text provider settings | Done | Options now has an AI Stickers toggle inside the AI Mood card with OpenAI model configuration and local-only API key storage with masked display, Replace, and Clear actions. |
+| AI text messages | Todo | Phase 3 and opt-in only; next step is T203 generated recommendation stickers. |
 | AI images | Deferred | Phase 3 or later, low priority. |
 | Gamification and retention | Deferred | Phase 4 with local-only session, streak, milestone, and popup or overlay feedback work. |
 | Store publishing | Deferred | Phase 5. |
@@ -137,7 +139,7 @@ Next task: T202 - add opt-in text generation provider settings for the persona-d
 
 Next implementation handoff:
 
-1. Start T202 by adding opt-in text provider settings that reuse the new persona preferences.
+1. T202 is done. Start T203 by implementing generated per-video watch recommendation stickers using visible title/channel metadata and the AI provider configured in T202.
 2. Keep AI disabled unless the user explicitly enables and configures a provider.
 3. Implement T203 after provider settings: generated per-video watch recommendation stickers should use visible title/channel metadata, cache per title per day, and be dismissible per card.
 4. Keep image generation deferred until text stickers feel useful.
