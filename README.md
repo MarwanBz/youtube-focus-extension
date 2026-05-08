@@ -32,9 +32,9 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 
 ## Status
 
-Current stage: Phase 1 implementation is complete through temporary pause and unpacked packaging, with live Chrome manual verification still pending.
+Current stage: Phase 1 implementation is complete through temporary pause and unpacked packaging, with live Chrome manual verification still pending. Personal AI planning has started in Phase 3.
 
-Next concrete action: T012 - run the live Chrome developer-mode verification pass against YouTube, then return to T104 cache work.
+Next concrete action: T202 - add opt-in text generation provider settings for the persona-driven AI layer.
 
 ## Phase 1 Local Load
 

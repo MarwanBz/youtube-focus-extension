@@ -281,7 +281,7 @@ Phase 2 import boundaries:
 Phase 3 AI flow:
 Options page
   -> user opts in and saves provider settings
-  -> background generates short mentor message or image
+  -> background generates short mentor copy or recommendation stickers
   -> background writes daily/session cache
   -> content script displays cached result
 
@@ -372,11 +372,14 @@ type FocusModeSettings = {
   }>;
   watchLaterUrl: string;
   temporaryDisableMinutes: number[];
-  persona: {
-    mode: "none" | "preset" | "custom";
-    presetId?: "strict-coach" | "calm-monk" | "creative-director";
-    customPrompt?: string;
+  personaPreset: "funny" | "strict" | "calm" | "custom";
+  personaSliders: {
+    funny: number;
+    strict: number;
+    kind: number;
   };
+  customPersonaInstruction: string;
+  allowMildProfanity: boolean;
   integrations: {
     youtubeOAuthEnabled: boolean;
     aiTextEnabled: boolean;

@@ -62,9 +62,9 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 
 | ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
 | --- | --- | --- | --- | --- | --- |
-| T201 | Deferred | P2 | Add persona preset settings | T012 | User can choose preset or custom prompt; no AI API calls yet. |
-| T202 | Deferred | P2 | Add text generation provider settings | T201 | API key and provider settings are stored only after opt-in. |
-| T203 | Deferred | P2 | Generate cached mentor messages | T202 | Messages are short, cached, and fail closed without breaking overlay, including optional watch-page reframing text generated from locally extracted suggested-video titles and channel names when the user opts into AI guidance. |
+| T201 | Done | P2 | Add persona preset settings | T012 | User can choose Funny, Strict, Calm, or Custom; tune funny/strict/kind sliders; allow mild profanity; and preview the tone without AI calls. |
+| T202 | Todo | P2 | Add text generation provider settings | T201 | API key and provider settings are stored only after opt-in. |
+| T203 | Todo | P2 | Generate cached recommendation stickers | T202 | When watch-page recommendations are revealed, each visible recommended video can show a small AI-generated sticker based on its title/channel and persona settings; stickers are dismissible per video, cached per title per day, and fail closed without breaking reveal behavior. |
 | T204 | Deferred | P3 | Add optional AI image provider settings | T201 | User can opt in to image generation separately from text. |
 | T205 | Deferred | P3 | Generate and cache AI images | T204 | Images cache daily or per playlist; fallback appears on failure. |
 

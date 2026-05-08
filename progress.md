@@ -4,9 +4,9 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: T114 channel shelves are complete; return to cache freshness and onboarding follow-up work while the live Chrome manual MVP verification pass for Phase 1 remains pending.
+Current focus: T201 persona mood settings are complete; next AI work is T202 provider settings followed by T203 generated recommendation stickers.
 
-Next task: T104 - tighten playlist and channel cache freshness while preserving reconnect and fallback states.
+Next task: T202 - add opt-in text generation provider settings for the persona-driven AI layer.
 
 ## Implementation Log
 
@@ -70,6 +70,7 @@ Next task: T104 - tighten playlist and channel cache freshness while preserving 
 | 2026-05-02 | T503 watch-page foundation | Doing | Added a dedicated watch-page foundation host in the right rail, route-aware watch soft-focus scaffolding, local extraction of suggested-video titles plus channel names, dimmed and inert right-rail behavior (opacity 0.28 + blur 4px for both suggestions and comments), and separate reveal controls plus reveal-all for the current watch page. Also updated Phase 3 AI task wording so the future watch-page text overlay idea is captured in the board. |
 | 2026-05-06 | T503 watch-page soft focus | Done | Refined the watch-page soft-focus behavior so the right rail and comments stay visible but softly blurred, dimmed, and inert until revealed, reset reveal state on each new watch route, and preferred `#secondary-inner` placement so the panel anchors at the top of the right rail. Verified with `npm run lint`, `npm run build`, and `npx playwright test tests/watch-soft-focus.spec.ts`, and the user confirmed the updated in-browser behavior. |
 | 2026-05-06 | T114 channel shelves from subscriptions | Done | Added selected-channel settings, authenticated subscriptions cache, latest-channel video preview cache, and a new options-page Channels card that lets the user pick up to five subscribed channels. Focus Home now renders those channel shelves after playlists, channel previews auto-refresh on settings changes, and verification passed with `npm run lint`, `npm test`, and `npm run build`. |
+| 2026-05-08 | T201 persona mood settings | Done | Added synced persona settings for Funny, Strict, Calm, and Custom modes, funny/strict/kind sliders, mild profanity preference, custom instruction storage, and an options-page tone preview without making AI provider calls. |
 
 ## Decision Log
 
@@ -93,6 +94,7 @@ Next task: T104 - tighten playlist and channel cache freshness while preserving 
 | 2026-04-27 | Watch Later stays a direct shortcut instead of imported data | Current YouTube API support does not provide a stable supported path for imported Watch Later data, so Focus Home should keep Watch Later as a clearly labeled click-through shortcut without probing unsupported API behavior or adding new scopes. |
 | 2026-05-02 | Watch-page AI guidance should build on local suggestion metadata, not new permissions | The future AI layer for the watch page should derive titles and channel names from already-rendered suggested videos so the app can experiment with reframing text without expanding OAuth scope or adding separate video-discovery APIs. |
 | 2026-05-06 | Channel shelves should come from subscribed channels, not global search | The user wants a personal source list tied to their connected account. Using `subscriptions.list` for selection and `search.list` for latest videos keeps Focus Home aligned with channels the user already follows while staying inside the existing OAuth boundary. |
+| 2026-05-08 | AI starts with persona controls before providers | The user wants funny, mood-aware anti-distraction copy, but T201 should only define the voice and preview it locally; provider configuration and generated per-video stickers belong in T202 and T203. |
 
 ## Feature State
 
@@ -125,8 +127,8 @@ Next task: T104 - tighten playlist and channel cache freshness while preserving 
 | Temporary pause foundation | Done | Popup and options now offer 15-minute, 30-minute, and 1-hour pause presets, plus paused-until and resume-now states that reuse the existing `disabledUntil` setting. |
 | Unpacked Chrome packaging | Done | The Phase 1 build now succeeds without OAuth credentials and the README documents how to load `dist/` in Chrome developer mode. |
 
-| Persona settings | Deferred | Phase 3. |
-| AI text messages | Deferred | Phase 3 and opt-in only. |
+| Persona settings | Done | Options now stores Funny, Strict, Calm, and Custom modes with funny/strict/kind sliders, custom instructions, mild profanity preference, and a local tone preview. |
+| AI text messages | Todo | Phase 3 and opt-in only; next step is provider settings before real generated recommendation stickers. |
 | AI images | Deferred | Phase 3 or later, low priority. |
 | Gamification and retention | Deferred | Phase 4 with local-only session, streak, milestone, and popup or overlay feedback work. |
 | Store publishing | Deferred | Phase 5. |
@@ -135,10 +137,8 @@ Next task: T104 - tighten playlist and channel cache freshness while preserving 
 
 Next implementation handoff:
 
-1. Start T104 by tightening cache freshness and avoiding redundant playlist + preview fetches.
-2. Keep reconnect plus manual fallback paths visible when imported data is missing or auth is revoked.
-3. Move to T106 import-led onboarding flow after cache behavior is stable.
-4. Keep Phase 3 personal AI ahead of Phase 4 gamification when later-phase planning resumes.
-5. Leave T010 through T012 open, but treat them as temporarily deprioritized until onboarding/import milestones are complete.
-
-Do not skip directly to OAuth or AI work unless the user explicitly changes the priority.
+1. Start T202 by adding opt-in text provider settings that reuse the new persona preferences.
+2. Keep AI disabled unless the user explicitly enables and configures a provider.
+3. Implement T203 after provider settings: generated per-video watch recommendation stickers should use visible title/channel metadata, cache per title per day, and be dismissible per card.
+4. Keep image generation deferred until text stickers feel useful.
+5. T104/T106/T115 remain open product work outside the current AI lane.

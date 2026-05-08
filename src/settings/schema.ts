@@ -1,3 +1,13 @@
+import {
+  DEFAULT_PERSONA_PRESET,
+  DEFAULT_PERSONA_SLIDERS,
+  normalizeCustomPersonaInstruction,
+  normalizePersonaPreset,
+  normalizePersonaSliders,
+  type PersonaPreset,
+  type PersonaSliders,
+} from "./persona";
+
 export const SETTINGS_STORAGE_KEY = "youtubeFocusSettings";
 export const SETTINGS_STORAGE_AREA = "sync";
 export const MAX_MANUAL_PLAYLISTS = 12;
@@ -22,6 +32,10 @@ export type FocusSettings = {
   importedPlaylists: PlaylistShortcut[];
   selectedChannels: ChannelShortcut[];
   disabledUntil: string | null;
+  personaPreset: PersonaPreset;
+  personaSliders: PersonaSliders;
+  customPersonaInstruction: string;
+  allowMildProfanity: boolean;
 };
 
 export function normalizeFocusSettings(
@@ -44,6 +58,21 @@ export function normalizeFocusSettings(
       typeof value.disabledUntil === "string" || value.disabledUntil === null
         ? value.disabledUntil
         : fallback.disabledUntil,
+    personaPreset: normalizePersonaPreset(
+      value.personaPreset,
+      fallback.personaPreset ?? DEFAULT_PERSONA_PRESET
+    ),
+    personaSliders: normalizePersonaSliders(
+      value.personaSliders,
+      fallback.personaSliders ?? DEFAULT_PERSONA_SLIDERS
+    ),
+    customPersonaInstruction: normalizeCustomPersonaInstruction(
+      value.customPersonaInstruction
+    ),
+    allowMildProfanity:
+      typeof value.allowMildProfanity === "boolean"
+        ? value.allowMildProfanity
+        : fallback.allowMildProfanity,
   };
 }
 
@@ -59,6 +88,9 @@ export function cloneFocusSettings(settings: FocusSettings): FocusSettings {
     selectedChannels: settings.selectedChannels.map((channel) => ({
       ...channel,
     })),
+    personaSliders: {
+      ...settings.personaSliders,
+    },
   };
 }
 

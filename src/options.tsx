@@ -59,6 +59,17 @@ import {
 } from "./settings/schema";
 import type { FocusSettings, PlaylistShortcut } from "./settings/schema";
 import {
+  CUSTOM_PERSONA_INSTRUCTION_MAX_LENGTH,
+  getPersonaPresetLabel,
+  getPersonaPresetSliders,
+  getPersonaPreviewText,
+  PERSONA_PRESETS,
+  PERSONA_SLIDER_MAX,
+  PERSONA_SLIDER_MIN,
+  type PersonaPreset,
+  type PersonaSliders,
+} from "./settings/persona";
+import {
   DEFAULT_YOUTUBE_PLAYLIST_STATE,
   type YouTubePlaylistState,
 } from "./youtube/schema";
@@ -135,6 +146,42 @@ function StatusMessage({
     <p className={`text-xs leading-relaxed ${getPlaylistTone(tone)}`}>
       {children}
     </p>
+  );
+}
+
+type PersonaSliderRowProps = {
+  id: string;
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+};
+
+function PersonaSliderRow({
+  id,
+  label,
+  value,
+  onChange,
+}: PersonaSliderRowProps) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <Label htmlFor={id} className="text-xs font-medium">
+          {label}
+        </Label>
+        <span className="tabular-nums text-xs text-muted-foreground">
+          {value}/{PERSONA_SLIDER_MAX}
+        </span>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min={PERSONA_SLIDER_MIN}
+        max={PERSONA_SLIDER_MAX}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-primary"
+      />
+    </div>
   );
 }
 
@@ -259,6 +306,11 @@ export function OptionsApp() {
     [channelSearch, subscriptionState.items]
   );
   const temporaryDisableUi = getTemporaryDisableUiState(settings, { now });
+  const personaPreviewText = getPersonaPreviewText({
+    personaPreset: settings.personaPreset,
+    personaSliders: settings.personaSliders,
+    customPersonaInstruction: settings.customPersonaInstruction,
+  });
 
   const handleFocusDefaultChange = (checked: boolean) => {
     setStatus("Saving...");
@@ -567,6 +619,70 @@ export function OptionsApp() {
     void patchFocusSettings({ selectedChannels: nextSelection }).catch(() =>
       setChannelStatus("Unable to reorder selected channels.")
     );
+  };
+
+  const handlePersonaPresetChange = (personaPreset: PersonaPreset) => {
+    const personaSliders = getPersonaPresetSliders(personaPreset);
+    setSettings((current) => ({
+      ...current,
+      personaPreset,
+      personaSliders,
+    }));
+    setStatus("Saving...");
+    void patchFocusSettings({
+      personaPreset,
+      personaSliders,
+    })
+      .then(() => setStatus(`${getPersonaPresetLabel(personaPreset)} voice saved.`))
+      .catch(() => setStatus("Unable to save persona settings."));
+  };
+
+  const handlePersonaSliderChange = (
+    slider: keyof PersonaSliders,
+    value: number
+  ) => {
+    const personaSliders = {
+      ...settings.personaSliders,
+      [slider]: value,
+    };
+    setSettings((current) => ({
+      ...current,
+      personaPreset: "custom",
+      personaSliders,
+    }));
+    setStatus("Saving...");
+    void patchFocusSettings({
+      personaPreset: "custom",
+      personaSliders,
+    })
+      .then(() => setStatus("Custom voice saved."))
+      .catch(() => setStatus("Unable to save persona settings."));
+  };
+
+  const handleCustomPersonaInstructionChange = (value: string) => {
+    setSettings((current) => ({
+      ...current,
+      personaPreset: "custom",
+      customPersonaInstruction: value,
+    }));
+    setStatus("Saving...");
+    void patchFocusSettings({
+      personaPreset: "custom",
+      customPersonaInstruction: value,
+    })
+      .then(() => setStatus("Custom instruction saved."))
+      .catch(() => setStatus("Unable to save custom instruction."));
+  };
+
+  const handleMildProfanityChange = (allowMildProfanity: boolean) => {
+    setSettings((current) => ({
+      ...current,
+      allowMildProfanity,
+    }));
+    setStatus("Saving...");
+    void patchFocusSettings({ allowMildProfanity })
+      .then(() => setStatus("Language preference saved."))
+      .catch(() => setStatus("Unable to save language preference."));
   };
 
   return (
@@ -1028,6 +1144,105 @@ export function OptionsApp() {
                   </div>
                 </div>
               ) : null}
+            </CardContent>
+          </Card>
+
+          {/* ── AI Persona ── */}
+          <Card className="overflow-hidden border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">
+            <CardHeader className="border-b border-border/50 bg-secondary/10">
+              <div className="space-y-1">
+                <CardTitle>AI Mood</CardTitle>
+                <CardDescription>
+                  Shape the voice future recommendation stickers will use. No AI calls happen here.
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5 py-5">
+              <div className="grid gap-2 sm:grid-cols-4">
+                {PERSONA_PRESETS.map((preset) => {
+                  const selected = settings.personaPreset === preset;
+                  return (
+                    <Button
+                      key={preset}
+                      type="button"
+                      variant={selected ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePersonaPresetChange(preset)}
+                      className="justify-center"
+                    >
+                      {getPersonaPresetLabel(preset)}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              <div className="grid gap-4 rounded-lg border border-border/60 bg-background/60 p-4 sm:grid-cols-3">
+                <PersonaSliderRow
+                  id="persona-funny"
+                  label="Funny"
+                  value={settings.personaSliders.funny}
+                  onChange={(value) => handlePersonaSliderChange("funny", value)}
+                />
+                <PersonaSliderRow
+                  id="persona-strict"
+                  label="Strict"
+                  value={settings.personaSliders.strict}
+                  onChange={(value) => handlePersonaSliderChange("strict", value)}
+                />
+                <PersonaSliderRow
+                  id="persona-kind"
+                  label="Kind"
+                  value={settings.personaSliders.kind}
+                  onChange={(value) => handlePersonaSliderChange("kind", value)}
+                />
+              </div>
+
+              {settings.personaPreset === "custom" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="custom-persona-instruction" className="text-xs">
+                    Custom instruction
+                  </Label>
+                  <textarea
+                    id="custom-persona-instruction"
+                    value={settings.customPersonaInstruction}
+                    maxLength={CUSTOM_PERSONA_INSTRUCTION_MAX_LENGTH}
+                    placeholder="Example: playful older-brother energy, but keep it useful."
+                    onChange={(event) =>
+                      handleCustomPersonaInstructionChange(event.target.value)
+                    }
+                    className="min-h-24 w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {settings.customPersonaInstruction.length}/
+                    {CUSTOM_PERSONA_INSTRUCTION_MAX_LENGTH}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-secondary/20 px-4 py-3">
+                <div className="space-y-1">
+                  <Label htmlFor="allow-mild-profanity" className="text-sm">
+                    Mild profanity
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Allow casual bite while avoiding insults, slurs, and hateful language.
+                  </p>
+                </div>
+                <Switch
+                  id="allow-mild-profanity"
+                  checked={settings.allowMildProfanity}
+                  onCheckedChange={handleMildProfanityChange}
+                />
+              </div>
+
+              <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  Tone preview
+                </p>
+                <p className="mt-2 text-sm leading-relaxed">
+                  {personaPreviewText}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
