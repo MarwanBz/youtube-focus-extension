@@ -54,6 +54,9 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T112 | Done | P1 | Increase maximum playlist limit to 12 | T111 | Maximum number of manual and imported playlists increased from 3 to 12 in settings schema. |
 | T113 | Done | P1 | Restore Focus Home vertical scrolling and add playlist-level links | T108B, T111 | Vertical wheel or trackpad scrolling still moves the YouTube home page while Focus Home shelves remain usable, and each playlist shelf exposes a direct link to open the full playlist page. |
 | T114 | Done | P2 | Add channel video shelf to Focus Home | T102, T103 | User can add a YouTube channel (by URL or channel ID) and see that channel's latest video thumbnails as a Focus Home shelf alongside playlist shelves; channel videos are fetched via YouTube Data API `search.list` or `channels.list` uploads playlist and cached in `chrome.storage.local`. |
+| T115 | Todo | P1 | Combine playlist and channel selections into unified Focus Sources | T105, T108B, T114 | User can choose and reorder playlists and channels in one combined list; Focus Home renders them in that order; total selected sources are capped at 12. |
+| T116 | Todo | P1 | Migrate existing playlist and channel selections into Focus Sources | T115 | Existing selected playlists and channels are preserved; initial migration order is playlists first, then channels, but user can reorder after migration. |
+| T117 | Todo | P2 | Polish Focus Sources settings UI | T115 | Options page presents one clear source picker/list with type labels, search/filter affordances, reorder controls, and clear empty states. |
 
 ## Phase 3 - Persona And AI Content
 
