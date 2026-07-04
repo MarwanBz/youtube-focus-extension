@@ -3,6 +3,34 @@ import {
   isConnectYouTubeMessage,
   isDisconnectYouTubeMessage,
 } from "./auth/messages";
+/*
+ * AI sticker runtime is intentionally disabled for the non-AI release.
+ * Keep these imports and the implementation below commented for a future revival.
+ *
+ * import {
+ *   isDismissRecommendationStickerMessage,
+ *   isGenerateRecommendationStickersMessage,
+ *   type GenerateRecommendationStickersResponse,
+ * } from "./ai/messages";
+ * import {
+ *   readAiStickerCacheState,
+ *   writeAiStickerCacheState,
+ * } from "./ai/sticker-cache";
+ * import {
+ *   generateRecommendationSticker,
+ *   getAiStickerDateKey,
+ *   createRecommendationStickerKey,
+ *   findCachedSticker,
+ *   isStickerDismissed,
+ *   limitRecommendationStickerInputs,
+ *   type StickerTextGenerator,
+ * } from "./ai/stickers";
+ * import type {
+ *   RecommendationSticker,
+ *   RecommendationStickerDismissal,
+ *   RecommendationStickerInput,
+ * } from "./ai/sticker-schema";
+ */
 import {
   readYouTubeAuthState,
   patchYouTubeAuthState,
@@ -46,9 +74,8 @@ import {
   patchYouTubeSubscriptionState,
   writeYouTubeSubscriptionState,
 } from "./youtube/subscriptions-storage";
-import {
-  ensureAiSettings,
-} from "./settings/ai";
+// import { readAiSettings } from "./settings/ai";
+// import { isFocusModeActive } from "./settings/schema";
 import {
   ensureFocusSettings,
   patchFocusSettings,
@@ -68,7 +95,6 @@ const TEMPORARY_DISABLE_BADGE_COLOR = "#f59e0b";
 
 chrome.runtime.onInstalled.addListener(() => {
   void ensureFocusSettings();
-  void ensureAiSettings();
   void writeYouTubeAuthState(DEFAULT_YOUTUBE_AUTH_STATE);
   void writeYouTubePlaylistState(DEFAULT_YOUTUBE_PLAYLIST_STATE);
   void writeYouTubePlaylistPreviewState(DEFAULT_YOUTUBE_PLAYLIST_PREVIEW_STATE);
@@ -114,6 +140,36 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
+  /*
+   * Disabled for non-AI release.
+   *
+   * if (isGenerateRecommendationStickersMessage(message)) {
+   *   void generateRecommendationStickersForSuggestions(message.suggestions)
+   *     .then(sendResponse)
+   *     .catch((error) => {
+   *       sendResponse({
+   *         ok: false,
+   *         status: "failed",
+   *         message:
+   *           error instanceof Error
+   *             ? `AI stickers failed: ${error.message}`
+   *             : "AI stickers are unavailable right now.",
+   *         stickers: [],
+   *       });
+   *     });
+   *   return true;
+   * }
+   *
+   * if (isDismissRecommendationStickerMessage(message)) {
+   *   void dismissRecommendationStickerByKey(message.stickerKey)
+   *     .then(sendResponse)
+   *     .catch(() => {
+   *       sendResponse({ ok: true });
+   *     });
+   *   return true;
+   * }
+   */
+
   if (message && message.action === "open_options") {
     chrome.runtime.openOptionsPage();
     sendResponse({ ok: true });
@@ -149,6 +205,176 @@ export async function connectYouTube(): Promise<
 
   return result;
 }
+
+/*
+ * Disabled for non-AI release.
+ *
+ * export async function generateRecommendationStickersForSuggestions(
+ *   suggestions: RecommendationStickerInput[],
+ *   generateStickerText?: StickerTextGenerator
+ * ): Promise<GenerateRecommendationStickersResponse> {
+ *   const [focusSettings, aiSettings] = await Promise.all([
+ *     readFocusSettings(),
+ *     readAiSettings(),
+ *   ]);
+ *
+ *   if (!isFocusModeActive(focusSettings)) {
+ *     return {
+ *       ok: true,
+ *       status: "disabled",
+ *       stickers: [],
+ *     };
+ *   }
+ *
+ *   if (!aiSettings.enabled) {
+ *     return {
+ *       ok: true,
+ *       status: "disabled",
+ *       stickers: [],
+ *     };
+ *   }
+ *
+ *   if (!aiSettings.apiKey) {
+ *     return {
+ *       ok: true,
+ *       status: "missing_key",
+ *       stickers: [],
+ *     };
+ *   }
+ *
+ *   const now = new Date();
+ *   const dateKey = getAiStickerDateKey(now);
+ *   const limitedSuggestions = limitRecommendationStickerInputs(suggestions);
+ *
+ *   if (limitedSuggestions.length === 0) {
+ *     return {
+ *       ok: true,
+ *       status: "empty",
+ *       stickers: [],
+ *     };
+ *   }
+ *
+ *   const currentCache = await readAiStickerCacheState();
+ *   const sameDayCache = {
+ *     ...currentCache,
+ *     stickers: currentCache.stickers.filter(
+ *       (sticker) => sticker.dateKey === dateKey
+ *     ),
+ *     dismissals: currentCache.dismissals.filter(
+ *       (dismissal) => dismissal.dateKey === dateKey
+ *     ),
+ *   };
+ *   const stickers: RecommendationSticker[] = [];
+ *   let attemptedGeneration = false;
+ *   let generationFailed = false;
+ *   let generationFailureMessage = "AI stickers are unavailable right now.";
+ *
+ *   for (const suggestion of limitedSuggestions) {
+ *     const key = createRecommendationStickerKey(suggestion, dateKey);
+ *     if (isStickerDismissed(sameDayCache.dismissals, key, dateKey)) {
+ *       continue;
+ *     }
+ *
+ *     const cached = findCachedSticker(sameDayCache.stickers, key, dateKey);
+ *     if (cached) {
+ *       stickers.push(cached);
+ *       continue;
+ *     }
+ *
+ *     attemptedGeneration = true;
+ *
+ *     try {
+ *       const generated = await generateRecommendationSticker(
+ *         {
+ *           item: suggestion,
+ *           settings: focusSettings,
+ *           aiSettings,
+ *           dateKey,
+ *           now,
+ *         },
+ *         generateStickerText
+ *       );
+ *
+ *       if (generated) {
+ *         sameDayCache.stickers.push(generated);
+ *         stickers.push(generated);
+ *       }
+ *     } catch (error) {
+ *       generationFailed = true;
+ *       generationFailureMessage = getGenerationErrorMessage(error);
+ *     }
+ *   }
+ *
+ *   await writeAiStickerCacheState({
+ *     stickers: mergeStickerCache(sameDayCache.stickers),
+ *     dismissals: mergeDismissals(sameDayCache.dismissals),
+ *     updatedAt: now.toISOString(),
+ *   });
+ *
+ *   if (generationFailed && attemptedGeneration && stickers.length === 0) {
+ *     return {
+ *       ok: false,
+ *       status: "failed",
+ *       message: generationFailureMessage,
+ *       stickers: [],
+ *     };
+ *   }
+ *
+ *   return {
+ *     ok: true,
+ *     status: stickers.length > 0 ? "ready" : "empty",
+ *     stickers,
+ *   };
+ * }
+ *
+ * function getGenerationErrorMessage(error: unknown) {
+ *   if (error instanceof Error && error.message) {
+ *     return `AI stickers failed: ${error.message}`;
+ *   }
+ *
+ *   return "AI stickers are unavailable right now.";
+ * }
+ *
+ * export async function dismissRecommendationStickerByKey(stickerKey: string) {
+ *   const now = new Date();
+ *   const dateKey = stickerKey.split("|", 1)[0] || getAiStickerDateKey(now);
+ *   const currentCache = await readAiStickerCacheState();
+ *   const dismissal: RecommendationStickerDismissal = {
+ *     key: stickerKey,
+ *     dateKey,
+ *     dismissedAt: now.toISOString(),
+ *   };
+ *   const dismissals = currentCache.dismissals.some(
+ *     (item) => item.key === stickerKey && item.dateKey === dateKey
+ *   )
+ *     ? currentCache.dismissals
+ *     : [...currentCache.dismissals, dismissal];
+ *
+ *   await writeAiStickerCacheState({
+ *     stickers: currentCache.stickers,
+ *     dismissals: mergeDismissals(dismissals),
+ *     updatedAt: now.toISOString(),
+ *   });
+ *
+ *   return { ok: true as const };
+ * }
+ *
+ * function mergeStickerCache(stickers: RecommendationSticker[]) {
+ *   const byKey = new Map<string, RecommendationSticker>();
+ *   for (const sticker of stickers) {
+ *     byKey.set(sticker.key, sticker);
+ *   }
+ *   return Array.from(byKey.values());
+ * }
+ *
+ * function mergeDismissals(dismissals: RecommendationStickerDismissal[]) {
+ *   const byKey = new Map<string, RecommendationStickerDismissal>();
+ *   for (const dismissal of dismissals) {
+ *     byKey.set(dismissal.key, dismissal);
+ *   }
+ *   return Array.from(byKey.values());
+ * }
+ */
 
 export async function disconnectYouTube(): Promise<{
   ok: true;

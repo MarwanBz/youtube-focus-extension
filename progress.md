@@ -4,9 +4,9 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: T202 provider settings are complete; next AI work is T203 generated recommendation stickers.
+Current focus: T507 is complete. AI UI/runtime paths are disabled for the non-AI release while AI files and packages remain preserved for later revival.
 
-Next task: T203 - generate AI-powered cached recommendation stickers using the persona and provider settings from T201/T202.
+Next task: complete live Chrome manual verification and continue release packaging without AI.
 
 ## Implementation Log
 
@@ -71,7 +71,11 @@ Next task: T203 - generate AI-powered cached recommendation stickers using the p
 | 2026-05-06 | T503 watch-page soft focus | Done | Refined the watch-page soft-focus behavior so the right rail and comments stay visible but softly blurred, dimmed, and inert until revealed, reset reveal state on each new watch route, and preferred `#secondary-inner` placement so the panel anchors at the top of the right rail. Verified with `npm run lint`, `npm run build`, and `npx playwright test tests/watch-soft-focus.spec.ts`, and the user confirmed the updated in-browser behavior. |
 | 2026-05-06 | T114 channel shelves from subscriptions | Done | Added selected-channel settings, authenticated subscriptions cache, latest-channel video preview cache, and a new options-page Channels card that lets the user pick up to five subscribed channels. Focus Home now renders those channel shelves after playlists, channel previews auto-refresh on settings changes, and verification passed with `npm run lint`, `npm test`, and `npm run build`. |
 | 2026-05-08 | T201 persona mood settings | Done | Added synced persona settings for Funny, Strict, Calm, and Custom modes, funny/strict/kind sliders, mild profanity preference, custom instruction storage, and an options-page tone preview without making AI provider calls. |
-| 2026-05-08 | T202 AI text provider settings | Done | Added `ai` and `@ai-sdk/openai` dependencies, created `src/settings/ai.ts` with local-only AI settings schema and storage helpers (`enabled`, `provider: "openai"`, `model: "gpt-5.4-mini"`, `apiKey`), added `https://api.openai.com/*` host permission in manifest, wired AI provider controls into the existing AI Mood card with enable toggle, model input, masked API key display with Replace/Clear actions, and background ensure-defaults on install. Verified with `npm run lint`, `npm run build`, and `npx playwright test tests/ai-settings.spec.ts` (20 tests passed). |
+| 2026-05-08 | T202 AI text provider settings | Done | Added `ai` and `@ai-sdk/openai` dependencies, created `src/settings/ai.ts` with local-only AI settings schema and storage helpers (`enabled`, `provider: "openai"`, `model: "gpt-5-mini"`, and `apiKey`), added `https://api.openai.com/*` host permission in manifest, and wired AI provider controls into the existing AI Mood card with enable toggle, model input, masked API key display with Replace/Clear actions. Verified with `npm run lint`, `npm run build`, and `npx playwright test tests/ai-settings.spec.ts` (20 tests passed). |
+| 2026-05-08 | T203 cached AI recommendation stickers | Done | Implemented opt-in watch-page sticker generation that runs only after recommendations are revealed, uses T201 persona plus T202 OpenAI provider settings, caches and dismisses stickers per recommendation per day, and fails closed without blocking reveal behavior. Also fixed T202 review leftovers by removing install-time AI settings persistence and repairing the architecture Markdown fence. Verified with `npm run lint`, `npm run build`, targeted AI/watch tests, and full `npx playwright test` outside the sandbox for Chromium permissions (128 passed). |
+| 2026-05-08 | T203A AI key save-flow bug | Doing | Investigating the no-sticker symptom after entering an OpenAI key. Found that the options page used `aiSettings.apiKey` as both draft input text and persisted saved-key state, so typing the first character could switch the UI to the saved-key display before `Save key` persisted anything. |
+| 2026-05-09 | T203B empty AI sticker text generation | Done | Traced the no-visible-text symptom to the GPT-5 generation call, not the sticker UI: `generateText` correctly reads `result.text`, but the request used GPT-5-mini with the default medium reasoning effort and only 32 output tokens. Increased the output budget to 96 and set OpenAI `reasoningEffort: "minimal"` so the small sticker request produces visible text instead of spending the tiny budget on reasoning. |
+| 2026-07-04 | T507 non-AI release disable | Done | Commented out AI options UI, background message handling, content-script sticker requests, and sticker DOM helpers while preserving AI source files and package dependencies. Verified with `npm run lint`, `npm run build`, `npm test` (100 passed, 34 skipped), and a built-manifest check confirming no OpenAI host permissions or AI sticker/OpenAI strings in `dist/manifest.json` or `dist/assets`. |
 
 ## Decision Log
 
@@ -96,6 +100,7 @@ Next task: T203 - generate AI-powered cached recommendation stickers using the p
 | 2026-05-02 | Watch-page AI guidance should build on local suggestion metadata, not new permissions | The future AI layer for the watch page should derive titles and channel names from already-rendered suggested videos so the app can experiment with reframing text without expanding OAuth scope or adding separate video-discovery APIs. |
 | 2026-05-06 | Channel shelves should come from subscribed channels, not global search | The user wants a personal source list tied to their connected account. Using `subscriptions.list` for selection and `search.list` for latest videos keeps Focus Home aligned with channels the user already follows while staying inside the existing OAuth boundary. |
 | 2026-05-08 | AI starts with persona controls before providers | The user wants funny, mood-aware anti-distraction copy, but T201 should only define the voice and preview it locally; provider configuration and generated per-video stickers belong in T202 and T203. |
+| 2026-07-04 | Ship current release without AI | AI source and dependencies are preserved for later revival, but user-facing AI UI, background generation, content-script stickers, AI tests, and OpenAI host permissions are disabled to reduce privacy, permission, and production-safety risk. |
 
 ## Feature State
 
@@ -128,10 +133,10 @@ Next task: T203 - generate AI-powered cached recommendation stickers using the p
 | Temporary pause foundation | Done | Popup and options now offer 15-minute, 30-minute, and 1-hour pause presets, plus paused-until and resume-now states that reuse the existing `disabledUntil` setting. |
 | Unpacked Chrome packaging | Done | The Phase 1 build now succeeds without OAuth credentials and the README documents how to load `dist/` in Chrome developer mode. |
 
-| Persona settings | Done | Options now stores Funny, Strict, Calm, and Custom modes with funny/strict/kind sliders, custom instructions, mild profanity preference, and a local tone preview. |
-| AI text provider settings | Done | Options now has an AI Stickers toggle inside the AI Mood card with OpenAI model configuration and local-only API key storage with masked display, Replace, and Clear actions. |
-| AI text messages | Todo | Phase 3 and opt-in only; next step is T203 generated recommendation stickers. |
-| AI images | Deferred | Phase 3 or later, low priority. |
+| Persona settings | Deferred | Code is preserved, but options UI is disabled for the non-AI release. |
+| AI text provider settings | Deferred | Code and package dependencies are preserved, but API-key UI and runtime settings subscription are disabled for the non-AI release. |
+| AI text messages | Deferred | Sticker generation, background routing, content-script attachment, and AI tests are disabled for the non-AI release. |
+| AI images | Deferred | Low priority; do not start before AI production safety is explicitly reopened. |
 | Gamification and retention | Deferred | Phase 4 with local-only session, streak, milestone, and popup or overlay feedback work. |
 | Store publishing | Deferred | Phase 5. |
 
@@ -139,8 +144,7 @@ Next task: T203 - generate AI-powered cached recommendation stickers using the p
 
 Next implementation handoff:
 
-1. T202 is done. Start T203 by implementing generated per-video watch recommendation stickers using visible title/channel metadata and the AI provider configured in T202.
-2. Keep AI disabled unless the user explicitly enables and configures a provider.
-3. Implement T203 after provider settings: generated per-video watch recommendation stickers should use visible title/channel metadata, cache per title per day, and be dismissible per card.
-4. Keep image generation deferred until text stickers feel useful.
-5. T104/T106/T115 remain open product work outside the current AI lane.
+1. Continue release prep without AI after T507.
+2. Do not re-enable AI UI, OpenAI permissions, or sticker generation without explicitly reopening production safety work.
+3. T104/T106/T115 remain open product work outside the current release-disable lane.
+4. T505/T506 are the next release-doc and publishing-asset tracks after manual Chrome verification.

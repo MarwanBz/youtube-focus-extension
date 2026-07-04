@@ -1,6 +1,7 @@
 export const AI_SETTINGS_STORAGE_KEY = "youtubeFocusAiSettings";
 export const AI_SETTINGS_STORAGE_AREA = "local";
-export const AI_DEFAULT_MODEL = "gpt-5.4-mini";
+export const AI_DEFAULT_MODEL = "gpt-5-mini";
+const LEGACY_UNSUPPORTED_MODELS = new Set(["gpt-5.4-mini"]);
 
 export type AiSettings = {
   enabled: boolean;
@@ -29,10 +30,7 @@ export function normalizeAiSettings(
       typeof value.enabled === "boolean" ? value.enabled : fallback.enabled,
     provider:
       value.provider === "openai" ? value.provider : fallback.provider,
-    model:
-      typeof value.model === "string" && value.model.trim().length > 0
-        ? value.model.trim().slice(0, 256)
-        : fallback.model,
+    model: normalizeAiModel(value.model, fallback.model),
     apiKey:
       typeof value.apiKey === "string"
         ? value.apiKey.trim().slice(0, 256)
@@ -135,6 +133,26 @@ export function getAiApiKeyDisplayValue(settings: AiSettings) {
   return isAiApiKeySaved(settings) ? "API key saved locally" : "";
 }
 
+export function getAiApiKeyEditorState({
+  draftApiKey,
+  editing,
+  settings,
+}: {
+  draftApiKey: string;
+  editing: boolean;
+  settings: AiSettings;
+}) {
+  const hasSavedKey = isAiApiKeySaved(settings);
+  const showEditor = editing || !hasSavedKey;
+
+  return {
+    canSave: draftApiKey.trim().length > 0,
+    hasSavedKey,
+    showEditor,
+    showSavedSummary: hasSavedKey && !showEditor,
+  };
+}
+
 function getLocalStorageArea(): chrome.storage.StorageArea | null {
   if (typeof chrome === "undefined" || !chrome.storage?.local) {
     return null;
@@ -149,6 +167,19 @@ function getLastRuntimeError() {
   }
 
   return chrome.runtime?.lastError ?? null;
+}
+
+function normalizeAiModel(value: unknown, fallback: string) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const model = value.trim().slice(0, 256);
+  if (!model || LEGACY_UNSUPPORTED_MODELS.has(model)) {
+    return fallback;
+  }
+
+  return model;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

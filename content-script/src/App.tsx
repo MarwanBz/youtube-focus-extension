@@ -63,15 +63,52 @@ export function WatchPageFocusFoundation() {
   const [suggestions, setSuggestions] = useState<WatchSuggestionMetadata[]>([]);
   const [suggestionsRevealed, setSuggestionsRevealed] = useState(false);
   const [commentsRevealed, setCommentsRevealed] = useState(false);
+  /*
+   * AI sticker request state is intentionally disabled for the non-AI release.
+   * const [stickers, setStickers] = useState<RecommendationSticker[]>([]);
+   * const [stickerStatus, setStickerStatus] = useState("");
+   * const stickerRequestKeyRef = useRef("");
+   */
+
+  const refreshWatchSuggestions = () => {
+    const nextSuggestions = extractWatchSuggestionMetadata(document);
+    setSuggestions(nextSuggestions);
+    return nextSuggestions;
+  };
+
+  const handleRevealSuggestions = () => {
+    refreshWatchSuggestions();
+    setSuggestionsRevealed(true);
+  };
+
+  const handleRevealAll = () => {
+    refreshWatchSuggestions();
+    setSuggestionsRevealed(true);
+    setCommentsRevealed(true);
+  };
 
   useEffect(() => {
     setSuggestionsRevealed(false);
     setCommentsRevealed(false);
+    /*
+     * AI sticker cleanup is disabled for the non-AI release.
+     * setStickers([]);
+     * setStickerStatus("");
+     * stickerRequestKeyRef.current = "";
+     * removeWatchRecommendationStickers(document);
+     */
   }, [routeState.href]);
 
   useEffect(() => {
     if (!shouldRenderWatchSoftFocus(routeState, focusModeActive)) {
       setSuggestions([]);
+      /*
+       * AI sticker cleanup is disabled for the non-AI release.
+       * setStickers([]);
+       * setStickerStatus("");
+       * stickerRequestKeyRef.current = "";
+       * removeWatchRecommendationStickers(document);
+       */
       syncWatchSoftFocusVisibility(document, {
         dimSuggestions: false,
         dimComments: false,
@@ -97,12 +134,19 @@ export function WatchPageFocusFoundation() {
 
     return () => {
       observer.disconnect();
+      // AI sticker cleanup disabled for non-AI release.
+      // removeWatchRecommendationStickers(document);
       syncWatchSoftFocusVisibility(document, {
         dimSuggestions: false,
         dimComments: false,
       });
     };
   }, [commentsRevealed, focusModeActive, routeState, suggestionsRevealed]);
+
+  /*
+   * AI sticker generation and attachment effects are intentionally disabled
+   * for the non-AI release. Watch soft-focus reveal controls remain active.
+   */
 
   if (!shouldRenderWatchSoftFocus(routeState, focusModeActive)) {
     return null;
@@ -231,15 +275,16 @@ export function WatchPageFocusFoundation() {
             need.
           </p>
           <span className="youtube-focus-watch__foot">
-            Focus context ready from {suggestions.length} suggested videos for
-            future reveal controls and optional AI guidance.
+            {suggestions.length === 0
+              ? "No recommendation cards detected yet."
+              : `Focus context ready from ${suggestions.length} suggested videos.`}
           </span>
           <div className="youtube-focus-watch__actions">
             <button
               className="youtube-focus-watch__button"
               type="button"
               disabled={suggestionsRevealed}
-              onClick={() => setSuggestionsRevealed(true)}
+              onClick={handleRevealSuggestions}
             >
               {suggestionsRevealed ? "Suggestions visible" : "Show suggestions"}
             </button>
@@ -255,10 +300,7 @@ export function WatchPageFocusFoundation() {
               className="youtube-focus-watch__button"
               type="button"
               disabled={revealCount === 0}
-              onClick={() => {
-                setSuggestionsRevealed(true);
-                setCommentsRevealed(true);
-              }}
+              onClick={handleRevealAll}
             >
               Reveal all
             </button>

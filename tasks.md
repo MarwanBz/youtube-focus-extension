@@ -62,13 +62,15 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 
 | ID | Status | Priority | Task | Dependencies | Acceptance Criteria |
 | --- | --- | --- | --- | --- | --- |
-| T201 | Done | P2 | Add persona preset settings | T012 | User can choose Funny, Strict, Calm, or Custom; tune funny/strict/kind sliders; allow mild profanity; and preview the tone without AI calls. |
-| T202 | Done | P2 | Add text generation provider settings | T201 | API key and provider settings are stored only after opt-in. |
-| T203 | Todo | P2 | Generate cached recommendation stickers | T202 | When watch-page recommendations are revealed, each visible recommended video can show a small AI-generated sticker based on its title/channel and persona settings; stickers are dismissible per video, cached per title per day, and fail closed without breaking reveal behavior. |
+| T201 | Deferred | P2 | Add persona preset settings | T012 | Deferred for current release; code may remain preserved but no persona UI ships while AI is disabled. |
+| T202 | Deferred | P2 | Add text generation provider settings | T201 | Deferred for current release; no API-key UI or provider settings ship while AI is disabled. |
+| T203 | Deferred | P2 | Generate cached recommendation stickers | T202 | Deferred for current release; no recommendation sticker generation or sticker UI runs in the shipped build. |
+| T203A | Deferred | P1 | Fix AI key save flow for stickers | T203 | Deferred with AI disabled for current release. |
+| T203B | Deferred | P1 | Fix empty AI sticker text generation | T203 | Deferred with AI disabled for current release. |
 | T204 | Deferred | P3 | Add optional AI image provider settings | T201 | User can opt in to image generation separately from text. |
 | T205 | Deferred | P3 | Generate and cache AI images | T204 | Images cache daily or per playlist; fallback appears on failure. |
-| T206 | Todo | P2 | Add backend AI proxy for production use | T203 | Extension calls a hosted proxy so shipped users never receive the owner OpenAI key. |
-| T207 | Todo | P2 | Add per-Google-user AI quota enforcement | T206 | Quota is enforced per authenticated Google user; owner/admin can bypass. |
+| T206 | Deferred | P2 | Add backend AI proxy for production use | T203 | Required before AI can be reconsidered for production. |
+| T207 | Deferred | P2 | Add per-Google-user AI quota enforcement | T206 | Required before AI can be reconsidered for production. |
 
 ## Phase 4 - Gamification And Retention
 
@@ -92,6 +94,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T504 | Deferred | P3 | Add mood presets and themes | T108 | Themes do not reduce readability or accessibility. |
 | T505 | Todo | P2 | Prepare store publishing assets | Stable release | Icons, screenshots, privacy policy, and permission statement exist. |
 | T506 | Todo | P2 | Prepare open-source release docs | Stable release | README, license, contribution guide, and release checklist exist. |
+| T507 | Done | P1 | Comment out AI features for non-AI release | Stable release | AI files and packages stay in place, AI UI/runtime/tests are disabled, and the release manifest does not request OpenAI host permissions. |
 
 ## Backlog Triage
 
@@ -109,9 +112,9 @@ Build after MVP:
 
 Defer:
 
-- AI image generation.
+- AI text and image generation.
 - behavior analytics.
-- gamification implementation until Phase 2 onboarding/cache work and Phase 3 personal AI are in place.
+- gamification implementation until Phase 2 onboarding/cache work is stable.
 - theme presets.
 - publishing.
 

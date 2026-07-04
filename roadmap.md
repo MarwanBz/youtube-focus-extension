@@ -25,7 +25,9 @@ Current priority override: the product now treats this onboarding/import track a
 
 Phase 3 through Phase 5 are intentionally deferred.
 
-Persona prompts, AI messages, gamification, themes, and store publishing are valuable only after the extension reliably changes YouTube behavior without breaking normal browsing.
+AI prompts/messages, gamification, themes, and store publishing are valuable only after the extension reliably changes YouTube behavior without breaking normal browsing.
+
+Current release override: AI code and packages may remain in the repository, but AI UI/runtime paths and OpenAI host permissions stay disabled for release.
 
 ## Phase 1 - MVP Focus Mode
 
@@ -92,6 +94,8 @@ Exit criteria:
 
 Target: weeks 5-6.
 
+Current status: deferred for the non-AI release.
+
 Deliverables:
 
 - Persona presets and custom prompt settings.
@@ -109,6 +113,7 @@ Exit criteria:
 - No AI API calls happen when disabled.
 - Generated content is cached to avoid repeated calls.
 - Overlay remains usable if AI providers fail.
+- OpenAI host permissions are added only when this phase is explicitly restarted.
 
 ## Phase 4 - Gamification And Retention
 
@@ -153,6 +158,7 @@ Exit criteria:
 ## Deferred Until Explicitly Needed
 
 - Sentry or remote error logging.
+- AI text generation and recommendation stickers.
 - AI image generation.
 - YouTube history or partially watched video support.
 - Detailed behavior analytics.

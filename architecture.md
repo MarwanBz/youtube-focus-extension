@@ -139,7 +139,7 @@ Target focus-mode behavior:
 - Configure manual playlists for the MVP.
 - Configure default focus mode.
 - Configure temporary disable durations.
-- Later, configure user-initiated YouTube OAuth, import-led onboarding states, persona prompts, and optional API keys.
+- Later, configure user-initiated YouTube OAuth and import-led onboarding states. Persona prompts and optional API keys are deferred and disabled for the current release.
 
 ### Background Service Worker
 
@@ -158,7 +158,7 @@ Target focus-mode behavior:
 - Coordinate YouTube OAuth in Phase 2.
 - Fetch and cache authenticated YouTube playlist data in Phase 2.
 - Handle auth success, auth cancel, auth failure, token expiry, token revocation, and reconnect flows without blocking manual setup.
-- Call opt-in AI providers in Phase 3.
+- AI provider calls are disabled for the current release; dormant AI code remains only for a future explicit revival.
 
 ### Content Script
 
@@ -236,7 +236,7 @@ Upcoming manifest guidance:
 - Do not add `identity` until Phase 2 OAuth work begins.
 - When `T102` starts, add the manifest `oauth2` block and keep the extension ID stable with a manifest `key`.
 
-Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. `alarms` is required for the temporary-disable countdown badge that updates on the extension action icon. `host_permissions` for `https://api.openai.com/*` enables the opt-in AI sticker generation in Phase 3. Do not add future permissions early.
+Permission reason: `storage` is required for the focus-mode default, manual playlist shortcuts, and temporary-disable state. `alarms` is required for the temporary-disable countdown badge that updates on the extension action icon. OpenAI host permissions are intentionally omitted from the current release because AI features are disabled. Do not add future permissions early.
 
 ## Settings Storage
 
@@ -278,15 +278,13 @@ Phase 2 import boundaries:
 - Watch Later may require shortcut or fallback behavior instead of API-backed imported data.
 - If imported playlist caches grow beyond small preference storage, keep them separate from the sync settings object.
 
-Phase 3 AI flow:
-Options page
-  -> user opts in and saves AI provider settings in `chrome.storage.local`
-  -> AI provider settings include `enabled`, `provider: "openai"`, `model: "gpt-5.4-mini"`, and `apiKey`
-  -> API key is stored only in local extension storage, never synced
-  -> background generates short mentor copy or recommendation stickers using `createOpenAI({ apiKey })` from `@ai-sdk/openai`
-  -> background writes daily/session cache
-  -> content script displays cached result
-  -> no generation calls happen in T202; the plumbing is ready for T203
+Current AI release boundary:
+Options page, background service worker, and content script
+  -> keep AI files and dependencies in the repository for later revival
+  -> do not render AI/persona settings in options
+  -> do not route AI sticker messages in the background worker
+  -> do not request, attach, or dismiss AI stickers in the content script
+  -> do not request OpenAI host permissions in the release manifest
 
 Phase 4 gamification flow:
 Popup, options, or content script
@@ -323,10 +321,11 @@ src/
     sessions.ts
     streaks.ts
     milestones.ts
-  ai/
-    mentor.ts
-    images.ts
-    cache.ts
+  ai/                    # preserved but disabled for current release
+    sticker-cache.ts
+    sticker-schema.ts
+    messages.ts
+    stickers.ts
 
 content-script/
   src/
@@ -358,7 +357,7 @@ Use a small wrapper over `chrome.storage.sync` and `chrome.storage.local`.
 Recommended split:
 
 - `chrome.storage.sync`: user preferences that should follow the user across browsers.
-- `chrome.storage.local`: cached YouTube API results, generated AI content, gamification state, and larger transient data.
+- `chrome.storage.local`: cached YouTube API results, deferred AI state if revived later, gamification state, and larger transient data.
 
 Initial settings shape:
 
@@ -431,16 +430,15 @@ type FocusModeCache = {
 };
 ```
 
-AI provider settings (local storage, never synced):
+Deferred AI provider settings (local storage, never synced; UI/runtime disabled for current release):
 
 ```ts
 type AiSettings = {
   enabled: boolean;
   provider: "openai";
-  model: string;        // defaults to "gpt-5.4-mini"
+  model: string;        // defaults to "gpt-5-mini"
   apiKey: string;
 };
-```
 ```
 
 Planned gamification-local shape:
@@ -530,7 +528,7 @@ Handle:
 
 ### Phase 3
 
-Use opt-in text and image generation. Users provide their own API keys. Cache generated content daily or per session.
+AI is deferred for the current release. The code and dependencies may remain in the repository, but no AI UI, runtime generation, OpenAI host permission, or API-key entrypoint should ship until production safety work is explicitly restarted.
 
 ### Phase 4
 
