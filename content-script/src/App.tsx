@@ -26,10 +26,6 @@ import {
 import { subscribeToYouTubePlaylistPreviewState } from "@/youtube/preview-storage";
 import { EXTENSION_HOST_ID } from "./domIds";
 import { syncHomeFeedVisibility } from "./feedVisibility";
-import {
-  getFocusBannerContent,
-  type FocusBannerVariant,
-} from "./focusBanner";
 import { subscribeToUrlChanges } from "./urlChanges";
 import {
   extractWatchSuggestionMetadata,
@@ -205,24 +201,6 @@ export function WatchPageFocusFoundation() {
           z-index: 1;
         }
 
-        .youtube-focus-watch__body {
-          color: #c7c7c7;
-          font-size: 13px;
-          line-height: 1.55;
-          margin: 8px 0 0;
-          position: relative;
-          z-index: 1;
-        }
-
-        .youtube-focus-watch__foot {
-          color: #8f8f8f;
-          display: block;
-          font-size: 12px;
-          margin-top: 10px;
-          position: relative;
-          z-index: 1;
-        }
-
         .youtube-focus-watch__actions {
           display: flex;
           flex-wrap: wrap;
@@ -267,42 +245,41 @@ export function WatchPageFocusFoundation() {
         <div className="youtube-focus-watch__panel">
           <span className="youtube-focus-watch__eyebrow">Watch Focus</span>
           <h2 className="youtube-focus-watch__title">
-            Suggestions are softened so you can stay with this video.
+            Suggestions and comments are dimmed.
           </h2>
-          <p className="youtube-focus-watch__body">
-            Related videos and comments are dimmed and inert until you ask
-            for them. Reveal only the distraction surface you actually
-            need.
-          </p>
-          <span className="youtube-focus-watch__foot">
-            {suggestions.length === 0
-              ? "No recommendation cards detected yet."
-              : `Focus context ready from ${suggestions.length} suggested videos.`}
-          </span>
           <div className="youtube-focus-watch__actions">
             <button
               className="youtube-focus-watch__button"
               type="button"
+              aria-label={
+                suggestionsRevealed
+                  ? "Suggestions are visible"
+                  : `Show ${suggestions.length} suggestions`
+              }
               disabled={suggestionsRevealed}
               onClick={handleRevealSuggestions}
             >
-              {suggestionsRevealed ? "Suggestions visible" : "Show suggestions"}
+              Suggestions
             </button>
             <button
               className="youtube-focus-watch__button"
               type="button"
+              aria-label={
+                commentsRevealed ? "Comments are visible" : "Show comments"
+              }
               disabled={commentsRevealed}
               onClick={() => setCommentsRevealed(true)}
             >
-              {commentsRevealed ? "Comments visible" : "Show comments"}
+              Comments
             </button>
             <button
               className="youtube-focus-watch__button"
               type="button"
+              aria-label="Show suggestions and comments"
               disabled={revealCount === 0}
               onClick={handleRevealAll}
             >
-              Reveal all
+              All
             </button>
           </div>
         </div>
@@ -452,106 +429,6 @@ export function MastheadFocusToggle() {
           <span className="youtube-focus-toggle__thumb" />
         </span>
       </button>
-    </>
-  );
-}
-
-export function HomeFocusBanner() {
-  const { focusModeActive, focusModeEnabled, routeState } = useFocusUiState();
-  const banner = getFocusBannerContent(focusModeEnabled);
-
-  useHomeFeedVisibilitySync(routeState.isHome && focusModeActive);
-
-  if (!routeState.isHome) {
-    return null;
-  }
-
-  return (
-    <>
-      <style>{`
-        .youtube-focus-banner {
-          align-items: flex-start;
-          background: #272727;
-          border-radius: 12px;
-          box-sizing: border-box;
-          color: #f1f1f1;
-          display: flex;
-          font-family: Roboto, Arial, sans-serif;
-          gap: 16px;
-          margin: 24px 24px 16px;
-          padding: 16px 20px;
-          width: calc(100% - 48px);
-        }
-
-        .youtube-focus-banner[data-variant="off"] {
-          background: rgba(204, 0, 0, 0.15);
-        }
-
-        .youtube-focus-banner__icon {
-          color: #f1f1f1;
-          display: block;
-          flex: 0 0 auto;
-          height: 24px;
-          width: 24px;
-        }
-
-        .youtube-focus-banner[data-variant="off"] .youtube-focus-banner__icon {
-          color: #ff4e45;
-        }
-
-        .youtube-focus-banner[data-variant="on"] .youtube-focus-banner__icon {
-          color: #3ea6ff;
-        }
-
-        .youtube-focus-banner__text-wrap {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          padding-top: 2px;
-        }
-
-        .youtube-focus-banner__title {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 1.25;
-          margin: 0;
-        }
-
-        .youtube-focus-banner__body {
-          color: #aaaaaa;
-          font-size: 14px;
-          font-weight: 400;
-          line-height: 1.4;
-          margin: 0;
-        }
-
-        @media (max-width: 900px) {
-          .youtube-focus-banner {
-            margin: 16px 12px;
-            padding: 12px 16px;
-            width: calc(100% - 24px);
-          }
-          
-          .youtube-focus-banner__title {
-            font-size: 15px;
-          }
-          
-          .youtube-focus-banner__body {
-            font-size: 13px;
-          }
-        }
-      `}</style>
-      <section
-        className="youtube-focus-banner"
-        data-variant={banner.variant}
-        role="status"
-      >
-        <BannerIcon variant={banner.variant} />
-        <div className="youtube-focus-banner__text-wrap">
-          <h2 className="youtube-focus-banner__title">{banner.title}</h2>
-          <p className="youtube-focus-banner__body">{banner.body}</p>
-        </div>
-      </section>
     </>
   );
 }
@@ -1010,32 +887,6 @@ function getHomePageScrollContainer() {
     candidates.find(
       (candidate) => candidate.scrollHeight > candidate.clientHeight + 1
     ) ?? document.documentElement
-  );
-}
-
-function BannerIcon({ variant }: { variant: FocusBannerVariant }) {
-  if (variant === "on") {
-    return (
-      <svg
-        aria-hidden="true"
-        className="youtube-focus-banner__icon"
-        fill="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2ZM12 4.4L9.84 8.77L5 9.46L8.5 12.86L7.68 17.65L12 15.38L16.32 17.65L15.5 12.86L19 9.46L14.16 8.77L12 4.4Z"/>
-      </svg>
-    );
-  }
-
-  return (
-    <svg
-      aria-hidden="true"
-      className="youtube-focus-banner__icon"
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path d="M11 15h2v2h-2v-2zm0-8h2v6h-2V7zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
-    </svg>
   );
 }
 

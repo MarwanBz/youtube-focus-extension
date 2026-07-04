@@ -19,35 +19,35 @@ export function getPlaylistStatusCopy(
   if (status === "empty") {
     return {
       tone: "neutral",
-      text: "No playlists found for this channel yet.",
+      text: "No playlists found.",
     };
   }
 
   if (status === "channel_required") {
     return {
       tone: "warning",
-      text: "Create a YouTube channel to upload videos or create playlists.",
+      text: "Create a YouTube channel to use playlist import.",
     };
   }
 
   if (status === "unauthorized") {
     return {
       tone: "error",
-      text: "Authorization expired or was revoked. Reconnect YouTube and retry.",
+      text: "Reconnect YouTube.",
     };
   }
 
   if (status === "unavailable") {
     return {
       tone: "warning",
-      text: "YouTube playlist import is temporarily unavailable. Retry soon.",
+      text: "YouTube import unavailable. Retry soon.",
     };
   }
 
   if (status === "failed") {
     return {
       tone: "error",
-      text: lastError || "Unable to import playlists right now.",
+      text: lastError || "Unable to import playlists.",
     };
   }
 

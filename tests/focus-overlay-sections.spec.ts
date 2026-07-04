@@ -19,8 +19,8 @@ const baseSettings: FocusSettings = {
 test.describe("Focus overlay sections", () => {
   test("shows select-lists copy when no playlists are configured", () => {
     expect(getFocusOverlayHeaderContent(baseSettings)).toEqual({
-      body: "Start with Watch Later, then connect YouTube or add playlists from Settings.",
-      buttonLabel: "Connect or add lists",
+      body: "Watch Later is ready.",
+      buttonLabel: "Add lists",
     });
   });
 
@@ -37,7 +37,7 @@ test.describe("Focus overlay sections", () => {
     };
 
     expect(getFocusOverlayHeaderContent(settings)).toEqual({
-      body: "Watch Later opens on YouTube alongside your saved playlist shortcuts.",
+      body: "Playlist shortcuts.",
       buttonLabel: "Settings",
     });
   });
@@ -55,7 +55,7 @@ test.describe("Focus overlay sections", () => {
     };
 
     expect(getFocusOverlayHeaderContent(settings)).toEqual({
-      body: "Watch Later opens on YouTube, and your selected playlists stay here.",
+      body: "Selected playlists.",
       buttonLabel: "Settings",
     });
   });
@@ -73,7 +73,7 @@ test.describe("Focus overlay sections", () => {
     };
 
     expect(getFocusOverlayHeaderContent(settings)).toEqual({
-      body: "Watch Later opens on YouTube alongside the latest videos from your selected channels.",
+      body: "Selected channels.",
       buttonLabel: "Settings",
     });
   });

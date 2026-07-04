@@ -14,27 +14,12 @@ export function placeFocusOverlayHost(
     return false;
   }
 
-  const bannerHost = root.querySelector<HTMLElement>(
-    "#youtube-focus-banner-root"
-  );
-
   host.style.display = "block";
   host.style.width = "100%";
   host.style.boxSizing = "border-box";
 
   const targetParent = anchor.parentElement;
-  const shouldPlaceAfterBanner =
-    bannerHost?.parentElement === targetParent &&
-    bannerHost.nextElementSibling === anchor;
-
-  if (shouldPlaceAfterBanner) {
-    if (
-      bannerHost.nextElementSibling !== host ||
-      host.parentElement !== targetParent
-    ) {
-      targetParent.insertBefore(host, anchor);
-    }
-  } else if (
+  if (
     host.parentElement !== targetParent ||
     host.nextElementSibling !== anchor
   ) {

@@ -54,53 +54,6 @@ test.describe("YouTube home overlay placement", () => {
     });
   });
 
-  test("places the overlay after the banner host when the banner is present", async ({
-    page,
-  }) => {
-    await page.setContent(`
-      ${YOUTUBE_HOME_FIXTURE}
-      <div id="youtube-focus-banner-root"></div>
-      <div id="youtube-focus-overlay-root" hidden></div>
-    `);
-
-    await page.evaluate(() => {
-      const primary = document.getElementById("primary");
-      const banner = document.getElementById("youtube-focus-banner-root");
-      const feed = document.getElementById("feed");
-
-      if (primary && banner && feed) {
-        primary.insertBefore(banner, feed);
-      }
-    });
-
-    const result = await page.evaluate((fnText) => {
-      const placeHost = new Function(`return (${fnText})`)() as (
-        host: HTMLElement,
-        root: ParentNode
-      ) => boolean;
-      const host = document.getElementById("youtube-focus-overlay-root");
-      const banner = document.getElementById("youtube-focus-banner-root");
-
-      if (!host || !banner) {
-        return null;
-      }
-
-      const placed = placeHost(host, document);
-
-      return {
-        placed,
-        previousId: host.previousElementSibling?.id,
-        nextId: host.nextElementSibling?.id,
-      };
-    }, placeFocusOverlayHost.toString());
-
-    expect(result).toEqual({
-      placed: true,
-      previousId: "youtube-focus-banner-root",
-      nextId: "feed",
-    });
-  });
-
   test("hides the overlay host until the home feed is available", async ({
     page,
   }) => {
@@ -132,19 +85,8 @@ test.describe("YouTube home overlay placement", () => {
   test("is idempotent across repeated placement calls", async ({ page }) => {
     await page.setContent(`
       ${YOUTUBE_HOME_FIXTURE}
-      <div id="youtube-focus-banner-root"></div>
       <div id="youtube-focus-overlay-root" hidden></div>
     `);
-
-    await page.evaluate(() => {
-      const primary = document.getElementById("primary");
-      const banner = document.getElementById("youtube-focus-banner-root");
-      const feed = document.getElementById("feed");
-
-      if (primary && banner && feed) {
-        primary.insertBefore(banner, feed);
-      }
-    });
 
     const result = await page.evaluate((fnText) => {
       const placeHost = new Function(`return (${fnText})`)() as (
@@ -166,8 +108,7 @@ test.describe("YouTube home overlay placement", () => {
         second,
         overlayCount: primary.querySelectorAll("#youtube-focus-overlay-root")
           .length,
-        previousId: host.previousElementSibling?.id,
-        nextId: host.nextElementSibling?.id,
+        nextTag: host.nextElementSibling?.tagName.toLowerCase(),
       };
     }, placeFocusOverlayHost.toString());
 
@@ -175,8 +116,7 @@ test.describe("YouTube home overlay placement", () => {
       first: true,
       second: true,
       overlayCount: 1,
-      previousId: "youtube-focus-banner-root",
-      nextId: "feed",
+      nextTag: "ytd-rich-grid-renderer",
     });
   });
 });

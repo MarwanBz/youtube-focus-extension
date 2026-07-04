@@ -19,28 +19,28 @@ export function getSubscriptionStatusCopy(
   if (status === "empty") {
     return {
       tone: "neutral",
-      text: "No subscribed channels found yet.",
+      text: "No subscribed channels found.",
     };
   }
 
   if (status === "unauthorized") {
     return {
       tone: "error",
-      text: "Authorization expired or was revoked. Reconnect YouTube and retry.",
+      text: "Reconnect YouTube.",
     };
   }
 
   if (status === "unavailable") {
     return {
       tone: "warning",
-      text: "YouTube subscriptions are temporarily unavailable. Retry soon.",
+      text: "Subscriptions unavailable. Retry soon.",
     };
   }
 
   if (status === "failed") {
     return {
       tone: "error",
-      text: lastError || "Unable to load subscriptions right now.",
+      text: lastError || "Unable to load subscriptions.",
     };
   }
 
