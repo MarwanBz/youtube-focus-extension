@@ -57,6 +57,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T115 | Todo | P1 | Combine playlist and channel selections into unified Focus Sources | T105, T108B, T114 | User can choose and reorder playlists and channels in one combined list; Focus Home renders them in that order; total selected sources are capped at 12. |
 | T116 | Todo | P1 | Migrate existing playlist and channel selections into Focus Sources | T115 | Existing selected playlists and channels are preserved; initial migration order is playlists first, then channels, but user can reorder after migration. |
 | T117 | Todo | P2 | Polish Focus Sources settings UI | T115 | Options page presents one clear source picker/list with type labels, search/filter affordances, reorder controls, and clear empty states. |
+| T118 | Done | P2 | Minimize UI copy noise | T503, T110 | Watch Focus, Focus Home, popup, and options copy is concise; dormant verbose banner code is removed; behavior and accessibility are preserved by tests. |
 
 ## Phase 3 - Persona And AI Content
 

@@ -4,7 +4,7 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: T507 is complete. AI UI/runtime paths are disabled for the non-AI release while AI files and packages remain preserved for later revival.
+Current focus: T507 and T118 are complete. AI UI/runtime paths are disabled for the non-AI release, and UI copy has been minimized.
 
 Next task: complete live Chrome manual verification and continue release packaging without AI.
 
@@ -76,6 +76,7 @@ Next task: complete live Chrome manual verification and continue release packagi
 | 2026-05-08 | T203A AI key save-flow bug | Doing | Investigating the no-sticker symptom after entering an OpenAI key. Found that the options page used `aiSettings.apiKey` as both draft input text and persisted saved-key state, so typing the first character could switch the UI to the saved-key display before `Save key` persisted anything. |
 | 2026-05-09 | T203B empty AI sticker text generation | Done | Traced the no-visible-text symptom to the GPT-5 generation call, not the sticker UI: `generateText` correctly reads `result.text`, but the request used GPT-5-mini with the default medium reasoning effort and only 32 output tokens. Increased the output budget to 96 and set OpenAI `reasoningEffort: "minimal"` so the small sticker request produces visible text instead of spending the tiny budget on reasoning. |
 | 2026-07-04 | T507 non-AI release disable | Done | Commented out AI options UI, background message handling, content-script sticker requests, and sticker DOM helpers while preserving AI source files and package dependencies. Verified with `npm run lint`, `npm run build`, `npm test` (100 passed, 34 skipped), and a built-manifest check confirming no OpenAI host permissions or AI sticker/OpenAI strings in `dist/manifest.json` or `dist/assets`. |
+| 2026-07-04 | T118 UI copy minimization | Done | Resolved the stash conflict onto the non-AI release branch, removed dormant home-banner code/tests, trimmed Watch Focus, Focus Home, popup, options, auth, and status helper copy, and kept AI UI/runtime paths disabled. |
 
 ## Decision Log
 
@@ -137,6 +138,7 @@ Next task: complete live Chrome manual verification and continue release packagi
 | AI text provider settings | Deferred | Code and package dependencies are preserved, but API-key UI and runtime settings subscription are disabled for the non-AI release. |
 | AI text messages | Deferred | Sticker generation, background routing, content-script attachment, and AI tests are disabled for the non-AI release. |
 | AI images | Deferred | Low priority; do not start before AI production safety is explicitly reopened. |
+| UI copy minimization | Done | Watch Focus, Focus Home, popup, and options copy is concise; dormant home-banner code and tests were removed. |
 | Gamification and retention | Deferred | Phase 4 with local-only session, streak, milestone, and popup or overlay feedback work. |
 | Store publishing | Deferred | Phase 5. |
 
@@ -146,5 +148,6 @@ Next implementation handoff:
 
 1. Continue release prep without AI after T507.
 2. Do not re-enable AI UI, OpenAI permissions, or sticker generation without explicitly reopening production safety work.
-3. T104/T106/T115 remain open product work outside the current release-disable lane.
-4. T505/T506 are the next release-doc and publishing-asset tracks after manual Chrome verification.
+3. Keep UI copy concise when touching active surfaces.
+4. T104/T106/T115 remain open product work outside the current release-disable lane.
+5. T505/T506 are the next release-doc and publishing-asset tracks after manual Chrome verification.

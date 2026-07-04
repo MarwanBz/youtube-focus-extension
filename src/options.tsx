@@ -492,13 +492,13 @@ export function OptionsApp() {
 
       if (response.result.ok) {
         setAuthStatus(
-          "YouTube connected. Loading playlists and subscribed channels now..."
+          "Connected. Loading playlists and channels..."
         );
         return;
       }
 
       if (response.result.status === "cancelled") {
-        setAuthStatus("YouTube sign-in was cancelled. You can retry any time.");
+        setAuthStatus("Sign-in cancelled.");
         return;
       }
 
@@ -515,7 +515,7 @@ export function OptionsApp() {
     void skipYouTubeAuth()
       .then(() =>
         setAuthStatus(
-          "You skipped YouTube auth for now. Watch Later still works, and you can add manual playlist URLs below."
+          "Skipped. Watch Later and manual playlists still work."
         )
       )
       .catch(() => setAuthStatus("Unable to update auth status right now."));
@@ -528,7 +528,7 @@ export function OptionsApp() {
 
     setAuthStatus("");
     void disconnectYouTube().then(() => {
-      setAuthStatus("Account removed. Reconnect to import playlists and channels.");
+      setAuthStatus("Account removed.");
     });
   };
 
@@ -544,14 +544,14 @@ export function OptionsApp() {
       if (result.ok) {
         setPlaylistStatus(
           result.status === "empty"
-            ? "Connected but no playlists were returned."
-            : "Imported playlists updated."
+            ? "No playlists found."
+            : "Playlists updated."
         );
         return;
       }
 
       if (result.status === "not_connected") {
-        setPlaylistStatus("Connect or reconnect YouTube to import playlists.");
+        setPlaylistStatus("Connect YouTube first.");
         return;
       }
 
@@ -572,7 +572,7 @@ export function OptionsApp() {
     if (nextSelection === selectedImportedPlaylists) {
       setPlaylistStatus(
         selectedImportedPlaylists.length >= MAX_IMPORTED_PLAYLISTS
-          ? `Select up to ${MAX_IMPORTED_PLAYLISTS} playlists for Focus Home.`
+          ? `Maximum ${MAX_IMPORTED_PLAYLISTS} playlists.`
           : "Playlist is already selected."
       );
       return;
@@ -621,7 +621,7 @@ export function OptionsApp() {
     if (nextSelection === selectedChannels) {
       setChannelStatus(
         selectedChannels.length >= MAX_SELECTED_CHANNELS
-          ? `Select up to ${MAX_SELECTED_CHANNELS} channels for Focus Home.`
+          ? `Maximum ${MAX_SELECTED_CHANNELS} channels.`
           : "Channel is already selected."
       );
       return;
@@ -780,7 +780,7 @@ export function OptionsApp() {
         <header className="mb-10">
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Manage your Focus Home preferences
+            Focus preferences
           </p>
         </header>
 
@@ -792,7 +792,7 @@ export function OptionsApp() {
                 <div className="space-y-1">
                   <CardTitle>YouTube Account</CardTitle>
                   <CardDescription>
-                    Connect to import playlists and subscribed channels for Focus Home
+                    Import playlists and channels
                   </CardDescription>
                 </div>
                 <Badge variant={getAuthBadgeVariant(youtubeAuth)}>
@@ -854,7 +854,7 @@ export function OptionsApp() {
                 <div className="space-y-1">
                   <CardTitle>Imported Playlists</CardTitle>
                   <CardDescription>
-                    Select from your YouTube library. Watch Later stays a direct YouTube shortcut in Focus Home.
+                    Choose playlists. Watch Later stays separate.
                   </CardDescription>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -877,7 +877,7 @@ export function OptionsApp() {
             <CardContent className="space-y-4">
               {!youtubeAuth.connected ? (
                 <StatusMessage tone="warning">
-                  Connect YouTube to import playlists. Watch Later still opens directly on YouTube, and manual shortcuts stay available below.
+                  Connect YouTube to import playlists. Manual shortcuts still work.
                 </StatusMessage>
               ) : null}
               {playlistStatusCopy ? (
@@ -893,7 +893,7 @@ export function OptionsApp() {
                 <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-secondary/10 px-4 py-6">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   <p className="text-sm text-muted-foreground">
-                    Loading playlists...
+                    Loading...
                   </p>
                 </div>
               ) : null}
@@ -912,7 +912,7 @@ export function OptionsApp() {
 
                     {selectedImportedPlaylists.length === 0 ? (
                       <p className="py-2 text-sm text-muted-foreground">
-                        No playlists selected. Choose from below.
+                        None selected. Choose below.
                       </p>
                     ) : (
                       <div className="space-y-1.5">
@@ -1060,7 +1060,7 @@ export function OptionsApp() {
                 <div className="space-y-1">
                   <CardTitle>Channels</CardTitle>
                   <CardDescription>
-                    Add up to {MAX_SELECTED_CHANNELS} subscribed channels. Their latest videos appear after playlist shelves in Focus Home.
+                    Choose up to {MAX_SELECTED_CHANNELS} channels
                   </CardDescription>
                 </div>
                 {subscriptionState.status === "ready" ? (
@@ -1074,7 +1074,7 @@ export function OptionsApp() {
               {!youtubeAuth.connected ? (
                 <div className="space-y-3 rounded-lg border border-border/50 bg-secondary/10 px-4 py-4">
                   <StatusMessage tone="warning">
-                    Connect YouTube to browse your subscribed channels and add their latest uploads to Focus Home.
+                    Connect YouTube to browse subscriptions.
                   </StatusMessage>
                   <div>
                     <Button onClick={handleConnectYouTube} disabled={authLoading}>
@@ -1097,7 +1097,7 @@ export function OptionsApp() {
                 <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-secondary/10 px-4 py-6">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   <p className="text-sm text-muted-foreground">
-                    Loading subscribed channels...
+                    Loading...
                   </p>
                 </div>
               ) : null}
@@ -1114,7 +1114,7 @@ export function OptionsApp() {
 
                     {selectedChannels.length === 0 ? (
                       <p className="py-2 text-sm text-muted-foreground">
-                        No channels selected. Choose from below.
+                        None selected. Choose below.
                       </p>
                     ) : (
                       <div className="space-y-1.5">
@@ -1198,9 +1198,9 @@ export function OptionsApp() {
                                 <p className="truncate text-sm font-medium">
                                   {channel.title}
                                 </p>
-                                <p className="truncate text-xs text-muted-foreground">
-                                  Latest uploads shelf
-                                </p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                  Latest uploads
+                              </p>
                               </div>
                               {selected ? (
                                 <Button
@@ -1246,7 +1246,7 @@ export function OptionsApp() {
                     Focus Mode
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Replace YouTube home with your curated content
+                    Replace YouTube Home
                   </p>
                 </div>
                 <Switch
@@ -1265,7 +1265,7 @@ export function OptionsApp() {
                       </p>
                       <p className="text-sm">
                         {temporaryDisableUi.statusText ??
-                          "Pause Focus Mode briefly and let it resume automatically."}
+                          "Pause briefly. Resumes automatically."}
                       </p>
                     </div>
                     <Badge variant={temporaryDisableUi.isPaused ? "warning" : "secondary"}>
@@ -1309,7 +1309,7 @@ export function OptionsApp() {
               <div className="space-y-1">
                 <CardTitle>Playlist Shortcuts</CardTitle>
                 <CardDescription>
-                  Add up to {MAX_MANUAL_PLAYLISTS} playlists manually
+                  Add up to {MAX_MANUAL_PLAYLISTS} playlist URLs
                 </CardDescription>
               </div>
             </CardHeader>

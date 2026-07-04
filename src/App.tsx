@@ -138,7 +138,7 @@ export default function App() {
             <div className="space-y-1">
               <CardTitle>YouTube Focus</CardTitle>
               <CardDescription className="text-xs">
-                Control Focus Mode and playlist import from the popup.
+                Focus Mode and imports.
               </CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={handleOpenOptions}>
@@ -150,7 +150,7 @@ export default function App() {
               <p className="text-sm font-medium">Focus mode</p>
               <p className="text-xs text-muted-foreground">
                 {temporaryDisableUi.statusText ??
-                  "Hide recommendation-heavy home sections."}
+                  "Hide Home recommendations."}
               </p>
             </div>
             <Switch
@@ -171,7 +171,7 @@ export default function App() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {temporaryDisableUi.statusText ??
-                  "Pause Focus Mode briefly, then let it resume automatically."}
+                  "Pause briefly. Resumes automatically."}
               </p>
               {temporaryDisableUi.showPauseActions ? (
                 <div className="flex flex-wrap gap-2">
@@ -202,7 +202,7 @@ export default function App() {
           <div className="space-y-3 rounded-md border border-border/70 bg-secondary/20 p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-medium text-muted-foreground">
-                YouTube auth
+                YouTube
               </span>
               <Badge
                 className={getCompactAuthTone(youtubeAuth)}
@@ -216,7 +216,7 @@ export default function App() {
                 {authLoading ? "Connecting..." : getAuthPrimaryAction(youtubeAuth)}
               </Button>
               <Button variant="outline" onClick={handleOpenOptions}>
-                Open options for fallback setup
+                Open settings
               </Button>
             </div>
           </div>

@@ -142,42 +142,42 @@ export function getFocusOverlayHeaderContent(
 
   if (hasImportedPlaylists && hasSelectedChannels) {
     return {
-      body: "Watch Later opens on YouTube, and your selected playlists plus channel uploads stay here.",
+      body: "Playlists and channels.",
       buttonLabel: "Settings",
     };
   }
 
   if (hasImportedPlaylists) {
     return {
-      body: "Watch Later opens on YouTube, and your selected playlists stay here.",
+      body: "Selected playlists.",
       buttonLabel: "Settings",
     };
   }
 
   if (hasManualPlaylists && hasSelectedChannels) {
     return {
-      body: "Watch Later opens on YouTube alongside your saved playlist shortcuts and selected channel uploads.",
+      body: "Playlist shortcuts and channels.",
       buttonLabel: "Settings",
     };
   }
 
   if (hasSelectedChannels) {
     return {
-      body: "Watch Later opens on YouTube alongside the latest videos from your selected channels.",
+      body: "Selected channels.",
       buttonLabel: "Settings",
     };
   }
 
   if (hasManualPlaylists) {
     return {
-      body: "Watch Later opens on YouTube alongside your saved playlist shortcuts.",
+      body: "Playlist shortcuts.",
       buttonLabel: "Settings",
     };
   }
 
   return {
-    body: "Start with Watch Later, then connect YouTube or add playlists from Settings.",
-    buttonLabel: "Connect or add lists",
+    body: "Watch Later is ready.",
+    buttonLabel: "Add lists",
   };
 }
 
