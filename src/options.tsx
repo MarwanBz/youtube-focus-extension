@@ -46,12 +46,18 @@ import {
   TEMPORARY_DISABLE_PRESET_MINUTES,
   type TemporaryDisablePresetMinutes,
 } from "./settings/temporary-disable";
-import {
-  patchAiSettings,
-  subscribeToAiSettings,
-  DEFAULT_AI_SETTINGS,
-  type AiSettings,
-} from "./settings/ai";
+/*
+ * AI settings UI is intentionally disabled for the non-AI release.
+ * Keep the source in ./settings/ai for a future opt-in revival.
+ *
+ * import {
+ *   patchAiSettings,
+ *   subscribeToAiSettings,
+ *   DEFAULT_AI_SETTINGS,
+ *   getAiApiKeyEditorState,
+ *   type AiSettings,
+ * } from "./settings/ai";
+ */
 import {
   patchFocusSettings,
   subscribeToFocusSettings,
@@ -64,17 +70,20 @@ import {
   MAX_SELECTED_CHANNELS,
 } from "./settings/schema";
 import type { FocusSettings, PlaylistShortcut } from "./settings/schema";
-import {
-  CUSTOM_PERSONA_INSTRUCTION_MAX_LENGTH,
-  getPersonaPresetLabel,
-  getPersonaPresetSliders,
-  getPersonaPreviewText,
-  PERSONA_PRESETS,
-  PERSONA_SLIDER_MAX,
-  PERSONA_SLIDER_MIN,
-  type PersonaPreset,
-  type PersonaSliders,
-} from "./settings/persona";
+/*
+ * Persona controls are part of the disabled AI release surface.
+ * import {
+ *   CUSTOM_PERSONA_INSTRUCTION_MAX_LENGTH,
+ *   getPersonaPresetLabel,
+ *   getPersonaPresetSliders,
+ *   getPersonaPreviewText,
+ *   PERSONA_PRESETS,
+ *   PERSONA_SLIDER_MAX,
+ *   PERSONA_SLIDER_MIN,
+ *   type PersonaPreset,
+ *   type PersonaSliders,
+ * } from "./settings/persona";
+ */
 import {
   DEFAULT_YOUTUBE_PLAYLIST_STATE,
   type YouTubePlaylistState,
@@ -155,41 +164,45 @@ function StatusMessage({
   );
 }
 
-type PersonaSliderRowProps = {
-  id: string;
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-};
-
-function PersonaSliderRow({
-  id,
-  label,
-  value,
-  onChange,
-}: PersonaSliderRowProps) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
-        <Label htmlFor={id} className="text-xs font-medium">
-          {label}
-        </Label>
-        <span className="tabular-nums text-xs text-muted-foreground">
-          {value}/{PERSONA_SLIDER_MAX}
-        </span>
-      </div>
-      <input
-        id={id}
-        type="range"
-        min={PERSONA_SLIDER_MIN}
-        max={PERSONA_SLIDER_MAX}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-primary"
-      />
-    </div>
-  );
-}
+/*
+ * Disabled for non-AI release.
+ *
+ * type PersonaSliderRowProps = {
+ *   id: string;
+ *   label: string;
+ *   value: number;
+ *   onChange: (value: number) => void;
+ * };
+ *
+ * function PersonaSliderRow({
+ *   id,
+ *   label,
+ *   value,
+ *   onChange,
+ * }: PersonaSliderRowProps) {
+ *   return (
+ *     <div className="space-y-2">
+ *       <div className="flex items-center justify-between gap-3">
+ *         <Label htmlFor={id} className="text-xs font-medium">
+ *           {label}
+ *         </Label>
+ *         <span className="tabular-nums text-xs text-muted-foreground">
+ *           {value}/{PERSONA_SLIDER_MAX}
+ *         </span>
+ *       </div>
+ *       <input
+ *         id={id}
+ *         type="range"
+ *         min={PERSONA_SLIDER_MIN}
+ *         max={PERSONA_SLIDER_MAX}
+ *         value={value}
+ *         onChange={(event) => onChange(Number(event.target.value))}
+ *         className="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-primary"
+ *       />
+ *     </div>
+ *   );
+ * }
+ */
 
 type ReorderRowProps = {
   description: string;
@@ -275,8 +288,13 @@ export function OptionsApp() {
   const [importedSearch, setImportedSearch] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
   const [channelStatus, setChannelStatus] = useState("");
-  const [aiSettings, setAiSettings] = useState<AiSettings>(DEFAULT_AI_SETTINGS);
-  const [aiStatus, setAiStatus] = useState("");
+  /*
+   * AI options state is intentionally disabled for this release.
+   * const [aiSettings, setAiSettings] = useState<AiSettings>(DEFAULT_AI_SETTINGS);
+   * const [aiApiKeyDraft, setAiApiKeyDraft] = useState("");
+   * const [aiApiKeyEditing, setAiApiKeyEditing] = useState(false);
+   * const [aiStatus, setAiStatus] = useState("");
+   */
 
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -292,7 +310,8 @@ export function OptionsApp() {
   useEffect(() => subscribeToYouTubeAuthState(setYouTubeAuth), []);
   useEffect(() => subscribeToYouTubePlaylistState(setPlaylistState), []);
   useEffect(() => subscribeToYouTubeSubscriptionState(setSubscriptionState), []);
-  useEffect(() => subscribeToAiSettings(setAiSettings), []);
+  // AI settings subscription is disabled for the non-AI release.
+  // useEffect(() => subscribeToAiSettings(setAiSettings), []);
 
   const playlists = settings.manualPlaylists;
   const selectedImportedPlaylists = settings.importedPlaylists;
@@ -315,11 +334,19 @@ export function OptionsApp() {
     [channelSearch, subscriptionState.items]
   );
   const temporaryDisableUi = getTemporaryDisableUiState(settings, { now });
-  const personaPreviewText = getPersonaPreviewText({
-    personaPreset: settings.personaPreset,
-    personaSliders: settings.personaSliders,
-    customPersonaInstruction: settings.customPersonaInstruction,
-  });
+  /*
+   * AI/persona derived state is disabled for this release.
+   * const personaPreviewText = getPersonaPreviewText({
+   *   personaPreset: settings.personaPreset,
+   *   personaSliders: settings.personaSliders,
+   *   customPersonaInstruction: settings.customPersonaInstruction,
+   * });
+   * const aiApiKeyEditorState = getAiApiKeyEditorState({
+   *   draftApiKey: aiApiKeyDraft,
+   *   editing: aiApiKeyEditing,
+   *   settings: aiSettings,
+   * });
+   */
 
   const handleFocusDefaultChange = (checked: boolean) => {
     setStatus("Saving...");
@@ -630,110 +657,121 @@ export function OptionsApp() {
     );
   };
 
-  const handlePersonaPresetChange = (personaPreset: PersonaPreset) => {
-    const personaSliders = getPersonaPresetSliders(personaPreset);
-    setSettings((current) => ({
-      ...current,
-      personaPreset,
-      personaSliders,
-    }));
-    setStatus("Saving...");
-    void patchFocusSettings({
-      personaPreset,
-      personaSliders,
-    })
-      .then(() => setStatus(`${getPersonaPresetLabel(personaPreset)} voice saved.`))
-      .catch(() => setStatus("Unable to save persona settings."));
-  };
-
-  const handlePersonaSliderChange = (
-    slider: keyof PersonaSliders,
-    value: number
-  ) => {
-    const personaSliders = {
-      ...settings.personaSliders,
-      [slider]: value,
-    };
-    setSettings((current) => ({
-      ...current,
-      personaPreset: "custom",
-      personaSliders,
-    }));
-    setStatus("Saving...");
-    void patchFocusSettings({
-      personaPreset: "custom",
-      personaSliders,
-    })
-      .then(() => setStatus("Custom voice saved."))
-      .catch(() => setStatus("Unable to save persona settings."));
-  };
-
-  const handleCustomPersonaInstructionChange = (value: string) => {
-    setSettings((current) => ({
-      ...current,
-      personaPreset: "custom",
-      customPersonaInstruction: value,
-    }));
-    setStatus("Saving...");
-    void patchFocusSettings({
-      personaPreset: "custom",
-      customPersonaInstruction: value,
-    })
-      .then(() => setStatus("Custom instruction saved."))
-      .catch(() => setStatus("Unable to save custom instruction."));
-  };
-
-  const handleMildProfanityChange = (allowMildProfanity: boolean) => {
-    setSettings((current) => ({
-      ...current,
-      allowMildProfanity,
-    }));
-    setStatus("Saving...");
-    void patchFocusSettings({ allowMildProfanity })
-      .then(() => setStatus("Language preference saved."))
-      .catch(() => setStatus("Unable to save language preference."));
-  };
-
-  const handleAiEnabledChange = (enabled: boolean) => {
-    setAiSettings((current) => ({ ...current, enabled }));
-    setAiStatus("Saving...");
-    void patchAiSettings({ enabled })
-      .then(() =>
-        setAiStatus(
-          enabled ? "AI stickers enabled." : "AI stickers disabled."
-        )
-      )
-      .catch(() => setAiStatus("Unable to save AI settings."));
-  };
-
-  const handleAiModelChange = (model: string) => {
-    setAiSettings((current) => ({ ...current, model }));
-    setAiStatus("Saving...");
-    void patchAiSettings({ model })
-      .then(() => setAiStatus("AI model saved."))
-      .catch(() => setAiStatus("Unable to save AI model."));
-  };
-
-  const handleAiApiKeyChange = (apiKey: string) => {
-    setAiSettings((current) => ({ ...current, apiKey }));
-  };
-
-  const handleAiApiKeySave = () => {
-    setAiStatus("Saving...");
-    void patchAiSettings({ apiKey: aiSettings.apiKey })
-      .then(() => setAiStatus("API key saved."))
-      .catch(() => setAiStatus("Unable to save API key."));
-  };
-
-  const handleAiApiKeyClear = () => {
-    setAiStatus("Saving...");
-    void patchAiSettings({ apiKey: "" })
-      .then((result) => {
-        setAiSettings(result);
-        setAiStatus("API key cleared.");
-      })
-      .catch(() => setAiStatus("Unable to clear API key."));
-  };
+  /*
+   * AI/persona save handlers are intentionally disabled for this release.
+   *
+   * const handlePersonaPresetChange = (personaPreset: PersonaPreset) => {
+   *   const personaSliders = getPersonaPresetSliders(personaPreset);
+   *   setSettings((current) => ({
+   *     ...current,
+   *     personaPreset,
+   *     personaSliders,
+   *   }));
+   *   setStatus("Saving...");
+   *   void patchFocusSettings({
+   *     personaPreset,
+   *     personaSliders,
+   *   })
+   *     .then(() => setStatus(`${getPersonaPresetLabel(personaPreset)} voice saved.`))
+   *     .catch(() => setStatus("Unable to save persona settings."));
+   * };
+   *
+   * const handlePersonaSliderChange = (
+   *   slider: keyof PersonaSliders,
+   *   value: number
+   * ) => {
+   *   const personaSliders = {
+   *     ...settings.personaSliders,
+   *     [slider]: value,
+   *   };
+   *   setSettings((current) => ({
+   *     ...current,
+   *     personaPreset: "custom",
+   *     personaSliders,
+   *   }));
+   *   setStatus("Saving...");
+   *   void patchFocusSettings({
+   *     personaPreset: "custom",
+   *     personaSliders,
+   *   })
+   *     .then(() => setStatus("Custom voice saved."))
+   *     .catch(() => setStatus("Unable to save persona settings."));
+   * };
+   *
+   * const handleCustomPersonaInstructionChange = (value: string) => {
+   *   setSettings((current) => ({
+   *     ...current,
+   *     personaPreset: "custom",
+   *     customPersonaInstruction: value,
+   *   }));
+   *   setStatus("Saving...");
+   *   void patchFocusSettings({
+   *     personaPreset: "custom",
+   *     customPersonaInstruction: value,
+   *   })
+   *     .then(() => setStatus("Custom instruction saved."))
+   *     .catch(() => setStatus("Unable to save custom instruction."));
+   * };
+   *
+   * const handleMildProfanityChange = (allowMildProfanity: boolean) => {
+   *   setSettings((current) => ({
+   *     ...current,
+   *     allowMildProfanity,
+   *   }));
+   *   setStatus("Saving...");
+   *   void patchFocusSettings({ allowMildProfanity })
+   *     .then(() => setStatus("Language preference saved."))
+   *     .catch(() => setStatus("Unable to save language preference."));
+   * };
+   *
+   * const handleAiEnabledChange = (enabled: boolean) => {
+   *   setAiSettings((current) => ({ ...current, enabled }));
+   *   setAiStatus("Saving...");
+   *   void patchAiSettings({ enabled })
+   *     .then(() =>
+   *       setAiStatus(
+   *         enabled ? "AI stickers enabled." : "AI stickers disabled."
+   *       )
+   *     )
+   *     .catch(() => setAiStatus("Unable to save AI settings."));
+   * };
+   *
+   * const handleAiModelChange = (model: string) => {
+   *   setAiSettings((current) => ({ ...current, model }));
+   *   setAiStatus("Saving...");
+   *   void patchAiSettings({ model })
+   *     .then(() => setAiStatus("AI model saved."))
+   *     .catch(() => setAiStatus("Unable to save AI model."));
+   * };
+   *
+   * const handleAiApiKeyChange = (apiKey: string) => {
+   *   setAiApiKeyDraft(apiKey);
+   * };
+   *
+   * const handleAiApiKeySave = () => {
+   *   setAiStatus("Saving...");
+   *   void patchAiSettings({ apiKey: aiApiKeyDraft })
+   *     .then((result) => {
+   *       setAiSettings(result);
+   *       setAiApiKeyDraft("");
+   *       setAiApiKeyEditing(false);
+   *       setAiStatus("API key saved.");
+   *     })
+   *     .catch(() => setAiStatus("Unable to save API key."));
+   * };
+   *
+   * const handleAiApiKeyClear = () => {
+   *   setAiStatus("Saving...");
+   *   void patchAiSettings({ apiKey: "" })
+   *     .then((result) => {
+   *       setAiSettings(result);
+   *       setAiApiKeyDraft("");
+   *       setAiApiKeyEditing(false);
+   *       setAiStatus("API key cleared.");
+   *     })
+   *     .catch(() => setAiStatus("Unable to clear API key."));
+   * };
+   */
 
   return (
     <main className="min-h-screen bg-background antialiased text-foreground">
@@ -1197,217 +1235,7 @@ export function OptionsApp() {
             </CardContent>
           </Card>
 
-          {/* ── AI Persona ── */}
-          <Card className="overflow-hidden border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">
-            <CardHeader className="border-b border-border/50 bg-secondary/10">
-              <div className="space-y-1">
-                <CardTitle>AI Mood</CardTitle>
-                <CardDescription>
-                  Shape the voice future recommendation stickers will use. No AI calls happen here.
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-5 py-5">
-              <div className="grid gap-2 sm:grid-cols-4">
-                {PERSONA_PRESETS.map((preset) => {
-                  const selected = settings.personaPreset === preset;
-                  return (
-                    <Button
-                      key={preset}
-                      type="button"
-                      variant={selected ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePersonaPresetChange(preset)}
-                      className="justify-center"
-                    >
-                      {getPersonaPresetLabel(preset)}
-                    </Button>
-                  );
-                })}
-              </div>
-
-              <div className="grid gap-4 rounded-lg border border-border/60 bg-background/60 p-4 sm:grid-cols-3">
-                <PersonaSliderRow
-                  id="persona-funny"
-                  label="Funny"
-                  value={settings.personaSliders.funny}
-                  onChange={(value) => handlePersonaSliderChange("funny", value)}
-                />
-                <PersonaSliderRow
-                  id="persona-strict"
-                  label="Strict"
-                  value={settings.personaSliders.strict}
-                  onChange={(value) => handlePersonaSliderChange("strict", value)}
-                />
-                <PersonaSliderRow
-                  id="persona-kind"
-                  label="Kind"
-                  value={settings.personaSliders.kind}
-                  onChange={(value) => handlePersonaSliderChange("kind", value)}
-                />
-              </div>
-
-              {settings.personaPreset === "custom" ? (
-                <div className="space-y-2">
-                  <Label htmlFor="custom-persona-instruction" className="text-xs">
-                    Custom instruction
-                  </Label>
-                  <textarea
-                    id="custom-persona-instruction"
-                    value={settings.customPersonaInstruction}
-                    maxLength={CUSTOM_PERSONA_INSTRUCTION_MAX_LENGTH}
-                    placeholder="Example: playful older-brother energy, but keep it useful."
-                    onChange={(event) =>
-                      handleCustomPersonaInstructionChange(event.target.value)
-                    }
-                    className="min-h-24 w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {settings.customPersonaInstruction.length}/
-                    {CUSTOM_PERSONA_INSTRUCTION_MAX_LENGTH}
-                  </p>
-                </div>
-              ) : null}
-
-              <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-secondary/20 px-4 py-3">
-                <div className="space-y-1">
-                  <Label htmlFor="allow-mild-profanity" className="text-sm">
-                    Mild profanity
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Allow casual bite while avoiding insults, slurs, and hateful language.
-                  </p>
-                </div>
-                <Switch
-                  id="allow-mild-profanity"
-                  checked={settings.allowMildProfanity}
-                  onCheckedChange={handleMildProfanityChange}
-                />
-              </div>
-
-              <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                  Tone preview
-                </p>
-                <p className="mt-2 text-sm leading-relaxed">
-                  {personaPreviewText}
-                </p>
-              </div>
-
-              <Separator />
-
-              {/* ── AI Stickers Provider ── */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="ai-stickers-enabled" className="text-sm font-medium">
-                      AI Stickers
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Enable AI-generated sticker labels for recommendation cards. Requires an OpenAI API key.
-                    </p>
-                  </div>
-                  <Switch
-                    id="ai-stickers-enabled"
-                    checked={aiSettings.enabled}
-                    onCheckedChange={handleAiEnabledChange}
-                  />
-                </div>
-
-                {aiSettings.enabled ? (
-                  <div className="space-y-4 rounded-lg border border-border/60 bg-secondary/20 px-4 py-4">
-                    {/* Model */}
-                    <div className="space-y-2">
-                      <Label htmlFor="ai-model" className="text-xs">
-                        Model
-                      </Label>
-                      <Input
-                        id="ai-model"
-                        type="text"
-                        placeholder="gpt-5.4-mini"
-                        value={aiSettings.model}
-                        onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                          handleAiModelChange(event.target.value)
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Defaults to gpt-5.4-mini. Change only if you know which model to use.
-                      </p>
-                    </div>
-
-                    {/* API Key */}
-                    {aiSettings.apiKey ? (
-                      <div className="space-y-2 rounded-lg border border-muted bg-background/60 px-3 py-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="space-y-0.5 min-w-0">
-                            <p className="text-sm font-medium">
-                              API key saved locally
-                            </p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              Stored in this browser only (local extension storage)
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-1.5">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setAiSettings((current) => ({
-                                  ...current,
-                                  apiKey: "",
-                                }))
-                              }
-                            >
-                              Replace
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleAiApiKeyClear}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              Clear
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Label htmlFor="ai-api-key" className="text-xs">
-                          OpenAI API key
-                        </Label>
-                        <Input
-                          id="ai-api-key"
-                          type="password"
-                          placeholder="sk-..."
-                          value={aiSettings.apiKey}
-                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleAiApiKeyChange(event.target.value)
-                          }
-                        />
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            onClick={handleAiApiKeySave}
-                            disabled={!aiSettings.apiKey.trim()}
-                          >
-                            Save key
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Your key stays in this browser&rsquo;s local extension storage and is never sent to external services except OpenAI.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-
-                {aiStatus ? (
-                  <StatusMessage>{aiStatus}</StatusMessage>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
+          {/* AI Mood and AI Stickers are intentionally disabled for this non-AI release. */}
 
           {/* ── Focus Mode ── */}
           <Card className="border-primary/10 bg-card/95 shadow-[0_4px_24px_rgba(255,78,69,0.04)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(255,78,69,0.08)]">

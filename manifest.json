@@ -24,7 +24,6 @@
     "open_in_tab": true
   },
   "permissions": ["alarms", "storage"],
-  "host_permissions": ["https://api.openai.com/*"],
   "background": {
     "service_worker": "src/background.ts",
     "type": "module"
