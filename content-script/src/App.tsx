@@ -1,4 +1,4 @@
-import { useEffect, useState, type WheelEvent } from "react";
+import { useEffect, useReducer, useState, type WheelEvent } from "react";
 import { DEFAULT_FOCUS_SETTINGS } from "@/settings/defaults";
 import {
   patchFocusSettings,
@@ -34,6 +34,10 @@ import {
   type WatchSuggestionMetadata,
 } from "./watchSoftFocus";
 import {
+  INITIAL_WATCH_REVEAL_INTENT_STATE,
+  watchRevealIntentReducer,
+} from "./watchRevealIntent";
+import {
   getYouTubeRouteState,
   type YouTubeRouteState,
 } from "./youtubeHome";
@@ -57,8 +61,10 @@ type FocusUiState = {
 export function WatchPageFocusFoundation() {
   const { focusModeActive, routeState } = useFocusUiState();
   const [suggestions, setSuggestions] = useState<WatchSuggestionMetadata[]>([]);
-  const [suggestionsRevealed, setSuggestionsRevealed] = useState(false);
-  const [commentsRevealed, setCommentsRevealed] = useState(false);
+  const [revealIntent, dispatchRevealIntent] = useReducer(
+    watchRevealIntentReducer,
+    INITIAL_WATCH_REVEAL_INTENT_STATE
+  );
   /*
    * AI sticker request state is intentionally disabled for the non-AI release.
    * const [stickers, setStickers] = useState<RecommendationSticker[]>([]);
@@ -74,18 +80,15 @@ export function WatchPageFocusFoundation() {
 
   const handleRevealSuggestions = () => {
     refreshWatchSuggestions();
-    setSuggestionsRevealed(true);
+    dispatchRevealIntent({ type: "confirm" });
   };
 
-  const handleRevealAll = () => {
-    refreshWatchSuggestions();
-    setSuggestionsRevealed(true);
-    setCommentsRevealed(true);
+  const handleRevealComments = () => {
+    dispatchRevealIntent({ type: "confirm" });
   };
 
   useEffect(() => {
-    setSuggestionsRevealed(false);
-    setCommentsRevealed(false);
+    dispatchRevealIntent({ type: "reset" });
     /*
      * AI sticker cleanup is disabled for the non-AI release.
      * setStickers([]);
@@ -98,6 +101,7 @@ export function WatchPageFocusFoundation() {
   useEffect(() => {
     if (!shouldRenderWatchSoftFocus(routeState, focusModeActive)) {
       setSuggestions([]);
+      dispatchRevealIntent({ type: "reset" });
       /*
        * AI sticker cleanup is disabled for the non-AI release.
        * setStickers([]);
@@ -115,8 +119,8 @@ export function WatchPageFocusFoundation() {
     const sync = () => {
       setSuggestions(extractWatchSuggestionMetadata(document));
       syncWatchSoftFocusVisibility(document, {
-        dimSuggestions: !suggestionsRevealed,
-        dimComments: !commentsRevealed,
+        dimSuggestions: !revealIntent.suggestionsRevealed,
+        dimComments: !revealIntent.commentsRevealed,
       });
     };
 
@@ -137,7 +141,7 @@ export function WatchPageFocusFoundation() {
         dimComments: false,
       });
     };
-  }, [commentsRevealed, focusModeActive, routeState, suggestionsRevealed]);
+  }, [focusModeActive, revealIntent, routeState]);
 
   /*
    * AI sticker generation and attachment effects are intentionally disabled
@@ -148,7 +152,13 @@ export function WatchPageFocusFoundation() {
     return null;
   }
 
-  const revealCount = Number(!suggestionsRevealed) + Number(!commentsRevealed);
+  const pendingSurface = revealIntent.pendingSurface;
+  const confirmationLabel =
+    pendingSurface === "suggestions"
+      ? "Reveal suggestions"
+      : pendingSurface === "comments"
+        ? "Reveal comments"
+        : "";
 
   return (
     <>
@@ -240,6 +250,43 @@ export function WatchPageFocusFoundation() {
           cursor: default;
           opacity: 0.48;
         }
+
+        .youtube-focus-watch__confirm {
+          align-items: center;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 14px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: space-between;
+          margin-top: 10px;
+          padding: 10px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .youtube-focus-watch__confirm-text {
+          color: #f1f1f1;
+          font-size: 13px;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .youtube-focus-watch__confirm-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .youtube-focus-watch__button--quiet {
+          background: transparent;
+        }
+
+        .youtube-focus-watch__button--danger {
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.18);
+        }
       `}</style>
       <section className="youtube-focus-watch" data-testid="youtube-focus-watch">
         <div className="youtube-focus-watch__panel">
@@ -252,36 +299,71 @@ export function WatchPageFocusFoundation() {
               className="youtube-focus-watch__button"
               type="button"
               aria-label={
-                suggestionsRevealed
+                revealIntent.suggestionsRevealed
                   ? "Suggestions are visible"
-                  : `Show ${suggestions.length} suggestions`
+                  : `Ask before showing ${suggestions.length} suggestions`
               }
-              disabled={suggestionsRevealed}
-              onClick={handleRevealSuggestions}
+              disabled={revealIntent.suggestionsRevealed}
+              onClick={() => {
+                refreshWatchSuggestions();
+                dispatchRevealIntent({
+                  type: "request",
+                  surface: "suggestions",
+                });
+              }}
             >
-              Suggestions
+              View suggestions
             </button>
             <button
               className="youtube-focus-watch__button"
               type="button"
               aria-label={
-                commentsRevealed ? "Comments are visible" : "Show comments"
+                revealIntent.commentsRevealed
+                  ? "Comments are visible"
+                  : "Ask before showing comments"
               }
-              disabled={commentsRevealed}
-              onClick={() => setCommentsRevealed(true)}
+              disabled={revealIntent.commentsRevealed}
+              onClick={() =>
+                dispatchRevealIntent({
+                  type: "request",
+                  surface: "comments",
+                })
+              }
             >
-              Comments
-            </button>
-            <button
-              className="youtube-focus-watch__button"
-              type="button"
-              aria-label="Show suggestions and comments"
-              disabled={revealCount === 0}
-              onClick={handleRevealAll}
-            >
-              All
+              View comments
             </button>
           </div>
+          {pendingSurface ? (
+            <div
+              className="youtube-focus-watch__confirm"
+              role="status"
+              aria-live="polite"
+            >
+              <p className="youtube-focus-watch__confirm-text">
+                Keep watching?
+              </p>
+              <div className="youtube-focus-watch__confirm-actions">
+                <button
+                  className="youtube-focus-watch__button youtube-focus-watch__button--quiet"
+                  type="button"
+                  onClick={() => dispatchRevealIntent({ type: "cancel" })}
+                >
+                  Stay focused
+                </button>
+                <button
+                  className="youtube-focus-watch__button youtube-focus-watch__button--danger"
+                  type="button"
+                  onClick={
+                    pendingSurface === "suggestions"
+                      ? handleRevealSuggestions
+                      : handleRevealComments
+                  }
+                >
+                  {confirmationLabel}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       </section>
     </>

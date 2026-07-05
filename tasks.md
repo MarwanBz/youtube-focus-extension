@@ -58,6 +58,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T116 | Todo | P1 | Migrate existing playlist and channel selections into Focus Sources | T115 | Existing selected playlists and channels are preserved; initial migration order is playlists first, then channels, but user can reorder after migration. |
 | T117 | Todo | P2 | Polish Focus Sources settings UI | T115 | Options page presents one clear source picker/list with type labels, search/filter affordances, reorder controls, and clear empty states. |
 | T118 | Done | P2 | Minimize UI copy noise | T503, T110 | Watch Focus, Focus Home, popup, and options copy is concise; dormant verbose banner code is removed; behavior and accessibility are preserved by tests. |
+| T119 | Done | P2 | Add watch-page reveal friction | T503, T118 | Watch Focus uses a two-step reveal for suggestions and comments, removes reveal-all, keeps dimmed surfaces inert until confirmed, and resets reveal intent on each watch route. |
 
 ## Phase 3 - Persona And AI Content
 
@@ -91,7 +92,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | --- | --- | --- | --- | --- | --- |
 | T501 | Todo | P2 | Expand temporary disable controls | T010 | User can disable for X minutes or until a selected time. |
 | T502 | Deferred | P3 | Add scheduled breaks | T501 | Schedule works without surprising the user. |
-| T503 | Done | P2 | Add soft-focus mode for the watch page | T012 | When Focus Mode is active on `/watch`, the right rail and comments are visible but dimmed and not clickable by default, separate reveal controls plus a reveal-all control are available, reveals apply only to the current watch page, and normal playback remains intact. |
+| T503 | Done | P2 | Add soft-focus mode for the watch page | T012 | When Focus Mode is active on `/watch`, the right rail and comments are visible but dimmed and not clickable by default, reveal controls apply only to the current watch page, and normal playback remains intact. |
 | T504 | Deferred | P3 | Add mood presets and themes | T108 | Themes do not reduce readability or accessibility. |
 | T505 | Todo | P2 | Prepare store publishing assets | Stable release | Icons, screenshots, privacy policy, and permission statement exist. |
 | T506 | Todo | P2 | Prepare open-source release docs | Stable release | README, license, contribution guide, and release checklist exist. |

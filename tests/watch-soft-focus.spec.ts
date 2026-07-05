@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import {
   extractWatchSuggestionMetadataFromNode,
   extractWatchSuggestionMetadata,
@@ -10,6 +11,10 @@ import {
   restoreInlineStyle,
   restoreAriaHidden,
 } from "../content-script/src/watchSoftFocus";
+import {
+  INITIAL_WATCH_REVEAL_INTENT_STATE,
+  watchRevealIntentReducer,
+} from "../content-script/src/watchRevealIntent";
 
 const WATCH_PAGE_FIXTURE = `
   <ytd-app>
@@ -372,6 +377,120 @@ test.describe("Watch soft-focus foundation", () => {
     expect(result.suggestionPointerEvents).toBe("auto");
     expect(result.commentsOpacity).toBe("1");
     expect(result.dimMarkers).toBe(0);
+  });
+
+  test("requires confirmation before revealing suggestions", async ({ page }) => {
+    await page.setContent(WATCH_PAGE_FIXTURE);
+
+    const requestedState = watchRevealIntentReducer(
+      INITIAL_WATCH_REVEAL_INTENT_STATE,
+      { type: "request", surface: "suggestions" }
+    );
+
+    expect(requestedState).toEqual({
+      pendingSurface: "suggestions",
+      suggestionsRevealed: false,
+      commentsRevealed: false,
+    });
+
+    const dimmedAfterRequest = await page.evaluate(
+      ({ fnText, defs, helpers, state }) => {
+        const sync = eval(
+          `(function() { ${defs}; ${helpers}; return (${fnText}); })()`
+        ) as (
+          root: ParentNode,
+          options: { dimSuggestions: boolean; dimComments: boolean }
+        ) => ReturnType<typeof syncWatchSoftFocusVisibility>;
+
+        sync(document, {
+          dimSuggestions: !state.suggestionsRevealed,
+          dimComments: !state.commentsRevealed,
+        });
+
+        const suggestionContainer = document.querySelector(
+          "ytd-watch-next-secondary-results-renderer"
+        ) as HTMLElement | null;
+        const comments = document.getElementById("comments");
+
+        return {
+          suggestionPointerEvents: suggestionContainer
+            ? getComputedStyle(suggestionContainer).pointerEvents
+            : null,
+          commentsPointerEvents: comments
+            ? getComputedStyle(comments).pointerEvents
+            : null,
+        };
+      },
+      {
+        fnText: syncWatchSoftFocusVisibility.toString(),
+        defs: WATCH_MODULE_DEFS,
+        helpers: WATCH_VISIBILITY_HELPERS,
+        state: requestedState,
+      }
+    );
+
+    expect(dimmedAfterRequest).toEqual({
+      suggestionPointerEvents: "none",
+      commentsPointerEvents: "none",
+    });
+
+    const confirmedState = watchRevealIntentReducer(requestedState, {
+      type: "confirm",
+    });
+
+    expect(confirmedState).toEqual({
+      pendingSurface: null,
+      suggestionsRevealed: true,
+      commentsRevealed: false,
+    });
+  });
+
+  test("cancels reveal intent without revealing the pending surface", () => {
+    const requestedState = watchRevealIntentReducer(
+      INITIAL_WATCH_REVEAL_INTENT_STATE,
+      { type: "request", surface: "comments" }
+    );
+
+    expect(
+      watchRevealIntentReducer(requestedState, { type: "cancel" })
+    ).toEqual(INITIAL_WATCH_REVEAL_INTENT_STATE);
+  });
+
+  test("reveals only the confirmed surface", () => {
+    const commentRequestState = watchRevealIntentReducer(
+      INITIAL_WATCH_REVEAL_INTENT_STATE,
+      { type: "request", surface: "comments" }
+    );
+
+    expect(
+      watchRevealIntentReducer(commentRequestState, { type: "confirm" })
+    ).toEqual({
+      pendingSurface: null,
+      suggestionsRevealed: false,
+      commentsRevealed: true,
+    });
+  });
+
+  test("resets reveal and confirmation state on a new watch route", () => {
+    const requestedState = watchRevealIntentReducer(
+      INITIAL_WATCH_REVEAL_INTENT_STATE,
+      { type: "request", surface: "suggestions" }
+    );
+    const revealedState = watchRevealIntentReducer(requestedState, {
+      type: "confirm",
+    });
+
+    expect(watchRevealIntentReducer(revealedState, { type: "reset" })).toEqual(
+      INITIAL_WATCH_REVEAL_INTENT_STATE
+    );
+  });
+
+  test("does not keep the reveal-all watch action", () => {
+    const appSource = readFileSync("content-script/src/App.tsx", "utf8");
+
+    expect(appSource).not.toContain("handleRevealAll");
+    expect(appSource).not.toContain(">All<");
+    expect(appSource).not.toContain("Show suggestions and comments");
   });
 
   test.skip("attaches and dismisses inline stickers on revealed recommendations", async () => {
