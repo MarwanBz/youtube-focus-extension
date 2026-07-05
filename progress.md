@@ -4,7 +4,7 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: T507 and T118 are complete. AI UI/runtime paths are disabled for the non-AI release, and UI copy has been minimized.
+Current focus: T119 is complete. AI UI/runtime paths remain disabled for the non-AI release, UI copy has been minimized, and Watch Focus now uses intentional two-step reveal controls.
 
 Next task: complete live Chrome manual verification and continue release packaging without AI.
 
@@ -77,6 +77,7 @@ Next task: complete live Chrome manual verification and continue release packagi
 | 2026-05-09 | T203B empty AI sticker text generation | Done | Traced the no-visible-text symptom to the GPT-5 generation call, not the sticker UI: `generateText` correctly reads `result.text`, but the request used GPT-5-mini with the default medium reasoning effort and only 32 output tokens. Increased the output budget to 96 and set OpenAI `reasoningEffort: "minimal"` so the small sticker request produces visible text instead of spending the tiny budget on reasoning. |
 | 2026-07-04 | T507 non-AI release disable | Done | Commented out AI options UI, background message handling, content-script sticker requests, and sticker DOM helpers while preserving AI source files and package dependencies. Verified with `npm run lint`, `npm run build`, `npm test` (100 passed, 34 skipped), and a built-manifest check confirming no OpenAI host permissions or AI sticker/OpenAI strings in `dist/manifest.json` or `dist/assets`. |
 | 2026-07-04 | T118 UI copy minimization | Done | Resolved the stash conflict onto the non-AI release branch, removed dormant home-banner code/tests, trimmed Watch Focus, Focus Home, popup, options, auth, and status helper copy, and kept AI UI/runtime paths disabled. |
+| 2026-07-05 | T119 watch-page reveal friction | Done | Replaced one-click Watch Focus reveal controls with two-step per-surface confirmation, removed reveal-all, and preserved existing dimmed and inert YouTube DOM behavior. Verified with `npx playwright test tests/watch-soft-focus.spec.ts`, `npm run lint`, `npm run build`, `npm test` (100 passed, 34 skipped), a conflict-marker scan, and a built-output scan confirming no OpenAI host permission or AI sticker strings. |
 
 ## Decision Log
 
@@ -139,6 +140,7 @@ Next task: complete live Chrome manual verification and continue release packagi
 | AI text messages | Deferred | Sticker generation, background routing, content-script attachment, and AI tests are disabled for the non-AI release. |
 | AI images | Deferred | Low priority; do not start before AI production safety is explicitly reopened. |
 | UI copy minimization | Done | Watch Focus, Focus Home, popup, and options copy is concise; dormant home-banner code and tests were removed. |
+| Watch Focus reveal friction | Done | Watch-page suggestions and comments now require a two-step per-surface reveal, with no reveal-all shortcut, so distraction overrides stay deliberate. |
 | Gamification and retention | Deferred | Phase 4 with local-only session, streak, milestone, and popup or overlay feedback work. |
 | Store publishing | Deferred | Phase 5. |
 

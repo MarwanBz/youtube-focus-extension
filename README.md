@@ -32,7 +32,7 @@ The current stack is React 19, TypeScript, Vite, CRXJS, Tailwind CSS, Chrome Man
 
 ## Status
 
-Current stage: preparing a non-AI release. Focus Mode, Watch Later, playlist/channel shelves, temporary pause, OAuth import, and watch-page soft focus remain active; AI UI and runtime paths are preserved in code but disabled. UI copy minimization is complete.
+Current stage: preparing a non-AI release. Focus Mode, Watch Later, playlist/channel shelves, temporary pause, OAuth import, and watch-page soft focus remain active; AI UI and runtime paths are preserved in code but disabled. UI copy minimization and Watch Focus reveal friction are complete.
 
 Next concrete action: complete live Chrome manual verification and release packaging without OpenAI host permissions.
 
