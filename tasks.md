@@ -59,6 +59,7 @@ Current override: product priority now favors OAuth-first onboarding work. `T010
 | T117 | Todo | P2 | Polish Focus Sources settings UI | T115 | Options page presents one clear source picker/list with type labels, search/filter affordances, reorder controls, and clear empty states. |
 | T118 | Done | P2 | Minimize UI copy noise | T503, T110 | Watch Focus, Focus Home, popup, and options copy is concise; dormant verbose banner code is removed; behavior and accessibility are preserved by tests. |
 | T119 | Done | P2 | Add watch-page reveal friction | T503, T118 | Watch Focus uses a two-step reveal for suggestions and comments, removes reveal-all, keeps dimmed surfaces inert until confirmed, and resets reveal intent on each watch route. |
+| T120 | Done | P2 | Add release logo assets | T505 | Chrome extension icon files use the selected simple YouTube Focus mark on a transparent background, source/reference logo captures are saved, and the release package builds with the new icons. |
 
 ## Phase 3 - Persona And AI Content
 
