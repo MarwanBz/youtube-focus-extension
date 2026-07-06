@@ -4,7 +4,7 @@
 
 Stage: Phase 1 implementation is complete through temporary pause and unpacked packaging; live Chrome manual verification remains pending.
 
-Current focus: T119 is complete. AI UI/runtime paths remain disabled for the non-AI release, UI copy has been minimized, and Watch Focus now uses intentional two-step reveal controls.
+Current focus: T120 is complete. AI UI/runtime paths remain disabled for the non-AI release, and the selected simple logo mark is now prepared as transparent extension icon assets.
 
 Next task: complete live Chrome manual verification and continue release packaging without AI.
 
@@ -78,6 +78,7 @@ Next task: complete live Chrome manual verification and continue release packagi
 | 2026-07-04 | T507 non-AI release disable | Done | Commented out AI options UI, background message handling, content-script sticker requests, and sticker DOM helpers while preserving AI source files and package dependencies. Verified with `npm run lint`, `npm run build`, `npm test` (100 passed, 34 skipped), and a built-manifest check confirming no OpenAI host permissions or AI sticker/OpenAI strings in `dist/manifest.json` or `dist/assets`. |
 | 2026-07-04 | T118 UI copy minimization | Done | Resolved the stash conflict onto the non-AI release branch, removed dormant home-banner code/tests, trimmed Watch Focus, Focus Home, popup, options, auth, and status helper copy, and kept AI UI/runtime paths disabled. |
 | 2026-07-05 | T119 watch-page reveal friction | Done | Replaced one-click Watch Focus reveal controls with two-step per-surface confirmation, removed reveal-all, and preserved existing dimmed and inert YouTube DOM behavior. Verified with `npx playwright test tests/watch-soft-focus.spec.ts`, `npm run lint`, `npm run build`, `npm test` (100 passed, 34 skipped), a conflict-marker scan, and a built-output scan confirming no OpenAI host permission or AI sticker strings. |
+| 2026-07-06 | T120 release logo assets | Done | Added the selected ChatGPT logo concept as tracked brand source material, removed the dark tile background from the red play + white shield mark, enlarged the transparent mark for Chrome's extension toolbar, regenerated Chrome extension icon sizes, and prepared the release package with the updated icons. Verified alpha corners, `npm run build`, `npm run lint`, `npm test` (100 passed, 34 skipped), package contents, and a built-output scan confirming no OpenAI host permission or AI sticker strings. |
 
 ## Decision Log
 
